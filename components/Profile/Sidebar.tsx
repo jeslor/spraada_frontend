@@ -60,13 +60,6 @@ const Sidebar = ({ userId }: { userId: string }) => {
           );
         })}
       </div>
-
-      <div className="mt-8 pt-8 border-t border-gray-100">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-          <LogOut size={18} />
-          Sign Out
-        </button>
-      </div>
     </div>
   );
 };
