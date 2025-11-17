@@ -17,19 +17,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
-import { authAPI } from "@/lib/auth";
 import { SignInData, AuthError } from "@/types/auth";
-
-const signInSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-});
+import { signInSchema } from "@/lib/validators/Auth.validators";
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const Router = useRouter();
 
   const form = useForm<SignInData>({
     resolver: zodResolver(signInSchema),
@@ -43,15 +38,6 @@ const SignInPage = () => {
     try {
       setIsLoading(true);
       setError("");
-
-      const response = await authAPI.signIn(data);
-
-      // Store token
-      localStorage.setItem("access_token", response.access_token);
-      localStorage.setItem("user", JSON.stringify(response.user));
-
-      // Simple success message for demo - you can redirect later
-      alert("Successfully signed in!");
     } catch (err) {
       const authError = err as AuthError;
       setError(authError.message || "Failed to sign in. Please try again.");

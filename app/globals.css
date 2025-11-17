@@ -197,7 +197,7 @@
 
   /* Buttons */
   .auth-button {
-    @apply w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors;
+    @apply w-full h-11!  text-primary-foreground font-medium ;
   }
 
   .auth-link {

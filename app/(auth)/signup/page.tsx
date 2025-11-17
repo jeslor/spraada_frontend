@@ -16,29 +16,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
-import { authAPI } from "@/lib/auth";
 import { SignUpData, AuthError } from "@/types/auth";
-
-const signUpSchema = z
-  .object({
-    email: z.string().email("Please enter a valid email address"),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one lowercase letter, one uppercase letter, and one number"
-      ),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+import { signUpSchema } from "@/lib/validators/Auth.validators";
+import { useRouter } from "next/navigation";
 
 type FormData = z.infer<typeof signUpSchema>;
 
 const SignUpPage = () => {
+  const Router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string>("");
@@ -67,23 +52,32 @@ const SignUpPage = () => {
       setIsLoading(true);
       setError("");
 
-      const signUpData: SignUpData = {
-        email: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-      };
+      console.log(data);
 
-      const response = await authAPI.signUp(signUpData);
+      const response = await fetch(`http://localhost:4444/auth/sign-up`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-      // Store token
-      localStorage.setItem("access_token", response.access_token);
-      localStorage.setItem("user", JSON.stringify(response.user));
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to sign up");
+      }
 
-      // Simple success message for demo
-      alert("Account created successfully!");
+      const result = await response.json();
+      console.log("Sign up successful:", result);
+      Router.push("/");
+
+      // Remove confirmPassword before sending to API
     } catch (err) {
       const authError = err as AuthError;
-      if (authError.statusCode === 409) {
+      if (
+        authError.message.includes("already exists") ||
+        authError.message.includes("409")
+      ) {
         setError("An account with this email already exists.");
       } else {
         setError(
@@ -130,7 +124,7 @@ const SignUpPage = () => {
                     type="email"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Mail size={15} />}
+                    icon={<Mail size={13} />}
                     autoComplete="new-email"
                   />
                 </FormControl>
@@ -154,7 +148,7 @@ const SignUpPage = () => {
                     className="h-[45px] pl-10 text-[13px]!"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={15} />}
+                    icon={<Lock size={13} />}
                     showPasswordToggle={true}
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
@@ -204,7 +198,7 @@ const SignUpPage = () => {
                     type="password"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={15} />}
+                    icon={<Lock size={13} />}
                     showPasswordToggle={true}
                     showPassword={showConfirmPassword}
                     onTogglePassword={() =>
