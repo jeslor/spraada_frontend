@@ -54,13 +54,17 @@ const SignUpPage = () => {
 
       console.log(data);
 
-      const response = await fetch(`http://localhost:4444/auth/sign-up`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      console.log(response);
 
       if (!response.ok) {
         const errorData = await response.json();

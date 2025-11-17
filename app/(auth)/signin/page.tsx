@@ -38,6 +38,34 @@ const SignInPage = () => {
     try {
       setIsLoading(true);
       setError("");
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({
+          message: "Network error occurred",
+        }));
+
+        setError(errorData.message || "Failed to sign in. Please try again.");
+        return;
+      }
+
+      const result = await response.json();
+      if (result.access_token) {
+        localStorage.setItem("user", JSON.stringify(result.user));
+      }
+
+      // Simple success message for demo - you can redirect later
+      alert("Successfully signed in!");
+      Router.push("/");
     } catch (err) {
       const authError = err as AuthError;
       setError(authError.message || "Failed to sign in. Please try again.");
