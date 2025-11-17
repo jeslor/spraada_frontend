@@ -75,7 +75,11 @@ const SignInPage = () => {
 
       {/* Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="auth-form"
+          autoComplete="off"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -87,11 +91,12 @@ const SignInPage = () => {
                     name="email"
                     label="Email address"
                     placeholder="Enter your email"
-                    className="h-[45px] pl-10"
+                    className="h-[45px] pl-10 text-[13px]! "
                     type="email"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Mail size={18} />}
+                    icon={<Mail size={15} />}
+                    autoComplete="new-email"
                   />
                 </FormControl>
                 <FormMessage />
@@ -109,15 +114,16 @@ const SignInPage = () => {
                     {...field}
                     name="password"
                     label="Password"
-                    className="h-[45px] pl-10"
+                    className="h-[45px] pl-10 text-[13px]!"
                     placeholder="Enter your password"
                     type="password"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={18} />}
+                    icon={<Lock size={15} />}
                     showPasswordToggle={true}
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
+                    autoComplete="new-password"
                   />
                 </FormControl>
                 <FormMessage />

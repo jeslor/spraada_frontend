@@ -110,7 +110,11 @@ const SignUpPage = () => {
 
       {/* Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="auth-form">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="auth-form"
+          autoComplete="off"
+        >
           <FormField
             control={form.control}
             name="email"
@@ -120,13 +124,14 @@ const SignUpPage = () => {
                   <InputField
                     {...field}
                     name="email"
-                    className="h-[45px] pl-10"
+                    className="h-[45px] pl-10 text-[13px]!"
                     label="Email address"
                     placeholder="Enter your email"
                     type="email"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Mail size={18} />}
+                    icon={<Mail size={15} />}
+                    autoComplete="new-email"
                   />
                 </FormControl>
                 <FormMessage />
@@ -146,13 +151,14 @@ const SignUpPage = () => {
                     label="Password"
                     placeholder="Create a password"
                     type="password"
-                    className="h-[45px] pl-10"
+                    className="h-[45px] pl-10 text-[13px]!"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={18} />}
+                    icon={<Lock size={15} />}
                     showPasswordToggle={true}
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
+                    autoComplete="new-password"
                   />
                 </FormControl>
                 {password && (
@@ -193,17 +199,18 @@ const SignUpPage = () => {
                     {...field}
                     name="confirmPassword"
                     label="Confirm password"
-                    className="h-[45px] pl-10"
+                    className="h-[45px] pl-10 text-[13px]!"
                     placeholder="Confirm your password"
                     type="password"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={18} />}
+                    icon={<Lock size={15} />}
                     showPasswordToggle={true}
                     showPassword={showConfirmPassword}
                     onTogglePassword={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
+                    autoComplete="new-password"
                   />
                 </FormControl>
                 <FormMessage />

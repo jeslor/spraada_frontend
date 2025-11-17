@@ -21,6 +21,7 @@ interface InputFieldProps {
   showPassword?: boolean;
   onTogglePassword?: () => void;
   className?: string;
+  autoComplete?: string;
 }
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
@@ -40,6 +41,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       showPassword = false,
       onTogglePassword,
       className,
+      autoComplete,
       ...props
     },
     ref
@@ -62,6 +64,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             value={value}
             onChange={onChange}
             onBlur={onBlur}
+            autoComplete={autoComplete || "off"}
             className={cn(
               icon
                 ? "auth-input"
