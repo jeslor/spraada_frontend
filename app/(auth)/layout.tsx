@@ -7,7 +7,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Left Side - Branding & Image */}
       <div className="auth-brand-side">
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
+        {/* <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 transform rotate-12">
             <Wrench size={40} className="text-white" />
           </div>
@@ -26,14 +26,18 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="absolute top-1/4 right-1/3 transform rotate-45">
             <Hammer size={38} className="text-white" />
           </div>
-        </div>
+        </div> */}
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center items-center text-center text-white p-12">
+        <div className="relative z-10 flex flex-col justify-center items-center text-center text-white p-12 w-full">
           <div className="mb-8">
             <div className="flex items-center justify-center mb-6">
               <div className="auth-brand-icon mb-4">
-                <Wrench size={48} className="text-white" />
+                <img
+                  className="size-[70px] filter brightness-0 invert"
+                  src="/spraada_logo.webp"
+                  alt="logo"
+                />
               </div>
             </div>
             <h1 className="auth-brand-title">Spraada</h1>
@@ -44,7 +48,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
             <h2 className="text-2xl font-semibold mb-4">
               Borrow Tools from Your Community
             </h2>
-            <p className="text-lg text-blue-100 leading-relaxed">
+            <p className="text-sm text-blue-100 leading-relaxed">
               Need a drill for the weekend? Looking to rent out your unused
               tools? Connect with neighbors and get the job done together.
             </p>
