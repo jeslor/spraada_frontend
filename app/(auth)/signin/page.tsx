@@ -59,9 +59,7 @@ const SignInPage = () => {
       }
 
       const result = await response.json();
-      if (result.access_token) {
-        localStorage.setItem("user", JSON.stringify(result.user));
-      }
+      console.log("Sign-in successful:", result);
 
       // Simple success message for demo - you can redirect later
       alert("Successfully signed in!");
