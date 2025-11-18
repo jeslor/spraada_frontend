@@ -19,6 +19,7 @@ import {
 import InputField from "@/components/Form/InputFeild";
 import { SignInData, AuthError } from "@/types/auth";
 import { signInSchema } from "@/lib/validators/Auth.validators";
+import AuthenticateUser from "@/lib/actions/Auth.actions";
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -39,30 +40,12 @@ const SignInPage = () => {
       setIsLoading(true);
       setError("");
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-in`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({
-          message: "Network error occurred",
-        }));
-
-        setError(errorData.message || "Failed to sign in. Please try again.");
-        return;
+      const user = await AuthenticateUser(data, "sign-in");
+      if (user.error) {
+        throw new Error(user.error);
       }
 
-      const result = await response.json();
-      console.log("Sign-in successful:", result);
-
-      // Simple success message for demo - you can redirect later
-      alert("Successfully signed in!");
+      console.log("user signed in:", user);
       Router.push("/");
     } catch (err) {
       const authError = err as AuthError;

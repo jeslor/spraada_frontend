@@ -17,10 +17,9 @@ import {
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
 import { SignUpData, AuthError } from "@/types/auth";
-import { signUpSchema } from "@/lib/validators/Auth.validators";
+import { FormData, signUpSchema } from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
-
-type FormData = z.infer<typeof signUpSchema>;
+import AuthenticateUser from "@/lib/actions/Auth.actions";
 
 const SignUpPage = () => {
   const Router = useRouter();
@@ -52,27 +51,13 @@ const SignUpPage = () => {
       setIsLoading(true);
       setError("");
 
-      console.log(data);
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/sign-up`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-      console.log(response);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to sign up");
+      const user = await AuthenticateUser(data, "sign-up");
+      if (user.error) {
+        throw new Error(user.error);
       }
 
-      const result = await response.json();
-      console.log("Sign up successful:", result);
+      console.log("user created:", user);
+
       Router.push("/");
 
       // Remove confirmPassword before sending to API
