@@ -1,5 +1,8 @@
+"use server";
+
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type Session = {
   user: {
@@ -44,10 +47,23 @@ export async function getSession(): Promise<Session | null> {
   const sessionToken = sessionCookie.value;
 
   try {
-    const { payload } = await jwtVerify(sessionToken, encodedKey);
+    const { payload } = await jwtVerify(sessionToken, encodedKey, {
+      algorithms: ["HS256"],
+    });
     return payload as Session;
   } catch (error) {
     console.error("Invalid session token:", error);
-    return null;
+    return redirect("/signin");
   }
+}
+
+export async function clearSession() {
+  const cookieStore = await cookies();
+  cookieStore.set("session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    expires: new Date(0),
+    sameSite: "lax",
+    path: "/",
+  });
 }
