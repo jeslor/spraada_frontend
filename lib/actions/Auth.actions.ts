@@ -1,7 +1,9 @@
 "use server";
 
 import { SignInData } from "@/types/auth";
-import { createSession } from "../session/session";
+import { createSession, deleteSession } from "../session/session";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export const signUp = async (
   data: SignInData | undefined
@@ -93,4 +95,14 @@ export const signIn = async (
 
     return { error: (error as Error).message };
   }
+};
+
+//move this logic to the api route
+export const signOut = async (): Promise<void> => {
+  // Clear the session cookie
+  await deleteSession();
+
+  revalidatePath("/");
+
+  return redirect("/signin");
 };

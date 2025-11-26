@@ -94,7 +94,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
             </Button>
           )}
         </div>
-        {error && <p className="text-red-500 text-sm">{error.message}</p>}
       </div>
     );
   }

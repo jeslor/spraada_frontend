@@ -1,7 +1,15 @@
 import Image from "next/image";
 import { Wrench, Hammer, Drill, Settings } from "lucide-react";
+import { getSession } from "@/lib/session/session";
+import { redirect } from "next/navigation";
 
-const AuthLayout = ({ children }: { children: React.ReactNode }) => {
+const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
+  const session = await getSession();
+  console.log(session);
+  if (session && session.user) {
+    redirect("/");
+  }
+
   return (
     <div className="auth-layout fixed w-full">
       {/* Left Side - Branding & Image */}

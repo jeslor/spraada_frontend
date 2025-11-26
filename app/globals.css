@@ -242,8 +242,8 @@
   }
 
   /* Buttons */
-  .auth-button {
-    @apply w-full h-11 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400 text-primary-foreground font-medium transition-colors;
+  .spraada-primary-button {
+    @apply w-fit px-6 py-2 bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400 text-primary-foreground font-medium transition-colors;
   }
 
   .auth-link {

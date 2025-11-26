@@ -216,7 +216,11 @@ const SignUpPage = () => {
             </p>
           </div>
 
-          <Button type="submit" className="auth-button" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="spraada-primary-button h-11 w-full"
+            disabled={isLoading}
+          >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

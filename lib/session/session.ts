@@ -67,3 +67,8 @@ export async function clearSession() {
     path: "/",
   });
 }
+
+export async function deleteSession() {
+  const cookieStore = await cookies();
+  cookieStore.delete("spraada_session");
+}
