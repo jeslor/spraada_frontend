@@ -9,8 +9,8 @@ export type Session = {
     id: string;
     email: string;
   };
-  accessToken: string;
-  refreshToken: string;
+  // accessToken: string;
+  // refreshToken: string;
 };
 
 const sessionSecret = process.env.SESSION_SECRET;
@@ -27,7 +27,7 @@ export async function createSession(sessionData: Session) {
 
   // cookies() is a function that returns the cookies store; call it and set the cookie synchronously
   const cookieStore = await cookies();
-  cookieStore.set("session", session, {
+  cookieStore.set("spraada_session", session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expireAt,
@@ -38,7 +38,7 @@ export async function createSession(sessionData: Session) {
 
 export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("session");
+  const sessionCookie = cookieStore.get("spraada_session");
 
   if (!sessionCookie) {
     return null;

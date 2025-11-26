@@ -19,7 +19,7 @@ import {
 import InputField from "@/components/Form/InputFeild";
 import { SignInData, AuthError } from "@/types/auth";
 import { signInSchema } from "@/lib/validators/Auth.validators";
-import AuthenticateUser from "@/lib/actions/Auth.actions";
+import { signIn } from "@/lib/actions/Auth.actions";
 
 const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -40,8 +40,8 @@ const SignInPage = () => {
       setIsLoading(true);
       setError("");
 
-      const user = await AuthenticateUser(data, "sign-in");
-      if (user.error) {
+      const user = await signIn(data);
+      if (user && "error" in user) {
         throw new Error(user.error);
       }
 
