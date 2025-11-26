@@ -7,7 +7,7 @@ export interface User {
 export interface AuthResponse {
   access_token: string;
   refresh_token: string;
-  isOnboarded: boolean;
+  isOnboarded: boolean; // True False. 0 1
   user: User;
 }
 

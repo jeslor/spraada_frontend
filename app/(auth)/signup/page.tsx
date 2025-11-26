@@ -19,7 +19,7 @@ import InputField from "@/components/Form/InputFeild";
 import { SignUpData, AuthError } from "@/types/auth";
 import { FormData, signUpSchema } from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
-import AuthenticateUser from "@/lib/actions/Auth.actions";
+import { signUp } from "@/lib/actions/Auth.actions";
 
 const SignUpPage = () => {
   const Router = useRouter();
@@ -51,8 +51,8 @@ const SignUpPage = () => {
       setIsLoading(true);
       setError("");
 
-      const user = await AuthenticateUser(data, "sign-up");
-      if (user.error) {
+      const user = await signUp(data);
+      if (user && "error" in user) {
         throw new Error(user.error);
       }
 

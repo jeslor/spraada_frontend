@@ -1,13 +1,16 @@
+"use server";
+
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export type Session = {
   user: {
     id: string;
     email: string;
   };
-  accessToken: string;
-  refreshToken: string;
+  // accessToken: string;
+  // refreshToken: string;
 };
 
 const sessionSecret = process.env.SESSION_SECRET;
@@ -24,7 +27,7 @@ export async function createSession(sessionData: Session) {
 
   // cookies() is a function that returns the cookies store; call it and set the cookie synchronously
   const cookieStore = await cookies();
-  cookieStore.set("session", session, {
+  cookieStore.set("spraada_session", session, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expireAt,
@@ -35,7 +38,7 @@ export async function createSession(sessionData: Session) {
 
 export async function getSession(): Promise<Session | null> {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("session");
+  const sessionCookie = cookieStore.get("spraada_session");
 
   if (!sessionCookie) {
     return null;
@@ -44,10 +47,23 @@ export async function getSession(): Promise<Session | null> {
   const sessionToken = sessionCookie.value;
 
   try {
-    const { payload } = await jwtVerify(sessionToken, encodedKey);
+    const { payload } = await jwtVerify(sessionToken, encodedKey, {
+      algorithms: ["HS256"],
+    });
     return payload as Session;
   } catch (error) {
     console.error("Invalid session token:", error);
-    return null;
+    return redirect("/signin");
   }
+}
+
+export async function clearSession() {
+  const cookieStore = await cookies();
+  cookieStore.set("session", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    expires: new Date(0),
+    sameSite: "lax",
+    path: "/",
+  });
 }
