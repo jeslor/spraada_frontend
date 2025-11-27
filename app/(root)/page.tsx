@@ -1,15 +1,15 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/lib/actions/Auth.actions";
-import { deleteSession } from "@/lib/session/session";
-import React from "react";
+"use server";
+import AppBar from "@/components/AppBar";
+import { getSession } from "@/lib/session/session";
 
-const page = () => {
+const page = async () => {
+  const session = await getSession();
+  console.log(session);
+
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <Button className="spraada-primary-button " onClick={signOut}>
-        Sign out
-      </Button>
+      <AppBar />
+      <h1 className="text-[40px] ">Welcome to Spraada!</h1>
     </div>
   );
 };

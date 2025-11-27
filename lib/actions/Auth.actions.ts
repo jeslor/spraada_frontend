@@ -65,14 +65,13 @@ export const signIn = async (
       `${process.env.BACKEND_API_URL}/auth/sign-in`,
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       }
     );
-
-    console.log("Response status:", response);
 
     if (!response.status.toString().startsWith("2")) {
       console.log("Response not ok:", response.status, await response.text());
@@ -85,7 +84,7 @@ export const signIn = async (
     }
 
     const result = await response.json();
-    console.log(result);
+    console.log("Result on sign in action:", result);
 
     await createSession({
       user: {
