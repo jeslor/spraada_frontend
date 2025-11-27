@@ -46,6 +46,7 @@ export const signUp = async (
         email: result.email,
       },
       accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
@@ -74,8 +75,6 @@ export const signIn = async (
     );
 
     if (!response.status.toString().startsWith("2")) {
-      console.log("Response not ok:", response.status, await response.text());
-
       throw new Error(
         response.status === 403
           ? "Invalid credentials"
@@ -92,6 +91,7 @@ export const signIn = async (
         email: result.email,
       },
       accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
