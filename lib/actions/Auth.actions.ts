@@ -38,11 +38,14 @@ export const signUp = async (
     }
 
     const result = await response.json();
+    console.log(result);
+
     await createSession({
       user: {
         id: result.id,
         email: result.email,
       },
+      accessToken: result.access_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
@@ -62,6 +65,7 @@ export const signIn = async (
       `${process.env.BACKEND_API_URL}/auth/sign-in`,
       {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -69,12 +73,8 @@ export const signIn = async (
       }
     );
 
-    console.log("Response status:", response);
-
     if (!response.status.toString().startsWith("2")) {
       console.log("Response not ok:", response.status, await response.text());
-
-      console.log("Response headers:", response.headers);
 
       throw new Error(
         response.status === 403
@@ -84,11 +84,14 @@ export const signIn = async (
     }
 
     const result = await response.json();
+    console.log("Result on sign in action:", result);
+
     await createSession({
       user: {
         id: result.id,
         email: result.email,
       },
+      accessToken: result.access_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
