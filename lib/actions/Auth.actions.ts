@@ -38,11 +38,14 @@ export const signUp = async (
     }
 
     const result = await response.json();
+    console.log(result);
+
     await createSession({
       user: {
         id: result.id,
         email: result.email,
       },
+      accessToken: result.access_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
@@ -74,8 +77,6 @@ export const signIn = async (
     if (!response.status.toString().startsWith("2")) {
       console.log("Response not ok:", response.status, await response.text());
 
-      console.log("Response headers:", response.headers);
-
       throw new Error(
         response.status === 403
           ? "Invalid credentials"
@@ -84,11 +85,14 @@ export const signIn = async (
     }
 
     const result = await response.json();
+    console.log(result);
+
     await createSession({
       user: {
         id: result.id,
         email: result.email,
       },
+      accessToken: result.access_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);

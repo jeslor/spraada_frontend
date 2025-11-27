@@ -9,7 +9,7 @@ export type Session = {
     id: string;
     email: string;
   };
-  // accessToken: string;
+  accessToken: string;
   // refreshToken: string;
 };
 
