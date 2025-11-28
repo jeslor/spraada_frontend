@@ -1,5 +1,4 @@
 "use server";
-import AppBar from "@/components/AppBar";
 import { getSession } from "@/lib/session/session";
 
 const page = async () => {
@@ -8,7 +7,6 @@ const page = async () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <AppBar />
       <h1 className="text-[40px] ">Welcome to Spraada!</h1>
     </div>
   );
