@@ -1,17 +1,26 @@
+import customFetch from "@/lib/customFetch";
 import { getSession } from "@/lib/session/session";
 
-const page = async () => {
+const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const session = await getSession();
-  console.log(session);
+  const { id } = await params;
 
-  const myprofile = await fetch(`${process.env.BACKEND_API_URL}/profile/1`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${session?.accessToken}`,
-    },
-  }).then((res) => res.json());
-  console.log("profile page", myprofile);
+  const response = await customFetch(
+    `${process.env.BACKEND_API_URL}/profile/${id}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "GET",
+    }
+  );
+  console.log(response);
+
+  if (!response || response instanceof String) {
+    throw new Error("Failed to fetch profile data");
+  }
+  const myprofileData = await response.json();
+  console.log("profile page", myprofileData);
 
   return <div>page</div>;
 };

@@ -10,7 +10,7 @@ export type Session = {
     email: string;
   };
   accessToken: string;
-  // refreshToken: string;
+  refreshToken: string;
 };
 
 const sessionSecret = process.env.SESSION_SECRET;
@@ -71,4 +71,32 @@ export async function clearSession() {
 export async function deleteSession() {
   const cookieStore = await cookies();
   cookieStore.delete("spraada_session");
+}
+
+export async function updateTokesnsInSession({
+  accessToken,
+  refreshToken,
+}: {
+  accessToken: string;
+  refreshToken: string;
+}) {
+  try {
+    const cookie = await cookies();
+    if (!cookie || !cookie.get("spraada_session")) {
+      throw new Error("No active session found");
+    }
+    const session = await getSession();
+    if (!session) {
+      throw new Error("No active session found");
+    }
+    const updatedSession: Session = {
+      ...session,
+      accessToken,
+      refreshToken,
+    };
+    await createSession(updatedSession);
+    return;
+  } catch (error) {
+    console.error("Error updating tokens in session:", error);
+  }
 }

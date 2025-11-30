@@ -5,6 +5,7 @@ import { createSession, deleteSession } from "../session/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+//sign up a new user with email, password and confirm password, then return the access and refresh tokens
 export const signUp = async (
   data: SignInData | undefined
 ): Promise<void | { error: string }> => {
@@ -23,13 +24,7 @@ export const signUp = async (
       }
     );
 
-    console.log("Response status:", response);
-
     if (!response.status.toString().startsWith("2")) {
-      console.log("Response not ok:", response.status, await response.text());
-
-      console.log("Response headers:", response.headers);
-
       throw new Error(
         response.status === 403
           ? "Invalid credentials"
@@ -38,7 +33,6 @@ export const signUp = async (
     }
 
     const result = await response.json();
-    console.log(result);
 
     await createSession({
       user: {
@@ -46,14 +40,15 @@ export const signUp = async (
         email: result.email,
       },
       accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
-
     return { error: (error as Error).message };
   }
 };
 
+//Sign in new users with email and password and then return an access and refresh token
 export const signIn = async (
   data: SignInData | undefined
 ): Promise<void | { error: string }> => {
@@ -65,7 +60,6 @@ export const signIn = async (
       `${process.env.BACKEND_API_URL}/auth/sign-in`,
       {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -74,8 +68,6 @@ export const signIn = async (
     );
 
     if (!response.status.toString().startsWith("2")) {
-      console.log("Response not ok:", response.status, await response.text());
-
       throw new Error(
         response.status === 403
           ? "Invalid credentials"
@@ -84,7 +76,6 @@ export const signIn = async (
     }
 
     const result = await response.json();
-    console.log("Result on sign in action:", result);
 
     await createSession({
       user: {
@@ -92,10 +83,10 @@ export const signIn = async (
         email: result.email,
       },
       accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   } catch (error) {
     console.log("Authentication error:", error);
-
     return { error: (error as Error).message };
   }
 };
@@ -108,4 +99,48 @@ export const signOut = async (): Promise<void> => {
   revalidatePath("/");
 
   return redirect("/signin");
+};
+
+//get new refresh and access tokens from the backend
+export const getNewRefreshAndAccessToken = async (
+  oldRefreshToken: string,
+  userEmail: string,
+  id: number
+): Promise<
+  | {
+      access_token: string;
+      refresh_token: string;
+    }
+  | string
+> => {
+  try {
+    if (!oldRefreshToken) {
+      throw new Error("No refresh token provided");
+    }
+    const response = await fetch(
+      `${process.env.BACKEND_API_URL}/auth/refresh-tokens`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          refresh_token: oldRefreshToken,
+          email: userEmail,
+          id,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to refresh tokens");
+    }
+    const { access_token, refresh_token } = await response.json();
+    return {
+      access_token,
+      refresh_token,
+    };
+  } catch (error: any) {
+    return error.message as string;
+  }
 };
