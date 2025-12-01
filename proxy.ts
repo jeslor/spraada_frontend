@@ -4,7 +4,6 @@ import { getSession } from "./lib/session/session";
 
 export const proxy = async (req: NextRequest, targetUrl: string) => {
   const session = await getSession();
-  console.log(session);
 
   if (!session || !session.user) {
     return NextResponse.redirect(new URL("/signin", req.url));

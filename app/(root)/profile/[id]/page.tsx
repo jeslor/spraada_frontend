@@ -14,15 +14,17 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
       method: "GET",
     }
   );
-  console.log(response);
 
   if (!response || response instanceof String) {
     throw new Error("Failed to fetch profile data");
   }
   const myprofileData = await response.json();
-  console.log("profile page", myprofileData);
 
-  return <div>page</div>;
+  return (
+    <div className="min-h-screen flex justify-center items-center">
+      <h1 className="text-2xl font-bold">Profile</h1>
+    </div>
+  );
 };
 
 export default page;

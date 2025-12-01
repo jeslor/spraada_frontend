@@ -13,7 +13,10 @@ export default async function (
   try {
     const session = await getSession();
     if (!session) {
-      return new Error("No active session found");
+      return new Response(JSON.stringify({ error: "unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     options = {
@@ -30,22 +33,21 @@ export default async function (
       if (!session.refreshToken) {
         throw new Error("No refresh token available");
       }
-      // Try to get new tokens
 
-      const newTokens = await getNewRefreshAndAccessToken(
+      const access_token = await getNewRefreshAndAccessToken(
         session.refreshToken,
         session.user.email,
         Number(session.user.id)
       );
 
-      if (typeof newTokens === "string") {
-        throw new Error("Failed to refresh tokens: " + newTokens);
+      if (access_token instanceof Error) {
+        throw new Error("Failed to refresh tokens: " + access_token);
       }
 
       // Retry the original request with the new access token
       options.headers = {
         ...options.headers,
-        Authorization: `Bearer ${newTokens.access_token}`,
+        Authorization: `Bearer ${access_token.access_token}`,
       };
       response = await fetch(url, options);
 
