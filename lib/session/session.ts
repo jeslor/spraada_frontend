@@ -73,7 +73,7 @@ export async function deleteSession() {
   cookieStore.delete("spraada_session");
 }
 
-export async function updateTokesnsInSession({
+export async function updateTokensInSession({
   accessToken,
   refreshToken,
 }: {

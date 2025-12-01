@@ -56,8 +56,6 @@ const SignUpPage = () => {
         throw new Error(user.error);
       }
 
-      console.log("user created:", user);
-
       Router.push("/");
 
       // Remove confirmPassword before sending to API

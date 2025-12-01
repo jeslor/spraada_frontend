@@ -107,23 +107,16 @@ export const getNewRefreshAndAccessToken = async (
   userEmail: string,
   id: number
 ): Promise<
-  | {
-      access_token: string;
-      refresh_token: string;
-    }
-  | string
+  { access_token: string; updatedRefreshAndAccessToken: boolean } | Error
 > => {
+  if (!oldRefreshToken) throw new Error("No refresh token provided");
+
   try {
-    if (!oldRefreshToken) {
-      throw new Error("No refresh token provided");
-    }
     const response = await fetch(
       `${process.env.BACKEND_API_URL}/auth/refresh-tokens`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           refresh_token: oldRefreshToken,
           email: userEmail,
@@ -133,14 +126,36 @@ export const getNewRefreshAndAccessToken = async (
     );
 
     if (!response.ok) {
+      console.error("Backend refresh failed:", await response.text());
       throw new Error("Failed to refresh tokens");
     }
+
     const { access_token, refresh_token } = await response.json();
-    return {
-      access_token,
-      refresh_token,
-    };
-  } catch (error: any) {
-    return error.message as string;
+
+    try {
+      const updateSession = await fetch(
+        `${process.env.FRONTEND_URL}/api/auth/update-session-tokens`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accessToken: access_token,
+            refreshToken: refresh_token,
+          }),
+        }
+      );
+
+      if (!updateSession.ok) {
+        console.error("Session update failed:", await updateSession.text());
+        throw new Error("Failed to update session tokens");
+      }
+    } catch (error) {
+      throw error;
+    }
+
+    return { access_token, updatedRefreshAndAccessToken: true };
+  } catch (error) {
+    console.log("Error refreshing tokens:", error);
+    return error instanceof Error ? error : new Error("Unknown error occurred");
   }
 };
