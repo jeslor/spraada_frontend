@@ -1,7 +1,11 @@
 "use server";
 
 import { SignInData } from "@/types/auth";
-import { createSession, deleteSession } from "../session/session";
+import {
+  createSession,
+  deleteSession,
+  updateTokensInSession,
+} from "../session/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -106,9 +110,7 @@ export const getNewRefreshAndAccessToken = async (
   oldRefreshToken: string,
   userEmail: string,
   id: number
-): Promise<
-  { access_token: string; updatedRefreshAndAccessToken: boolean } | Error
-> => {
+): Promise<{ newAccessToken: string; newRefreshToken: string } | Error> => {
   if (!oldRefreshToken) throw new Error("No refresh token provided");
 
   try {
@@ -130,30 +132,44 @@ export const getNewRefreshAndAccessToken = async (
       throw new Error("Failed to refresh tokens");
     }
 
-    const { access_token, refresh_token } = await response.json();
+    const { access_token: newAccessToken, refresh_token: newRefreshToken } =
+      await response.json();
 
-    try {
-      const updateSession = await fetch(
-        `${process.env.FRONTEND_URL}/api/auth/update-session-tokens`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            accessToken: access_token,
-            refreshToken: refresh_token,
-          }),
-        }
-      );
+    // Call the API route handler to update the session (handles cookies properly)
+    //this technic seems not to be updating the session cookie properly, so we do it directly in the session.ts file
+    // try {
+    //   const updateResponse = await fetch(
+    //     `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/update-session-token`,
+    //     {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({
+    //         accessToken: access_token,
+    //         refreshToken: refresh_token,
+    //       }),
+    //     }
+    //   );
 
-      if (!updateSession.ok) {
-        console.error("Session update failed:", await updateSession.text());
-        throw new Error("Failed to update session tokens");
-      }
-    } catch (error) {
-      throw error;
-    }
+    //   // Check response status BEFORE trying to parse JSON
+    //   if (!updateResponse.ok) {
+    //     const errorText = await updateResponse.text();
+    //     console.error("Session update failed:", errorText);
+    //     throw new Error(
+    //       `Failed to update session tokens: ${updateResponse.status}`
+    //     );
+    //   }
 
-    return { access_token, updatedRefreshAndAccessToken: true };
+    //   // Now safely parse the JSON response
+    //   console.log("Session updated successfully with new tokens");
+    // } catch (error) {
+    //   console.error("Failed to update session:", error);
+    //   throw error;
+    // }
+
+    return {
+      newAccessToken,
+      newRefreshToken,
+    };
   } catch (error) {
     console.log("Error refreshing tokens:", error);
     return error instanceof Error ? error : new Error("Unknown error occurred");

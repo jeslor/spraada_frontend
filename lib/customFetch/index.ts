@@ -1,4 +1,4 @@
-import { getSession } from "../session/session";
+import { getSession, updateTokensInSession } from "../session/session";
 const { getNewRefreshAndAccessToken } = await import("../actions/Auth.actions");
 
 export interface CustomFetchOptions extends RequestInit {
@@ -34,20 +34,47 @@ export default async function (
         throw new Error("No refresh token available");
       }
 
-      const access_token = await getNewRefreshAndAccessToken(
+      const updateAccessTokens = await getNewRefreshAndAccessToken(
         session.refreshToken,
         session.user.email,
         Number(session.user.id)
       );
 
-      if (access_token instanceof Error) {
-        throw new Error("Failed to refresh tokens: " + access_token);
+      if (updateAccessTokens instanceof Error) {
+        throw new Error(
+          "Failed to refresh tokens: " + updateAccessTokens.message
+        );
+      }
+
+      // Call the API route handler to update the session (handles cookies properly)
+      // this technic seems not to be updating the session cookie properly, so we do it directly in the session.ts file
+      const updateResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/update-session-token`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accessToken: updateAccessTokens.newAccessToken,
+            refreshToken: updateAccessTokens.newRefreshToken,
+          }),
+        }
+      );
+
+      // Check response status BEFORE trying to parse JSON
+      if (!updateResponse.ok) {
+        // const errorText = await updateResponse.text();
+        console.error("Session update failed:");
+        throw new Error(
+          `Failed to update session tokens: ${updateResponse.status}`
+        );
+      } else {
+        console.log("Session updated successfully with new tokens");
       }
 
       // Retry the original request with the new access token
       options.headers = {
         ...options.headers,
-        Authorization: `Bearer ${access_token.access_token}`,
+        Authorization: `Bearer ${updateAccessTokens.newAccessToken}`,
       };
       response = await fetch(url, options);
 
