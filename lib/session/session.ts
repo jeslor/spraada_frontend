@@ -82,11 +82,8 @@ export async function updateTokensInSession({
 }) {
   try {
     const cookieStore = await cookies();
-    console.log(cookieStore, "++++++++++++++++++++++++++");
 
     const sessionCookie = cookieStore.get("spraada_session");
-
-    console.log(sessionCookie);
 
     if (!sessionCookie) {
       throw new Error("No active session cookie found");

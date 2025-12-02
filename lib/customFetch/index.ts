@@ -71,6 +71,7 @@ export default async function customFetch(
   }
 }
 
+// Update refresh and access tokens via API route
 const updateSessionWithNewTokens = async (
   newAccessToken: string,
   newRefreshToken: string

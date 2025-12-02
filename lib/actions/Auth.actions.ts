@@ -1,11 +1,7 @@
 "use server";
 
 import { SignInData } from "@/types/auth";
-import {
-  createSession,
-  deleteSession,
-  updateTokensInSession,
-} from "../session/session";
+import { createSession, deleteSession, getSession } from "../session/session";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -93,16 +89,6 @@ export const signIn = async (
     console.log("Authentication error:", error);
     return { error: (error as Error).message };
   }
-};
-
-//move this logic to the api route
-export const signOut = async (): Promise<void> => {
-  // Clear the session cookie
-  await deleteSession();
-
-  revalidatePath("/");
-
-  return redirect("/signin");
 };
 
 //get new refresh and access tokens from the backend
