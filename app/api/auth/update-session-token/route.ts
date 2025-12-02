@@ -5,6 +5,7 @@ export async function POST(request: NextRequest) {
   const { accessToken, refreshToken } = await request.json();
 
   if (!accessToken || !refreshToken) {
+    console.error("❌ [UPDATE_SESSION_TOKEN] Missing tokens");
     return NextResponse.json(
       { error: "Access token and refresh token are required" },
       { status: 400 }
@@ -12,30 +13,30 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    console.log("Route handler received tokens:", {
-      accessToken: accessToken.substring(0, 20) + "...",
-      refreshToken: refreshToken.substring(0, 20) + "...",
-    });
+    console.log(
+      "🔄 [UPDATE_SESSION_TOKEN] Updating session with new tokens..."
+    );
 
     await updateTokensInSession({
       accessToken,
       refreshToken,
     });
 
-    console.log("Tokens updated in session successfully");
+    console.log(
+      "✅ [UPDATE_SESSION_TOKEN] Tokens updated in session successfully"
+    );
 
     return NextResponse.json(
       {
         message: "Session tokens updated successfully",
-        data: {
-          accessToken,
-          refreshToken,
-        },
       },
       { status: 200 }
     );
   } catch (error: any) {
-    console.error("Error updating session tokens:", error);
+    console.error(
+      "❌ [UPDATE_SESSION_TOKEN] Error updating session tokens:",
+      error
+    );
     return NextResponse.json(
       {
         error: "Failed to update session tokens: " + error.message,

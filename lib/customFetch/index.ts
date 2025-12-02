@@ -1,12 +1,13 @@
 import { getSession, updateTokensInSession } from "../session/session";
-const { getNewRefreshAndAccessToken } = await import("../actions/Auth.actions");
+import { getNewRefreshAndAccessToken } from "../actions/Auth.actions";
+import { cookies } from "next/headers";
 
 export interface CustomFetchOptions extends RequestInit {
   // You can add custom options here if needed
   headers?: Record<string, string>;
 }
 
-export default async function (
+export default async function customFetch(
   url: string | URL,
   options: CustomFetchOptions = {}
 ): Promise<Response | any> {
@@ -34,42 +35,22 @@ export default async function (
         throw new Error("No refresh token available");
       }
 
+      //get new access and refresh tokens
       const updateAccessTokens = await getNewRefreshAndAccessToken(
         session.refreshToken,
         session.user.email,
         Number(session.user.id)
       );
 
-      if (updateAccessTokens instanceof Error) {
-        throw new Error(
-          "Failed to refresh tokens: " + updateAccessTokens.message
-        );
+      if (!updateAccessTokens || updateAccessTokens instanceof Error) {
+        throw new Error("Failed to refresh tokens");
       }
 
-      // Call the API route handler to update the session (handles cookies properly)
-      // this technic seems not to be updating the session cookie properly, so we do it directly in the session.ts file
-      const updateResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/update-session-token`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            accessToken: updateAccessTokens.newAccessToken,
-            refreshToken: updateAccessTokens.newRefreshToken,
-          }),
-        }
+      // update the session with new tokens using the API route
+      await updateSessionWithNewTokens(
+        updateAccessTokens.newAccessToken,
+        updateAccessTokens.newRefreshToken
       );
-
-      // Check response status BEFORE trying to parse JSON
-      if (!updateResponse.ok) {
-        // const errorText = await updateResponse.text();
-        console.error("Session update failed:");
-        throw new Error(
-          `Failed to update session tokens: ${updateResponse.status}`
-        );
-      } else {
-        console.log("Session updated successfully with new tokens");
-      }
 
       // Retry the original request with the new access token
       options.headers = {
@@ -77,12 +58,57 @@ export default async function (
         Authorization: `Bearer ${updateAccessTokens.newAccessToken}`,
       };
       response = await fetch(url, options);
-
-      return response;
     }
+
+    return response;
   } catch (error: Error | any) {
     console.log("error from the custom fetch", error);
 
-    return JSON.stringify({ error: error.message });
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
+
+const updateSessionWithNewTokens = async (
+  newAccessToken: string,
+  newRefreshToken: string
+) => {
+  try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+
+    // Call the API route handler to update the session (handles cookies properly)
+    const updateResponse = await fetch(
+      `${process.env.FRONTEND_URL}/api/auth/update-session-token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieHeader,
+        },
+        body: JSON.stringify({
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
+        }),
+      }
+    );
+
+    // Check response status BEFORE trying to parse JSON
+    if (!updateResponse.ok) {
+      const errorText = await updateResponse.text();
+      console.error("Session update failed:", errorText);
+      throw new Error(
+        `Failed to update session tokens: ${updateResponse.status}`
+      );
+    }
+
+    const updateResult = await updateResponse.json();
+    // Now safely parse the JSON response
+    console.log("Session update response:", updateResult.message);
+  } catch (error: any) {
+    console.error("❌ [UPDATE_SESSION] Error updating session tokens:", error);
+    throw new Error("Failed to update session tokens: " + error.message);
+  }
+};
