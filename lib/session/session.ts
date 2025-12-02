@@ -81,22 +81,74 @@ export async function updateTokensInSession({
   refreshToken: string;
 }) {
   try {
-    const cookie = await cookies();
-    if (!cookie || !cookie.get("spraada_session")) {
-      throw new Error("No active session found");
+    console.log("🔵 updateTokensInSession called with tokens:", {
+      accessTokenLength: accessToken?.length,
+      refreshTokenLength: refreshToken?.length,
+    });
+
+    const cookieStore = await cookies();
+    console.log("🔵 Cookie store retrieved");
+
+    const sessionCookie = cookieStore.get("spraada_session");
+    console.log("🔵 Session cookie:", {
+      exists: !!sessionCookie,
+      name: sessionCookie?.name,
+      valueLength: sessionCookie?.value?.length,
+    });
+
+    if (!sessionCookie) {
+      throw new Error("No active session cookie found");
     }
-    const session = await getSession();
+
+    // Manually decrypt the session JWT to avoid redirect() call
+    let session: Session;
+    try {
+      console.log("🔵 Attempting to verify JWT...");
+      const { payload } = await jwtVerify(sessionCookie.value, encodedKey, {
+        algorithms: ["HS256"],
+      });
+      session = payload as Session;
+      console.log("🔵 JWT verified successfully");
+    } catch (error) {
+      console.error("🔴 Failed to verify session token:", error);
+      throw new Error("Invalid session token");
+    }
+
     if (!session) {
-      throw new Error("No active session found");
+      throw new Error("No active session data found");
     }
+
     const updatedSession: Session = {
       ...session,
       accessToken,
       refreshToken,
     };
-    await createSession(updatedSession);
+
+    // Create a new signed JWT with updated tokens
+    const expireAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    console.log("🔵 Creating new session JWT...");
+    const newSessionToken = await new SignJWT(updatedSession)
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(expireAt)
+      .sign(encodedKey);
+
+    console.log("🔵 New session JWT created, length:", newSessionToken.length);
+
+    // Set the updated session cookie
+    cookieStore.set("spraada_session", newSessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: expireAt,
+      sameSite: "lax",
+      path: "/",
+    });
+
+    console.log("🔵 Session cookie updated successfully");
+
     return;
   } catch (error) {
-    console.error("Error updating tokens in session:", error);
+    console.error("🔴 Error updating tokens in session:", error);
+    throw error;
   }
 }

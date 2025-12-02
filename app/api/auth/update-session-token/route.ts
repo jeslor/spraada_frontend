@@ -1,31 +1,45 @@
 import { updateTokensInSession } from "@/lib/session/session";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  const { access_token, refresh_token } = await request.json();
+  const { accessToken, refreshToken } = await request.json();
 
-  if (!access_token || !refresh_token) {
-    return new Response(
-      JSON.stringify({ error: "Access token and refresh token are required" }),
+  if (!accessToken || !refreshToken) {
+    return NextResponse.json(
+      { error: "Access token and refresh token are required" },
       { status: 400 }
     );
   }
 
   try {
-    await updateTokensInSession({
-      accessToken: access_token,
-      refreshToken: refresh_token,
+    console.log("Route handler received tokens:", {
+      accessToken: accessToken.substring(0, 20) + "...",
+      refreshToken: refreshToken.substring(0, 20) + "...",
     });
-    return new Response(
-      JSON.stringify({ message: "Session tokens updated successfully" }),
+
+    await updateTokensInSession({
+      accessToken,
+      refreshToken,
+    });
+
+    console.log("Tokens updated in session successfully");
+
+    return NextResponse.json(
+      {
+        message: "Session tokens updated successfully",
+        data: {
+          accessToken,
+          refreshToken,
+        },
+      },
       { status: 200 }
     );
   } catch (error: any) {
     console.error("Error updating session tokens:", error);
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         error: "Failed to update session tokens: " + error.message,
-      }),
+      },
       { status: 500 }
     );
   }

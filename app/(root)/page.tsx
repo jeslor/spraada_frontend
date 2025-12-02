@@ -1,10 +1,4 @@
-"use server";
-import { getSession } from "@/lib/session/session";
-
 const page = async () => {
-  const session = await getSession();
-  console.log(session);
-
   return (
     <div className="flex justify-center items-center min-h-screen">
       <h1 className="text-[40px] ">Welcome to Spraada!</h1>
