@@ -1,4 +1,5 @@
 "use client";
+import { Icon } from "@iconify/react";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -7,7 +8,6 @@ import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -148,6 +148,17 @@ const SignInPage = () => {
           </Button>
         </form>
       </Form>
+
+      <div>
+        <p className="text-center text-sm text-gray-600">or</p>
+        <a
+          href={`${process.env.BACKEND_API_URL}/auth/google/login`}
+          className="spraada-google-button h-11 w-full bg-slate-50 text-slate-700 hover:text-slate-50 hover:bg-primary-300 mt-4 border-white shadow-sm flex items-center justify-center gap-2 transition-all text-[14px] font-semibold"
+        >
+          <Icon icon="devicon:google" className="h-6 w-6"></Icon>
+          Continue with Google
+        </a>
+      </div>
 
       {/* Footer */}
       <div className="auth-footer">
