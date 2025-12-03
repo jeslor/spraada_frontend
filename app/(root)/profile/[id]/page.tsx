@@ -20,6 +20,8 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   }
   const myprofileData = await response.json();
 
+  console.log(myprofileData);
+
   return (
     <div className="min-h-screen flex justify-center items-center">
       <h1 className="text-2xl font-bold">Profile</h1>
