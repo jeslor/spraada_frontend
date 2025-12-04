@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -30,6 +30,7 @@ import {
 import { useRouter } from "next/navigation";
 import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
+import CropImage from "./CropImage";
 
 const steps = [
   {
@@ -48,6 +49,10 @@ const OnboardingForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [croppedFile, setCroppedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const form = useForm<OnboardingData>({
@@ -63,6 +68,20 @@ const OnboardingForm = () => {
     mode: "onChange",
   });
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+      // Reset file input so same file can be selected again if needed
+      e.target.value = "";
+    }
+  };
+
+  const handleCropSave = (url: string, file: File) => {
+    setPreviewUrl(url);
+    setCroppedFile(file);
+    setSelectedFile(null);
+  };
+
   const onSubmit = async (data: OnboardingData) => {
     try {
       setIsLoading(true);
@@ -70,7 +89,21 @@ const OnboardingForm = () => {
 
       console.log("Onboarding data collected:", data);
 
-      // TODO: Upload photo logic here
+      // Prepare FormData if we have a file, otherwise JSON
+      // Note: The current backend endpoint expects JSON.
+      // If we need to upload the file, we should likely upload it first to get a URL
+      // or send everything as FormData if the backend supports it.
+      // For now, we'll stick to the existing JSON structure but log the file.
+
+      if (croppedFile) {
+        console.log("File ready for upload:", croppedFile);
+        // TODO: Implement actual file upload logic here
+        // const formData = new FormData();
+        // formData.append('file', croppedFile);
+        // const uploadRes = await customFetch('/upload', { method: 'POST', body: formData });
+        // const { url } = await uploadRes.json();
+        // data.avatarUrl = url;
+      }
 
       // Submit profile data
       const response = await customFetch(
@@ -116,10 +149,20 @@ const OnboardingForm = () => {
 
   return (
     <div className="w-full max-w-[1000px] mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden grid md:grid-cols-[300px_1fr] min-h-[600px] mt-7">
+      {/* Crop Image Overlay */}
+      {selectedFile && (
+        <CropImage
+          file={selectedFile}
+          onCancel={() => setSelectedFile(null)}
+          onSave={handleCropSave}
+          aspectRatio={1}
+        />
+      )}
+
       {/* Left Sidebar */}
-      <div className="w-full  bg-gray-50 p-8 border-r border-gray-100 flex flex-col">
+      <div className="w-full  bg-primary-800 p-8 border-r border-gray-100 flex flex-col">
         <div className="mb-10">
-          <p className="text-sm text-gray-500 mt-2 font-semibold">
+          <p className="text-sm text-gray-300 mt-2 font-semibold">
             Complete your profile
           </p>
         </div>
@@ -201,9 +244,33 @@ const OnboardingForm = () => {
             >
               {currentStep === 1 && (
                 <div className="flex flex-col items-center justify-center py-12 space-y-6">
-                  <div className="relative group cursor-pointer">
-                    <div className="w-40 h-40 rounded-full bg-gray-50 border-4 border-dashed border-gray-200 flex items-center justify-center overflow-hidden group-hover:border-[#073d44] transition-all duration-300">
-                      <User className="w-16 h-16 text-gray-300 group-hover:text-[#073d44] transition-colors" />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/jpg, image/heic"
+                    onChange={handleFileSelect}
+                  />
+
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <div
+                      className={cn(
+                        "w-40 h-40 rounded-full bg-gray-50 border-4 border-dashed border-gray-200 flex items-center justify-center overflow-hidden group-hover:border-[#073d44] transition-all duration-300",
+                        previewUrl && "border-solid border-[#073d44]"
+                      )}
+                    >
+                      {previewUrl ? (
+                        <img
+                          src={previewUrl}
+                          alt="Profile Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-16 h-16 text-gray-300 group-hover:text-[#073d44] transition-colors" />
+                      )}
                     </div>
                     <div className="absolute bottom-2 right-2 bg-[#073d44] p-3 rounded-full text-white shadow-lg hover:bg-[#052c31] transition-colors">
                       <Camera size={20} />
@@ -211,7 +278,7 @@ const OnboardingForm = () => {
                   </div>
                   <div className="text-center max-w-xs">
                     <h3 className="font-medium text-gray-900">
-                      Upload your photo
+                      {previewUrl ? "Change photo" : "Upload your photo"}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1">
                       Photos help other members recognize you and build trust in
@@ -222,8 +289,9 @@ const OnboardingForm = () => {
                     type="button"
                     variant="outline"
                     className="mt-4 border-[#073d44] text-[#073d44] hover:bg-[#073d44]/5"
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    Choose File
+                    {previewUrl ? "Change Image" : "Choose Image"}
                   </Button>
                 </div>
               )}
