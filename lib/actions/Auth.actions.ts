@@ -38,6 +38,8 @@ export const signUp = async (
       user: {
         id: result.id,
         email: result.email,
+        isOnboarded: result.isOnboarded,
+        role: result.role,
       },
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
@@ -81,6 +83,8 @@ export const signIn = async (
       user: {
         id: result.id,
         email: result.email,
+        isOnboarded: result.isOnboarded,
+        role: result.role,
       },
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
