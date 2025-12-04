@@ -2,6 +2,7 @@ import React, { forwardRef } from "react";
 import { Label } from "../ui/label";
 import { cn } from "@/lib/utils";
 import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { FieldError } from "react-hook-form";
@@ -14,7 +15,9 @@ interface InputFieldProps {
   disabled?: boolean;
   type?: string;
   value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
   onBlur?: () => void;
   icon?: React.ReactNode;
   showPasswordToggle?: boolean;
@@ -22,9 +25,14 @@ interface InputFieldProps {
   onTogglePassword?: () => void;
   className?: string;
   autoComplete?: string;
+  multiline?: boolean;
+  rows?: number;
 }
 
-const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
+const InputField = forwardRef<
+  HTMLInputElement | HTMLTextAreaElement,
+  InputFieldProps
+>(
   (
     {
       name,
@@ -42,6 +50,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       onTogglePassword,
       className,
       autoComplete,
+      multiline = false,
+      rows = 4,
       ...props
     },
     ref
@@ -51,33 +61,72 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
         <Label htmlFor={name} className="auth-label">
           {label}
         </Label>
-        <div className="auth-input-group">
-          {icon && <div className="auth-input-icon">{icon}</div>}
-          <Input
-            {...props}
-            ref={ref}
-            type={showPasswordToggle && showPassword ? "text" : type}
-            id={name}
-            name={name}
-            placeholder={placeholder}
-            disabled={disabled}
-            value={value}
-            onChange={onChange}
-            onBlur={onBlur}
-            autoComplete={autoComplete || "off"}
-            className={cn(
-              icon
-                ? "auth-input"
-                : "h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500",
-              showPasswordToggle ? "auth-input-with-toggle" : "",
-              {
-                "opacity-50 cursor-not-allowed": disabled,
-                "border-red-500 focus:border-red-500": error,
-              },
-              className
-            )}
-          />
-          {showPasswordToggle && (
+        <div className="auth-input-group relative">
+          {icon && (
+            <div
+              className={cn(
+                "auth-input-icon",
+                multiline && "top-5 transform-none"
+              )}
+            >
+              {icon}
+            </div>
+          )}
+          {multiline ? (
+            <Textarea
+              {...props}
+              ref={ref as React.Ref<HTMLTextAreaElement>}
+              id={name}
+              name={name}
+              placeholder={placeholder}
+              disabled={disabled}
+              value={value}
+              onChange={
+                onChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+              }
+              onBlur={onBlur}
+              rows={rows}
+              className={cn(
+                icon
+                  ? "pl-10"
+                  : "border-gray-200 focus:border-blue-500 focus:ring-blue-500",
+                {
+                  "opacity-50 cursor-not-allowed": disabled,
+                  "border-red-500 focus:border-red-500": error,
+                },
+                " min-h-[100px] w-full ",
+                className
+              )}
+            />
+          ) : (
+            <Input
+              {...props}
+              ref={ref as React.Ref<HTMLInputElement>}
+              type={showPasswordToggle && showPassword ? "text" : type}
+              id={name}
+              name={name}
+              placeholder={placeholder}
+              disabled={disabled}
+              value={value}
+              onChange={
+                onChange as (e: React.ChangeEvent<HTMLInputElement>) => void
+              }
+              onBlur={onBlur}
+              autoComplete={autoComplete || "off"}
+              className={cn(
+                icon
+                  ? "auth-input"
+                  : "h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500",
+                showPasswordToggle ? "auth-input-with-toggle" : "",
+                {
+                  "opacity-50 cursor-not-allowed": disabled,
+                  "border-red-500 focus:border-red-500": error,
+                },
+                className
+              )}
+            />
+          )}
+          {showPasswordToggle && !multiline && (
             <Button
               type="button"
               variant="ghost"

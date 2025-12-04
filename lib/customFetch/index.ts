@@ -1,3 +1,4 @@
+"use server";
 import { getSession, updateTokensInSession } from "../session/session";
 import { getNewRefreshAndAccessToken } from "../actions/Auth.actions";
 import { cookies } from "next/headers";
