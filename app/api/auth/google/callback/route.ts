@@ -11,12 +11,16 @@ export async function GET(request: NextRequest) {
     const refresh_token = searchParams.get("refresh_token");
     const userId = searchParams.get("id");
     const userEmail = searchParams.get("email");
+    const isOnboarded = searchParams.get("isOnboarded");
+    const role = searchParams.get("role");
 
     console.log("🔍 [GOOGLE_CALLBACK_GET] Data received:", {
       has_access_token: !!access_token,
       has_refresh_token: !!refresh_token,
       userId,
       userEmail,
+      isOnboarded,
+      role,
     });
 
     // Validate required fields
@@ -26,6 +30,8 @@ export async function GET(request: NextRequest) {
         has_refresh_token: !!refresh_token,
         userId,
         userEmail,
+        isOnboarded,
+        role,
       });
       return NextResponse.redirect(
         new URL(
@@ -59,6 +65,8 @@ export async function GET(request: NextRequest) {
       user: {
         id: String(userId),
         email: String(userEmail),
+        isOnboarded: isOnboarded === "true",
+        role: String(role),
       },
       accessToken: String(access_token),
       refreshToken: String(refresh_token),

@@ -2,6 +2,7 @@
 import { Session } from "@/lib/session/session";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
+import Link from "next/link";
 
 const AppBar = ({ session }: { session: Session | null }) => {
   const Router = useRouter();
@@ -20,13 +21,13 @@ const AppBar = ({ session }: { session: Session | null }) => {
         <div className="text-xl font-bold">Spraada</div>
         <ul className="flex justify-between gap-x-5">
           <li className="">
-            <a href="/">Home</a>
+            <Link href="/">Home</Link>
           </li>
           <li className="">
-            <a href="/profile/1">Profile</a>
+            <Link href="/profile/1">Profile</Link>
           </li>
           <li className="">
-            <a href="/settings">Settings</a>
+            <Link href="/settings">Settings</Link>
           </li>
         </ul>
         {session ? (

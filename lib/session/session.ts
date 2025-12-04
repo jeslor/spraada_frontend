@@ -8,6 +8,8 @@ export type Session = {
   user: {
     id: string;
     email: string;
+    isOnboarded: boolean;
+    role: string;
   };
   accessToken: string;
   refreshToken: string;

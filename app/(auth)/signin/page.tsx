@@ -1,10 +1,9 @@
 "use client";
 import { Icon } from "@iconify/react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
@@ -21,7 +20,10 @@ import { SignInData, AuthError } from "@/types/auth";
 import { signInSchema } from "@/lib/validators/Auth.validators";
 import { signIn } from "@/lib/actions/Auth.actions";
 
+const backendURL = "http://localhost:4444";
+
 const SignInPage = () => {
+  const [url, setUrl] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +56,10 @@ const SignInPage = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setUrl(`${backendURL}/auth/google/login`);
+  }, []);
 
   return (
     <>
@@ -149,17 +155,18 @@ const SignInPage = () => {
         </form>
       </Form>
 
-      <div>
-        <p className="text-center text-sm text-gray-600">or</p>
-        <a
-          href={`${process.env.BACKEND_API_URL}/auth/google/login`}
-          className="spraada-google-button h-11 w-full bg-slate-50 text-slate-700 hover:text-slate-50 hover:bg-primary-300 mt-4 border-white shadow-sm flex items-center justify-center gap-2 transition-all text-[14px] font-semibold"
-        >
-          <Icon icon="devicon:google" className="h-6 w-6"></Icon>
-          Continue with Google
-        </a>
-      </div>
-
+      {url && (
+        <div>
+          <p className="text-center text-sm text-gray-600">or</p>
+          <a
+            href={url}
+            className="spraada-google-button h-11 w-full bg-slate-50 text-slate-700 hover:text-slate-50 hover:bg-primary-300 mt-4 border-white shadow-sm flex items-center justify-center gap-2 transition-all text-[14px] font-semibold"
+          >
+            <Icon icon="devicon:google" className="h-6 w-6"></Icon>
+            Continue with Google
+          </a>
+        </div>
+      )}
       {/* Footer */}
       <div className="auth-footer">
         <p>

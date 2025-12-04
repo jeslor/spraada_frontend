@@ -1,8 +1,9 @@
+import customFetch from "@/lib/customFetch";
 import { deleteSession, getSession } from "@/lib/session/session";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest, response: NextResponse) {
+export async function GET(req: NextRequest, res: Response) {
   try {
     const session = await getSession();
 
@@ -12,16 +13,13 @@ export async function GET(request: NextRequest, response: NextResponse) {
         headers: { "Content-Type": "application/json" },
       });
     }
-    const response = await fetch(
+    const response = await customFetch(
       `${process.env.BACKEND_API_URL}/auth/sign-out`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          id: session.user.id,
-        }),
       }
     );
 
@@ -38,13 +36,8 @@ export async function GET(request: NextRequest, response: NextResponse) {
 
     await deleteSession();
 
-    return new Response(
-      JSON.stringify({ message: "Signed out successfully" }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    revalidatePath("/");
+    return NextResponse.redirect(new URL("/", req.url));
   } catch (error: any) {
     console.error("Error during sign out:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

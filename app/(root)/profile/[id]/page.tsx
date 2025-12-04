@@ -2,7 +2,6 @@ import customFetch from "@/lib/customFetch";
 import { getSession } from "@/lib/session/session";
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
-  const session = await getSession();
   const { id } = await params;
 
   const response = await customFetch(
@@ -19,7 +18,7 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
     throw new Error("Failed to fetch profile data");
   }
   const myprofileData = await response.json();
-
+  console.log("myprofileData", myprofileData);
   return (
     <div className="min-h-screen flex justify-center items-center">
       <h1 className="text-2xl font-bold">Profile</h1>
