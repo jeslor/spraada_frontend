@@ -3,6 +3,7 @@
 import { SignInData } from "@/types/auth";
 import { createSession, deleteSession, getSession } from "../session/session";
 import { cookies } from "next/headers";
+import customFetch from "../customFetch";
 
 //sign up a new user with email, password and confirm password, then return the access and refresh tokens
 export const signUp = async (
@@ -178,5 +179,74 @@ const updateSessionWithNewTokens = async (
   } catch (error: any) {
     console.error("❌ [UPDATE_SESSION] Error updating session tokens:", error);
     throw new Error("Failed to update session tokens: " + error.message);
+  }
+};
+
+export const updateUserDataInSession = async ({
+  userRole,
+  UserOnboarded,
+}: {
+  userRole: string;
+  UserOnboarded: boolean;
+}) => {
+  try {
+    const cookiesStore = await cookies();
+    const cookieHeader = cookiesStore.toString();
+
+    const response = await fetch(
+      `${
+        process.env.FRONTEND_URL || "http://localhost:3000"
+      }/api/auth/update-session-user`,
+      {
+        method: "POST",
+        headers: {
+          Cookie: cookieHeader,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userRole,
+          UserOnboarded,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.log("Failed to update user data:", await response.text());
+      return;
+    }
+
+    console.log("Updated user data successfully");
+  } catch (error) {
+    console.log("Error updating user data in session:", error);
+  }
+};
+
+export const getUser = async (id: string) => {
+  try {
+    const response = await customFetch(
+      `${process.env.BACKEND_API_URL || "http://localhost:4444"}/auth/${id}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log(response, "response from getUser");
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch user data"
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    console.log("Error fetching user data:", error);
+    return null;
   }
 };

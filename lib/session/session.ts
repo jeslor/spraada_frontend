@@ -143,3 +143,69 @@ export async function updateTokensInSession({
     throw error;
   }
 }
+
+export async function updateSessionUserData({
+  userRole,
+  UserOnboarded,
+}: {
+  userRole: string;
+  UserOnboarded: boolean;
+}) {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("spraada_session");
+
+    if (!sessionCookie) {
+      throw new Error("No active session cookie found");
+    }
+
+    // Manually decrypt the session JWT to avoid redirect() call
+    let session: Session;
+    try {
+      console.log("🔵 Attempting to verify JWT...");
+      const { payload } = await jwtVerify(sessionCookie.value, encodedKey, {
+        algorithms: ["HS256"],
+      });
+      session = payload as Session;
+      console.log("🔵 JWT verified successfully");
+    } catch (error) {
+      console.error("🔴 Failed to verify session token:", error);
+      throw new Error("Invalid session token");
+    }
+
+    if (!session) {
+      throw new Error("No active session data found");
+    }
+
+    const updatedSession: Session = {
+      ...session,
+      user: {
+        ...session.user,
+        ...{ role: userRole, isOnboarded: UserOnboarded },
+      },
+    };
+
+    // Create a new signed JWT with updated user data
+    const expireAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    console.log("🔵 Creating new session JWT...");
+    const newSessionToken = await new SignJWT(updatedSession)
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(expireAt)
+      .sign(encodedKey);
+
+    console.log("🔵 New session JWT created, length:", newSessionToken.length);
+
+    // Set the updated session cookie
+    cookieStore.set("spraada_session", newSessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      expires: expireAt,
+      sameSite: "lax",
+      path: "/",
+    });
+  } catch (error) {
+    console.error("🔴 Error updating user data in session:", error);
+    throw error;
+  }
+}

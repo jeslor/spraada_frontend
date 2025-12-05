@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
+import { updateUserDataInSession } from "@/lib/actions/Auth.actions";
 
 const steps = [
   {
@@ -50,8 +51,7 @@ const steps = [
   },
 ];
 
-const OnboardingForm = () => {
-  const Router = useRouter();
+const OnboardingForm = ({ userRole }: { userRole: string }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
@@ -59,7 +59,6 @@ const OnboardingForm = () => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profileUpdated, setProfileUpdated] = useState(false);
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -109,8 +108,6 @@ const OnboardingForm = () => {
       let uploadedImage;
       setError("");
 
-      console.log("Onboarding data collected:", data);
-
       // 1. Upload Image
       const formData = new FormData();
       formData.append("images", croppedFile);
@@ -134,13 +131,14 @@ const OnboardingForm = () => {
             "Failed to upload profile image"
         );
       }
-      uploadedImage = uploadRes.data;
+
+      uploadedImage = uploadRes.data[0];
 
       // 2. Submit Profile Data
       const userProfileData = {
         ...data,
         avatarUrl: uploadedImage ? uploadedImage.url : null,
-        avatarKey: uploadedImage ? uploadedImage.key : null,
+        avatarUrlKey: uploadedImage ? uploadedImage.key : null,
       };
 
       const response = await customFetch(
@@ -153,7 +151,6 @@ const OnboardingForm = () => {
           body: JSON.stringify(userProfileData),
         }
       );
-      console.log(response);
 
       if (!response.ok) {
         throw new Error(
@@ -161,7 +158,6 @@ const OnboardingForm = () => {
         );
       }
 
-      setProfileUpdated(true);
       console.log("Profile created successfully");
 
       // Move to completed step instead of refreshing immediately
