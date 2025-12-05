@@ -1,6 +1,6 @@
+import OnboardingForm from "@/components/Onboarding/OnboardingForm";
 import { getSession } from "@/lib/session/session";
 import { redirect } from "next/navigation";
-import OnboardingForm from "@/components/Onboarding/OnboardingForm";
 
 const ProfileLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession();
@@ -8,13 +8,12 @@ const ProfileLayout = async ({ children }: { children: React.ReactNode }) => {
     redirect("/signin");
   }
 
-  // Assuming isOnboarded is available on the user object in the session
-  // If TypeScript complains, we might need to update the Session type definition
+  // Load the onboarding component when the user is not onboarded
   const {
     user: { isOnboarded },
   } = session as any;
 
-  return (
+  return session ? (
     <div className="profile-layout min-h-screen bg-gray-50">
       {isOnboarded ? (
         children
@@ -24,7 +23,7 @@ const ProfileLayout = async ({ children }: { children: React.ReactNode }) => {
         </div>
       )}
     </div>
-  );
+  ) : null;
 };
 
 export default ProfileLayout;

@@ -11,8 +11,9 @@ const AppBar = ({ session }: { session: Session | null }) => {
     if (!response.ok) {
       console.error("Sign out failed:", await response.text());
       return;
+    } else {
+      window.location.href = "/signin";
     }
-    window.location.href = "/signin";
   };
 
   return (
