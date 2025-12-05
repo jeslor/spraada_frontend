@@ -175,7 +175,7 @@ const updateSessionWithNewTokens = async (
 
     const updateResult = await updateResponse.json();
     // Now safely parse the JSON response
-    console.log("Session update response:", updateResult.message);
+    return updateResult;
   } catch (error: any) {
     console.error("❌ [UPDATE_SESSION] Error updating session tokens:", error);
     throw new Error("Failed to update session tokens: " + error.message);
@@ -232,8 +232,6 @@ export const getUser = async (id: string) => {
         },
       }
     );
-
-    console.log(response, "response from getUser");
 
     if (!response.ok) {
       throw new Error(

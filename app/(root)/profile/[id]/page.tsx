@@ -21,7 +21,6 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
     throw new Error(response.error || "Failed to fetch profile data");
   }
   const myprofileData = response.data;
-  console.log("myprofileData", myprofileData);
   return (
     <div className="min-h-screen flex justify-center items-center">
       <h1 className="text-2xl font-bold">Profile</h1>

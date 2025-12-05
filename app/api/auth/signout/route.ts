@@ -25,10 +25,6 @@ export async function GET(req: NextRequest, res: Response) {
     );
 
     if (!response.ok) {
-      console.log(
-        "Failed to sign out from backend:",
-        response.data || response.error
-      );
       return new Response(
         JSON.stringify({ error: "Failed to sign out from the backend" }),
         {

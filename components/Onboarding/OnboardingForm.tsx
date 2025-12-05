@@ -158,8 +158,6 @@ const OnboardingForm = ({ userRole }: { userRole: string }) => {
         );
       }
 
-      console.log("Profile created successfully");
-
       // Move to completed step instead of refreshing immediately
       setCurrentStep(3);
     } catch (err) {
