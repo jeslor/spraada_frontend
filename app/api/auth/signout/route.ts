@@ -1,6 +1,7 @@
 import customFetch from "@/lib/customFetch";
 import { deleteSession, getSession } from "@/lib/session/session";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest, res: Response) {
@@ -24,7 +25,6 @@ export async function GET(req: NextRequest, res: Response) {
     );
 
     if (!response.ok) {
-      console.log("Failed to sign out from backend:", await response.text());
       return new Response(
         JSON.stringify({ error: "Failed to sign out from the backend" }),
         {
@@ -36,8 +36,13 @@ export async function GET(req: NextRequest, res: Response) {
 
     await deleteSession();
 
-    revalidatePath("/");
-    return NextResponse.redirect(new URL("/", req.url));
+    return new Response(
+      JSON.stringify({ message: "Signed out successfully" }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error: any) {
     console.error("Error during sign out:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {

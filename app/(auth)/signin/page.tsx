@@ -46,8 +46,6 @@ const SignInPage = () => {
       if (user && "error" in user) {
         throw new Error(user.error);
       }
-
-      console.log("user signed in:", user);
       Router.push("/");
     } catch (err) {
       const authError = err as AuthError;

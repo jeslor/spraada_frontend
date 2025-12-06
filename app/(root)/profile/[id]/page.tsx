@@ -1,5 +1,5 @@
 import customFetch from "@/lib/customFetch";
-import { getSession } from "@/lib/session/session";
+import { redirect } from "next/navigation";
 
 const page = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -14,11 +14,13 @@ const page = async ({ params }: { params: Promise<{ id: string }> }) => {
     }
   );
 
-  if (!response || response instanceof String) {
-    throw new Error("Failed to fetch profile data");
+  if (!response.ok) {
+    if (response.status === 401) {
+      redirect("/signin");
+    }
+    throw new Error(response.error || "Failed to fetch profile data");
   }
-  const myprofileData = await response.json();
-  console.log("myprofileData", myprofileData);
+  const myprofileData = response.data;
   return (
     <div className="min-h-screen flex justify-center items-center">
       <h1 className="text-2xl font-bold">Profile</h1>
