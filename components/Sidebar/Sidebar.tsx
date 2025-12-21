@@ -155,7 +155,7 @@ const Sidebar = ({ session }: SidebarProps) => {
                   />
                 )}
                 {showLabels && (
-                  <span className="text-base whitespace-nowrap">
+                  <span className="text-base truncate w-[162px] whitespace-nowrap">
                     {`${profile?.firstName} ${initials.charAt(1) || ""}`}
                   </span>
                 )}
