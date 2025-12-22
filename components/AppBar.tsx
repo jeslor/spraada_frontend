@@ -17,8 +17,8 @@ const AppBar = ({ session }: { session: Session | null }) => {
   };
 
   return (
-    <header className="w-full fixed top-0 flex justify-center ">
-      <nav className="flex justify-around max-w-[1200px] w-full px-4 py-2 items-center border-b border-gray-300  bg-white z-10">
+    <header className="w-full fixed top-0 z-[999] flex justify-center ">
+      <nav className="flex justify-around max-w-[1200px] w-full px-4 py-2 items-center border-b border-gray-300  bg-primary-700  h-[60px] rounded-b-3xl  text-slate-100">
         <div className="text-xl font-bold">Spraada</div>
         <ul className="flex justify-between gap-x-5">
           <li className="">
