@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Shield, List, CalendarCheck, Edit3 } from "lucide-react";
 import Image from "next/image";
 import ProfileTabs from "@/components/Profile/ProfileTabs";
+import ProfileAvatar from "@/components/Profile/ProfileAvatar";
 
 export default async function ProfilePage({
   params,
@@ -55,24 +56,13 @@ export default async function ProfilePage({
         {/* Profile Info Section */}
         <div className="px-6 md:px-10 pb-8">
           <div className="relative flex flex-col md:flex-row md:items-end md:justify-between -mt-16 md:-mt-20 mb-6">
-            {/* Avatar */}
-            <div className="relative z-10">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white bg-gray-100 overflow-hidden shadow-xl relative ring-4 ring-white">
-                {profile.avatarUrl ? (
-                  <img
-                    src="https://spraada.s3.eu-north-1.amazonaws.com/profile-images/968203d3-845f-4d22-a90b-a85e5ae0d46a-IMG_5013.HEIC.jpg"
-                    alt={profile.firstName || "User"}
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary-100 to-primary-200 text-primary-600 text-4xl md:text-5xl font-bold">
-                    {profile.firstName?.[0]}
-                    {profile.lastName?.[0]}
-                  </div>
-                )}
-              </div>
-              <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-3 border-white rounded-full shadow-sm" />
-            </div>
+            {/* Avatar with Edit Functionality */}
+            <ProfileAvatar
+              avatarUrl={profile.avatarUrl}
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              profileId={profile.id}
+            />
 
             {/* Edit Button */}
             <button className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md">
