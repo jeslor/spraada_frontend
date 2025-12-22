@@ -67,9 +67,9 @@ export default function ProfileTabs({
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300",
+              "flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
               activeTab === tab.id
-                ? "bg-white text-primary-700 shadow-md shadow-primary-100"
+                ? " text-primary-900 shadow-md shadow-primary-100 bg-primary-200"
                 : "text-gray-600 hover:text-primary-600 hover:bg-white/50"
             )}
           >
@@ -77,7 +77,7 @@ export default function ProfileTabs({
               size={18}
               className={cn(
                 "transition-colors",
-                activeTab === tab.id ? "text-primary-600" : ""
+                activeTab === tab.id ? "text-primary-900" : ""
               )}
             />
             <span className="hidden sm:inline">{tab.label}</span>
@@ -94,7 +94,7 @@ export default function ProfileTabs({
               <div className="p-2.5 bg-linear-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-200">
                 <Sparkles size={20} className="text-white" />
               </div>
-              <div>
+              <div className="py-4">
                 <h3 className="text-xl font-bold text-gray-900">
                   Profile Overview
                 </h3>
