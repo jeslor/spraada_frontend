@@ -60,7 +60,7 @@ export default async function ProfilePage({
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white bg-gray-100 overflow-hidden shadow-xl relative ring-4 ring-white">
                 {profile.avatarUrl ? (
                   <img
-                    src={profile.avatarUrl}
+                    src="https://spraada.s3.eu-north-1.amazonaws.com/profile-images/968203d3-845f-4d22-a90b-a85e5ae0d46a-IMG_5013.HEIC.jpg"
                     alt={profile.firstName || "User"}
                     className="object-cover"
                   />

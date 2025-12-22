@@ -175,11 +175,11 @@
   }
   /* Auth Layout */
   .auth-layout {
-    @apply min-h-screen bg-linear-to-br from-primary-50 via-primary-100/30 to-primary-100 flex;
+    @apply min-h-screen bg-linear-to-br from-primary-50 via-primary-100/30 to-primary-100/30 flex;
   }
 
   .auth-brand-side {
-    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-600 to-primary-700 relative overflow-hidden;
+    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-800 to-primary-900 relative overflow-hidden;
   }
 
   .auth-form-side {
