@@ -1,5 +1,4 @@
 import OnboardingForm from "@/components/Onboarding/OnboardingForm";
-import Sidebar from "@/components/Profile/Sidebar";
 import { getUser } from "@/lib/actions/Auth.actions";
 import { getSession } from "@/lib/session/session";
 import { redirect } from "next/navigation";
@@ -20,13 +19,7 @@ const ProfileLayout = async ({
   }
 
   // Ensure the user is accessing their own profile for the dashboard layout
-  // Or if we want to allow viewing other profiles, we might need to adjust the sidebar logic.
-  // For now, assuming this layout is for the logged-in user's dashboard.
-  // If the ID in the URL doesn't match the session ID, we might want to redirect or show a different layout.
-  // However, the prompt implies "My Profile", so let's stick to that.
   if (session.user.id !== id) {
-    // If trying to access someone else's dashboard, maybe redirect to their public profile (if that exists) or home.
-    // For now, let's just redirect to the correct profile URL for the logged-in user.
     redirect(`/profile/${session.user.id}`);
   }
 
@@ -61,14 +54,9 @@ const ProfileLayout = async ({
 
   return (
     <div className="profile-layout min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-5xl">
         {user.isOnboarded ? (
-          <div className="flex flex-col md:flex-row gap-8">
-            <aside className="md:w-64 flex-shrink-0">
-              <Sidebar userId={id} />
-            </aside>
-            <main className="flex-1">{children}</main>
-          </div>
+          <main>{children}</main>
         ) : (
           <div className="flex items-center justify-center min-h-[60vh]">
             <OnboardingForm userRole={user.role} />

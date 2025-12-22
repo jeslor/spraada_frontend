@@ -69,16 +69,16 @@
   /* Primary color: #073d44 and variants */
   --primary: oklch(0.24 0.024 198); /* #073d44 */
   --primary-foreground: oklch(0.98 0.002 198);
-  --primary-50: oklch(0.97 0.004 198); /* Very light teal */
-  --primary-100: oklch(0.93 0.008 198); /* Light teal */
-  --primary-200: oklch(0.86 0.012 198); /* Light teal */
-  --primary-300: oklch(0.75 0.016 198); /* Medium light teal */
-  --primary-400: oklch(0.6 0.02 198); /* Medium teal */
-  --primary-500: oklch(0.24 0.024 198); /* Base color #073d44 */
-  --primary-600: oklch(0.2 0.022 198); /* Darker teal */
-  --primary-700: oklch(0.16 0.02 198); /* Much darker teal */
-  --primary-800: oklch(0.12 0.018 198); /* Very dark teal */
-  --primary-900: oklch(0.08 0.016 198); /* Almost black teal */
+  --primary-50: #eef7f7; /* Very light teal */
+  --primary-100: #cce6e6; /* Light teal */
+  --primary-200: #a9d5d5; /* Light teal */
+  --primary-300: #87c5c5; /* Medium light teal */
+  --primary-400: #65b4b4; /* Medium teal */
+  --primary-500: #4b9a9a; /* Base color #073d44 */
+  --primary-600: #3a7878; /* Darker teal */
+  --primary-700: #2a5656; /* Much darker teal */
+  --primary-800: #193333; /* Very dark teal */
+  --primary-900: #081111; /* Almost black teal */
   --secondary: oklch(0.96 0.002 198);
   --secondary-foreground: oklch(0.24 0.024 198);
   --muted: oklch(0.95 0.002 198);
