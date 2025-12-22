@@ -69,8 +69,8 @@
   /* Primary color: #073d44 and variants */
   --primary: oklch(0.24 0.024 198); /* #073d44 */
   --primary-foreground: oklch(0.98 0.002 198);
-  --primary-50: #eef7f7; /* Very light teal */
-  --primary-100: #cce6e6; /* Light teal */
+  --primary-50: oklch(96.94% 0.00956 197.635); /* Very light teal */
+  --primary-100: rgb(204, 230, 230); /* Light teal */
   --primary-200: #a9d5d5; /* Light teal */
   --primary-300: #87c5c5; /* Medium light teal */
   --primary-400: #65b4b4; /* Medium teal */
@@ -169,6 +169,10 @@
 
 /* Reusable Auth Component Classes */
 @layer components {
+  /* Main Layout */
+  .myContainer {
+    @apply max-w-[1350px] mx-auto px-4;
+  }
   /* Auth Layout */
   .auth-layout {
     @apply min-h-screen bg-linear-to-br from-primary-50 via-primary-100/30 to-primary-100 flex;
