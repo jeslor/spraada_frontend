@@ -120,18 +120,10 @@ const Sidebar = ({ session }: SidebarProps) => {
                   : "text-gray-700 hover:bg-gray-50"
               )}
             >
-              {item.isProfile && hasHydrated && profile?.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={`${profile.firstName} ${profile.lastName}`}
-                  className="w-7 h-7 rounded-full object-cover ring-2 ring-gray-200"
-                />
-              ) : (
-                <Icon
-                  icon={active ? item.activeIcon : item.icon}
-                  className="text-2xl shrink-0"
-                />
-              )}
+              <Icon
+                icon={active ? item.activeIcon : item.icon}
+                className="text-2xl shrink-0 text-primary-600 font-bold"
+              />
               {showLabels && (
                 <span className="text-base whitespace-nowrap">{item.name}</span>
               )}
