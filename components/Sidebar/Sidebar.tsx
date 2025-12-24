@@ -7,7 +7,12 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { NavItem, navItems } from "@/lib/constants/navigation";
-import { useProfile, useUser, useHasHydrated } from "@/store";
+import {
+  useProfile,
+  useUser,
+  useHasHydrated,
+  useProfileActions,
+} from "@/store";
 
 interface SidebarProps {
   session: Session | null;
@@ -38,6 +43,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   // Get profile from Zustand store
   const profile = useProfile();
   const user = useUser();
+  const { clearProfile } = useProfileActions();
   const hasHydrated = useHasHydrated();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
@@ -49,6 +55,8 @@ const Sidebar = ({ session }: SidebarProps) => {
       console.error("Sign out failed:", await response.text());
       return;
     } else {
+      // Clear profile from Zustand store
+      clearProfile();
       window.location.href = "/signin";
     }
   };
@@ -101,7 +109,7 @@ const Sidebar = ({ session }: SidebarProps) => {
             item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
           const active = isActive(href);
 
-          return (
+          return !item.isProfile ? (
             <Link
               key={item.name}
               href={href}
@@ -128,6 +136,37 @@ const Sidebar = ({ session }: SidebarProps) => {
                 <span className="text-base whitespace-nowrap">{item.name}</span>
               )}
             </Link>
+          ) : (
+            hasHydrated && user && (
+              <Link
+                key={item.name}
+                href={href}
+                className={cn(
+                  "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
+                  active
+                    ? "bg-gray-100 text-gray-900 font-bold"
+                    : "text-gray-700 hover:bg-gray-50"
+                )}
+              >
+                {profile?.avatarUrl ? (
+                  <img
+                    src={profile.avatarUrl}
+                    alt={`${profile.firstName} ${profile.lastName}`}
+                    className="w-7 h-7 rounded-full object-cover ring-2 ring-gray-200"
+                  />
+                ) : (
+                  <Icon
+                    icon={active ? item.activeIcon : item.icon}
+                    className="text-2xl shrink-0"
+                  />
+                )}
+                {showLabels && (
+                  <span className="text-base whitespace-nowrap">
+                    {profile?.firstName}
+                  </span>
+                )}
+              </Link>
+            )
           );
         })}
       </nav>
