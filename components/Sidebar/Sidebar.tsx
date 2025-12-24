@@ -7,6 +7,7 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { NavItem, navItems } from "@/lib/constants/navigation";
+import { useProfile, useUser, useHasHydrated } from "@/store";
 
 interface SidebarProps {
   session: Session | null;
@@ -33,6 +34,11 @@ const Sidebar = ({ session }: SidebarProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showLabels, setShowLabels] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1280px)");
+
+  // Get profile from Zustand store
+  const profile = useProfile();
+  const user = useUser();
+  const hasHydrated = useHasHydrated();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
@@ -65,7 +71,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 flex flex-col",
+        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 flex flex-col justify-between",
         isExpanded ? "w-64" : "w-20"
       )}
       onMouseEnter={() => !isDesktop && setIsHovered(true)}
@@ -88,13 +94,17 @@ const Sidebar = ({ session }: SidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-2 overflow-y-auto">
+      <nav className="flex flex-col py-4 px-3 space-y-2 overflow-y-auto">
         {navItems.map((item: NavItem) => {
-          const active = isActive(item.href);
+          // Use profile userId for the profile link
+          const href =
+            item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
+          const active = isActive(href);
+
           return (
             <Link
               key={item.name}
-              href={item.href}
+              href={href}
               className={cn(
                 "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
                 active
@@ -102,10 +112,18 @@ const Sidebar = ({ session }: SidebarProps) => {
                   : "text-gray-700 hover:bg-gray-50"
               )}
             >
-              <Icon
-                icon={active ? item.activeIcon : item.icon}
-                className="text-2xl shrink-0"
-              />
+              {item.isProfile && hasHydrated && profile?.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={`${profile.firstName} ${profile.lastName}`}
+                  className="w-7 h-7 rounded-full object-cover ring-2 ring-gray-200"
+                />
+              ) : (
+                <Icon
+                  icon={active ? item.activeIcon : item.icon}
+                  className="text-2xl shrink-0"
+                />
+              )}
               {showLabels && (
                 <span className="text-base whitespace-nowrap">{item.name}</span>
               )}

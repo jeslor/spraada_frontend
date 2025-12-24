@@ -5,12 +5,14 @@ import { Icon } from "@iconify/react";
 import CropImage from "@/components/Onboarding/CropImage";
 import customFetch from "@/lib/customFetch";
 import { useRouter } from "next/navigation";
+import { useProfileActions } from "@/store";
 
 interface ProfileAvatarProps {
   avatarUrl?: string;
   firstName?: string;
   lastName?: string;
   profileId: number;
+  isEditable?: boolean;
 }
 
 export default function ProfileAvatar({
@@ -18,6 +20,7 @@ export default function ProfileAvatar({
   firstName,
   lastName,
   profileId,
+  isEditable = true,
 }: ProfileAvatarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -25,6 +28,7 @@ export default function ProfileAvatar({
   const [error, setError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { updateAvatar } = useProfileActions();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -90,6 +94,9 @@ export default function ProfileAvatar({
 
       // Update local preview
       setPreviewUrl(uploadedImage.url);
+
+      // Update Zustand store
+      updateAvatar(uploadedImage.url, uploadedImage.key);
 
       // Refresh the page to show updated data
       router.refresh();
@@ -157,15 +164,17 @@ export default function ProfileAvatar({
         {/* Online Status Indicator */}
         <div className="absolute bottom-2 right-2 w-5 h-5 bg-green-500 border-3 border-white rounded-full shadow-sm" />
 
-        {/* Edit Button */}
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
-          className="absolute bottom-0 right-0 p-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Edit profile picture"
-        >
-          <Icon icon="solar:camera-bold" className="text-lg" />
-        </button>
+        {/* Edit Button - Only show if editable */}
+        {isEditable && (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="absolute bottom-0 right-0 p-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Edit profile picture"
+          >
+            <Icon icon="solar:camera-bold" className="text-lg" />
+          </button>
+        )}
       </div>
 
       {/* Error Message */}
