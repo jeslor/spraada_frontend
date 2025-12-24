@@ -1,7 +1,7 @@
 import { getUser } from "@/lib/actions/Auth.actions";
 import { getSession } from "@/lib/session/session";
 import { redirect } from "next/navigation";
-import { Shield, List, CalendarCheck, Edit3 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import Image from "next/image";
 import ProfileTabs from "@/components/Profile/ProfileTabs";
 import ProfileAvatar from "@/components/Profile/ProfileAvatar";
@@ -24,19 +24,19 @@ export default async function ProfilePage({
     {
       label: "Listings",
       value: profile.listings?.length || 0,
-      icon: List,
+      icon: "solar:clipboard-list-bold",
     },
     {
       label: "Bookings",
       value: profile.bookings?.length || 0,
-      icon: CalendarCheck,
+      icon: "solar:calendar-mark-bold",
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Hero Section with Cover, Avatar, Stats & Tabs */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Cover Photo */}
         <div className="h-48 md:h-56 bg-linear-to-br from-primary-600/20 via-primary-500/10 to-primary-400/5 w-full relative">
           {profile.coverUrl ? (
@@ -66,7 +66,7 @@ export default async function ProfilePage({
 
             {/* Edit Button */}
             <button className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md">
-              <Edit3 size={16} />
+              <Icon icon="solar:pen-bold" className="text-base" />
               Edit Profile
             </button>
           </div>
@@ -78,7 +78,7 @@ export default async function ProfilePage({
                 {profile.firstName} {profile.lastName}
               </h1>
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
-                <Shield size={12} />
+                <Icon icon="solar:shield-check-bold" className="text-sm" />
                 {user.role || "USER"}
               </span>
             </div>
@@ -95,7 +95,7 @@ export default async function ProfilePage({
                 className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl"
               >
                 <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <stat.icon size={20} className="text-primary-600" />
+                  <Icon icon={stat.icon} className="text-xl text-primary-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">

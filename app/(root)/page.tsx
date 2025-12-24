@@ -1,9 +1,24 @@
+import { Icon } from "@iconify/react";
+
 const Page = () => {
   return (
-    <div className="flex justify-center items-center min-h-screen flex-col gap-4">
-      <h1 className="text-[40px] ">Welcome to Spraada!</h1>
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
+        <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
+          <Icon
+            icon="solar:home-2-bold"
+            className="text-5xl text-primary-600"
+          />
+        </div>
+        <h1 className="text-4xl font-bold text-gray-900 text-center">
+          Welcome to Spraada!
+        </h1>
+        <p className="text-gray-600 text-center max-w-md">
+          Rent tools from your community. Save money. Help the environment.
+        </p>
+      </div>
     </div>
   );
 };
 
-export default Page; // Ensure consistent export naming
+export default Page;

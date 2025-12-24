@@ -53,8 +53,8 @@ const ProfileLayout = async ({
   }
 
   return (
-    <div className="profile-layout min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className=" myContainer">
+    <div className="profile-layout min-h-screen bg-gray-50 py-8">
+      <div className="myContainer">
         {user.isOnboarded ? (
           <main>{children}</main>
         ) : (
