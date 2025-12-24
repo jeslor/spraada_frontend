@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Camera, Loader2 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import CropImage from "@/components/Onboarding/CropImage";
 import customFetch from "@/lib/customFetch";
 import { useRouter } from "next/navigation";
@@ -135,7 +135,10 @@ export default function ProfileAvatar({
         <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white bg-gray-100 overflow-hidden shadow-xl relative ring-4 ring-white">
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
-              <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+              <Icon
+                icon="solar:restart-bold"
+                className="w-8 h-8 animate-spin text-primary-600"
+              />
             </div>
           ) : previewUrl ? (
             <img
@@ -161,7 +164,7 @@ export default function ProfileAvatar({
           className="absolute bottom-0 right-0 p-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
           title="Edit profile picture"
         >
-          <Camera size={18} />
+          <Icon icon="solar:camera-bold" className="text-lg" />
         </button>
       </div>
 

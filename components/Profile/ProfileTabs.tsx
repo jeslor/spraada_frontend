@@ -1,20 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  List,
-  CalendarCheck,
-  CreditCard,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Home,
-  Calendar,
-  Shield,
-  Globe,
-  Sparkles,
-} from "lucide-react";
+import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 
 /* =========================
@@ -65,11 +52,11 @@ interface ProfileTabsProps {
 
 type TabId = "profile" | "listings" | "bookings" | "transactions";
 
-const tabs: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "listings", label: "My Listings", icon: List },
-  { id: "bookings", label: "My Bookings", icon: CalendarCheck },
-  { id: "transactions", label: "Transactions", icon: CreditCard },
+const tabs: { id: TabId; label: string; icon: string }[] = [
+  { id: "profile", label: "Profile", icon: "solar:user-circle-bold" },
+  { id: "listings", label: "My Listings", icon: "solar:clipboard-list-bold" },
+  { id: "bookings", label: "My Bookings", icon: "solar:calendar-mark-bold" },
+  { id: "transactions", label: "Transactions", icon: "solar:card-bold" },
 ];
 
 /* =========================
@@ -99,10 +86,10 @@ export default function ProfileTabs({
                 : "text-gray-600 hover:text-primary-600 hover:bg-white/50"
             )}
           >
-            <tab.icon
-              size={18}
+            <Icon
+              icon={tab.icon}
               className={cn(
-                "transition-colors",
+                "text-lg transition-colors",
                 activeTab === tab.id && "text-primary-900"
               )}
             />
@@ -119,7 +106,7 @@ export default function ProfileTabs({
             {/* Header */}
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-linear-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg shadow-primary-200">
-                <Sparkles size={20} className="text-white" />
+                <Icon icon="solar:star-bold" className="text-xl text-white" />
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
@@ -136,7 +123,10 @@ export default function ProfileTabs({
               <div className="bg-linear-to-br from-primary-50/50 to-white rounded-2xl border border-primary-100 p-6 md:p-8">
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-white rounded-xl shadow-sm">
-                    <User size={20} className="text-primary-600" />
+                    <Icon
+                      icon="solar:user-circle-bold"
+                      className="text-xl text-primary-600"
+                    />
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
@@ -154,28 +144,31 @@ export default function ProfileTabs({
               {/* ================= Contact Info ================= */}
               <div className="bg-linear-to-br from-white to-gray-50/50 rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8">
                 <h4 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-3">
-                  <Mail size={20} className="text-primary-600" />
+                  <Icon
+                    icon="solar:letter-bold"
+                    className="text-xl text-primary-600"
+                  />
                   Contact Information
                 </h4>
 
                 <div className="space-y-4">
                   <InfoRow
-                    icon={Mail}
+                    icon="solar:letter-bold"
                     label="Email Address"
                     value={profile.email ?? "Not provided"}
                   />
                   <InfoRow
-                    icon={Phone}
+                    icon="solar:phone-bold"
                     label="Phone Number"
                     value={profile.phone ?? "Not provided"}
                   />
                   <InfoRow
-                    icon={Home}
+                    icon="solar:home-bold"
                     label="Street Address"
                     value={profile.address ?? "Not provided"}
                   />
                   <InfoRow
-                    icon={MapPin}
+                    icon="solar:map-point-bold"
                     label="City & Country"
                     value={
                       profile.city || profile.country
@@ -191,18 +184,21 @@ export default function ProfileTabs({
               {/* ================= Account Details ================= */}
               <div className="bg-linear-to-br from-white to-gray-50/50 rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8">
                 <h4 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-3">
-                  <Shield size={20} className="text-primary-600" />
+                  <Icon
+                    icon="solar:shield-check-bold"
+                    className="text-xl text-primary-600"
+                  />
                   Account Details
                 </h4>
 
                 <div className="space-y-4">
                   <InfoRow
-                    icon={Shield}
+                    icon="solar:shield-check-bold"
                     label="Account Type"
                     value={user.role?.toLowerCase() ?? "user"}
                   />
                   <InfoRow
-                    icon={Calendar}
+                    icon="solar:calendar-bold"
                     label="Member Since"
                     value={
                       user.createdAt
@@ -215,7 +211,7 @@ export default function ProfileTabs({
                     }
                   />
                   <InfoRow
-                    icon={Globe}
+                    icon="solar:global-bold"
                     label="Profile Updated"
                     value={
                       profile.updatedAt
@@ -231,7 +227,7 @@ export default function ProfileTabs({
                     }
                   />
                   <InfoRow
-                    icon={User}
+                    icon="solar:user-id-bold"
                     label="Profile ID"
                     value={profile.id ? `#${profile.id}` : "N/A"}
                     mono
@@ -245,7 +241,7 @@ export default function ProfileTabs({
         {/* ================= Listings ================= */}
         {activeTab === "listings" && (
           <Section
-            icon={List}
+            icon="solar:clipboard-list-bold"
             title="My Listings"
             emptyText="No listings yet"
             hasData={listings.length > 0}
@@ -277,7 +273,7 @@ export default function ProfileTabs({
         {/* ================= Bookings ================= */}
         {activeTab === "bookings" && (
           <Section
-            icon={CalendarCheck}
+            icon="solar:calendar-mark-bold"
             title="My Bookings"
             emptyText="No bookings yet"
             hasData={bookings.length > 0}
@@ -319,7 +315,7 @@ export default function ProfileTabs({
         {/* ================= Transactions ================= */}
         {activeTab === "transactions" && (
           <Section
-            icon={CreditCard}
+            icon="solar:card-bold"
             title="My Transactions"
             emptyText="No transactions yet"
             hasData={false}
@@ -335,19 +331,19 @@ export default function ProfileTabs({
 ========================= */
 
 function InfoRow({
-  icon: Icon,
+  icon,
   label,
   value,
   mono = false,
 }: {
-  icon: React.ElementType;
+  icon: string;
   label: string;
   value: string;
   mono?: boolean;
 }) {
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-xl border">
-      <Icon size={18} className="text-primary-600" />
+      <Icon icon={icon} className="text-lg text-primary-600" />
       <div>
         <p className="text-xs text-gray-400 uppercase">{label}</p>
         <p className={cn("text-gray-900", mono && "font-mono text-sm")}>
@@ -359,13 +355,13 @@ function InfoRow({
 }
 
 function Section({
-  icon: Icon,
+  icon,
   title,
   children,
   hasData,
   emptyText,
 }: {
-  icon: React.ElementType;
+  icon: string;
   title: string;
   children?: React.ReactNode;
   hasData: boolean;
@@ -374,7 +370,7 @@ function Section({
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-        <Icon size={20} className="text-primary-600" />
+        <Icon icon={icon} className="text-xl text-primary-600" />
         {title}
       </h3>
 
