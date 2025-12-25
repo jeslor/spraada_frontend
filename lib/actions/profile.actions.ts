@@ -139,18 +139,21 @@ export const updateProfileAvatar = async ({
     }
 
     // 3. Delete old avatar from S3 if avatarKey is provided
+
+    console.log("this is the old key:", avatarUrlKey);
     if (avatarUrlKey) {
       const deleteOldImage = await customFetch(
         `${
           process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
         }/upload/deleteOldProfileOrCoverImages/${userId}`,
         {
-          method: "DELETE",
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             keys: [avatarUrlKey],
+            profileId,
           }),
         }
       );
@@ -175,15 +178,4 @@ export const updateProfileAvatar = async ({
           : "Failed to update profile avatar",
     };
   }
-};
-
-/**
- * Update profile cover
- */
-export const updateProfileCover = async (
-  profileId: number,
-  coverUrl: string,
-  coverUrlKey?: string
-): Promise<ProfileActionResult<Profile>> => {
-  return updateUserProfile(profileId, { coverUrl, coverUrlKey });
 };

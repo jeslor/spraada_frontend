@@ -8,7 +8,6 @@ import ReactCrop, {
   PixelCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import heic2any from "heic2any";
 import {
   Loader2,
   X,
@@ -80,6 +79,10 @@ const CropImage = ({
   useEffect(() => {
     const loadFile = async () => {
       setIsLoading(true);
+
+      if (typeof window === "undefined") {
+        return null;
+      }
       try {
         let imageFile = file;
 
@@ -88,6 +91,8 @@ const CropImage = ({
           file.type === "image/heic" ||
           file.name.toLowerCase().endsWith(".heic")
         ) {
+          // Dynamically import heic2any only when needed (client-side only)
+          const heic2any = (await import("heic2any")).default;
           const convertedBlob = await heic2any({
             blob: file,
             toType: "image/jpeg",
