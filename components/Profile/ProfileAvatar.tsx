@@ -5,21 +5,29 @@ import { Icon } from "@iconify/react";
 import CropImage from "@/components/Onboarding/CropImage";
 import customFetch from "@/lib/customFetch";
 import { useRouter } from "next/navigation";
-import { useProfileActions } from "@/store";
+import { Profile, useProfileActions } from "@/store";
+import {
+  ProfileActionResult,
+  updateProfileAvatar,
+} from "@/lib/actions/profile.actions";
 
 interface ProfileAvatarProps {
-  avatarUrl?: string;
-  firstName?: string;
+  avatarUrlKey: string;
+  avatarUrl: string;
+  firstName: string;
   lastName?: string;
   profileId: number;
+  userId: number;
   isEditable?: boolean;
 }
 
 export default function ProfileAvatar({
+  avatarUrlKey,
   avatarUrl,
   firstName,
   lastName,
   profileId,
+  userId,
   isEditable = true,
 }: ProfileAvatarProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,56 +55,26 @@ export default function ProfileAvatar({
       const formData = new FormData();
       formData.append("images", file);
 
-      const uploadRes = await customFetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-        }/upload/images`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const uploadedRes: ProfileActionResult<Profile> =
+        await updateProfileAvatar({
+          userId,
+          profileId,
+          avatarUrlKey, // pass the current avatarKey for deletion
+          formData,
+        });
 
-      if (!uploadRes.ok) {
+      if (!uploadedRes.success) {
         throw new Error(
-          uploadRes.data?.message ||
-            uploadRes.error ||
-            "Failed to upload profile image"
+          uploadedRes.error || "Failed to update profile picture"
         );
       }
 
-      const uploadedImage = uploadRes.data[0];
-
-      // 2. Update Profile with new avatar URL
-      const updateRes = await customFetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-        }/profile/${profileId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            avatarUrl: uploadedImage.url,
-            avatarUrlKey: uploadedImage.key,
-          }),
-        }
-      );
-
-      if (!updateRes.ok) {
-        throw new Error(
-          updateRes.data?.message ||
-            updateRes.error ||
-            "Failed to update profile picture"
-        );
-      }
-
+      const uploadedImage = uploadedRes.data;
       // Update local preview
-      setPreviewUrl(uploadedImage.url);
+      setPreviewUrl(uploadedImage?.avatarUrl!);
 
       // Update Zustand store
-      updateAvatar(uploadedImage.url, uploadedImage.key);
+      updateAvatar(uploadedImage?.avatarUrl!, uploadedImage?.avatarUrlKey!);
 
       // Refresh the page to show updated data
       router.refresh();
@@ -143,7 +121,7 @@ export default function ProfileAvatar({
           {isLoading ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-100">
               <Icon
-                icon="solar:restart-bold"
+                icon="mingcute:loading-line"
                 className="w-8 h-8 animate-spin text-primary-600"
               />
             </div>

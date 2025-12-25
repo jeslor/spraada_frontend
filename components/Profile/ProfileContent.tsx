@@ -123,10 +123,12 @@ export default function ProfileContent({
           <div className="relative flex flex-col md:flex-row md:items-end md:justify-between -mt-16 md:-mt-20 mb-6">
             {/* Avatar with Edit Functionality */}
             <ProfileAvatar
-              avatarUrl={profile.avatarUrl}
+              avatarUrl={profile.avatarUrl!}
+              avatarUrlKey={profile.avatarUrlKey!}
               firstName={profile.firstName}
               lastName={profile.lastName}
               profileId={profile.id}
+              userId={Number(user.id)}
               isEditable={isOwnProfile}
             />
 
