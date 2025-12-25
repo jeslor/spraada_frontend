@@ -12,6 +12,7 @@ import {
   useUser,
   useHasHydrated,
   useProfileActions,
+  useProfileInitials,
 } from "@/store";
 
 interface SidebarProps {
@@ -44,6 +45,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const profile = useProfile();
   const user = useUser();
   const { clearProfile } = useProfileActions();
+  const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
@@ -154,7 +156,7 @@ const Sidebar = ({ session }: SidebarProps) => {
                 )}
                 {showLabels && (
                   <span className="text-base whitespace-nowrap">
-                    {profile?.firstName}
+                    {`${profile?.firstName} ${initials.charAt(1) || ""}`}
                   </span>
                 )}
               </Link>
