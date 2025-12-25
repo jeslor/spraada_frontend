@@ -45,7 +45,6 @@ export const signUp = async (
       refreshToken: result.refresh_token,
     });
   } catch (error) {
-    console.log("Authentication error:", error);
     return { error: (error as Error).message };
   }
 };
@@ -90,7 +89,6 @@ export const signIn = async (
       refreshToken: result.refresh_token,
     });
   } catch (error) {
-    console.log("Authentication error:", error);
     return { error: (error as Error).message };
   }
 };
@@ -132,7 +130,6 @@ export const getNewRefreshAndAccessToken = async (
       newRefreshToken,
     };
   } catch (error) {
-    console.log("Error refreshing tokens:", error);
     return error instanceof Error ? error : new Error("Unknown error occurred");
   }
 };

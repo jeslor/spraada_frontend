@@ -11,9 +11,8 @@ export interface ProfileActionResult<T = any> {
   error?: string;
 }
 
-/**
- * Fetch user profile by user ID
- */
+// =================helper functions for profile actions ===================
+//Fetch user profile by user ID
 export const fetchUserProfile = async (
   userId: string
 ): Promise<ProfileActionResult> => {
@@ -45,9 +44,44 @@ export const fetchUserProfile = async (
   }
 };
 
-/**
- * Update profile by profile ID
- */
+export const uploadImages = async (
+  userId: number,
+  formData: FormData
+): Promise<ProfileActionResult<any>> => {
+  try {
+    const imageUploadResult = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/upload/resources/${userId}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+    if (!imageUploadResult.ok) {
+      throw new Error(
+        imageUploadResult.data?.message ||
+          imageUploadResult.error ||
+          "Failed to upload images"
+      );
+    }
+
+    return {
+      success: true,
+      data: imageUploadResult.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to upload profile images",
+    };
+  }
+};
+
+//  Update profile by profile ID
 export const updateUserProfile = async (
   profileId: number,
   updates: Partial<Profile>
@@ -89,9 +123,56 @@ export const updateUserProfile = async (
   }
 };
 
-/**
- * Update profile avatar
- */
+// delete Images using profile and userId
+export const deleteResource = async ({
+  userId,
+  keys,
+  profileId,
+}: {
+  userId: number;
+  keys: string[];
+  profileId: number;
+}): Promise<ProfileActionResult> => {
+  try {
+    const deleteOldResource = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/upload/deleteOldProfileOrCoverImages/${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          keys,
+          profileId,
+        }),
+      }
+    );
+
+    if (!deleteOldResource.ok) {
+      throw new Error(
+        deleteOldResource.data?.message ||
+          deleteOldResource.error ||
+          "Failed to delete old profile images"
+      );
+    }
+
+    return { success: true, data: keys };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to delete old profile images",
+    };
+  }
+};
+
+//================Main actions ==================
+
+//Update profile avatar
 export const updateProfileAvatar = async ({
   userId,
   profileId,
@@ -105,24 +186,14 @@ export const updateProfileAvatar = async ({
 }): Promise<ProfileActionResult<Profile>> => {
   try {
     // 1. Upload image to S3
-    const imageUploadResult = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/upload/resources/${userId}`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!imageUploadResult.ok) {
+    const imageUploadResult = await uploadImages(userId, formData);
+    if (!imageUploadResult.success) {
       throw new Error(
         imageUploadResult.data?.message ||
           imageUploadResult.error ||
           "Failed to upload profile image"
       );
     }
-
     const updatedImage = imageUploadResult.data[0];
 
     // 2. Update Profile with new avatar URL
@@ -139,32 +210,21 @@ export const updateProfileAvatar = async ({
     }
 
     // 3. Delete old avatar from S3 if avatarKey is provided
-
-    console.log("this is the old key:", avatarUrlKey);
     if (avatarUrlKey) {
-      const deleteOldImage = await customFetch(
-        `${
-          process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-        }/upload/deleteOldProfileOrCoverImages/${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            keys: [avatarUrlKey],
-            profileId,
-          }),
-        }
-      );
-
-      if (!deleteOldImage.ok) {
-        console.warn(
-          "Failed to delete old profile image:",
-          deleteOldImage.data?.message || deleteOldImage.error
+      const deleteOldAvatar = await deleteResource({
+        userId,
+        keys: [avatarUrlKey],
+        profileId,
+      });
+      if (!deleteOldAvatar.success) {
+        throw new Error(
+          deleteOldAvatar.error || "Failed to delete old avatar image"
         );
+      } else {
+        console.log("Old avatar deleted successfully");
       }
     }
+
     return {
       success: true,
       data: updateProfile.data,
