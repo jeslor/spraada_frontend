@@ -139,6 +139,7 @@ export const updateProfileAvatar = async ({
     }
 
     // 3. Delete old avatar from S3 if avatarKey is provided
+
     if (avatarUrlKey) {
       const deleteOldImage = await customFetch(
         `${
@@ -175,15 +176,4 @@ export const updateProfileAvatar = async ({
           : "Failed to update profile avatar",
     };
   }
-};
-
-/**
- * Update profile cover
- */
-export const updateProfileCover = async (
-  profileId: number,
-  coverUrl: string,
-  coverUrlKey?: string
-): Promise<ProfileActionResult<Profile>> => {
-  return updateUserProfile(profileId, { coverUrl, coverUrlKey });
 };
