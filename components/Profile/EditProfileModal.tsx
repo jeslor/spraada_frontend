@@ -18,23 +18,28 @@ import InputField from "@/components/Form/InputFeild";
 import { Profile } from "@/store/profile/profile.types";
 import { cn } from "@/lib/utils";
 import { editProfileSchema } from "@/lib/validators/profile/editProfile.validator";
+import { updateUserProfile } from "@/lib/actions/profile.actions";
+import { useProfileActions } from "@/store";
+import toast from "react-hot-toast";
 
 type EditProfileData = z.infer<typeof editProfileSchema>;
 
 interface EditProfileModalProps {
+  userId: number;
   profile: Profile;
   isOpen: boolean;
   onClose: () => void;
-  onSave?: (data: EditProfileData) => Promise<void>;
 }
 
 export default function EditProfileModal({
+  userId,
   profile,
   isOpen,
   onClose,
-  onSave,
 }: EditProfileModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+
+  const { updateProfile } = useProfileActions();
 
   const form = useForm<EditProfileData>({
     resolver: zodResolver(editProfileSchema),
@@ -50,17 +55,30 @@ export default function EditProfileModal({
     mode: "onChange",
   });
 
-  const handleSubmit = async (data: EditProfileData) => {
-    if (onSave) {
-      setIsLoading(true);
-      try {
-        await onSave(data);
-        onClose();
-      } catch (error) {
-        console.error("Error saving profile:", error);
-      } finally {
-        setIsLoading(false);
+  const saveProfileUpdates = async (data: EditProfileData) => {
+    try {
+      const profileUpdated = await updateUserProfile(profile.id, data);
+
+      if (!profileUpdated.success) {
+        throw new Error(profileUpdated.error || "Failed to update profile");
       }
+      updateProfile({ ...profileUpdated.data });
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+      throw error;
+    }
+  };
+
+  const handleSubmit = async (data: EditProfileData) => {
+    setIsLoading(true);
+    try {
+      await saveProfileUpdates(data);
+      onClose();
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

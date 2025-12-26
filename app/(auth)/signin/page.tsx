@@ -90,7 +90,7 @@ const SignInPage = () => {
                     name="email"
                     label="Email address"
                     placeholder="Enter your email"
-                    className="h-[45px] pl-10 text-[13px]! "
+                    className="h-[45px] pl-10 text-[13px]! bg-white "
                     type="email"
                     error={fieldState.error}
                     disabled={isLoading}
@@ -113,7 +113,7 @@ const SignInPage = () => {
                     {...field}
                     name="password"
                     label="Password"
-                    className="h-[45px] pl-10 text-[13px]!"
+                    className="h-[45px] pl-10 text-[13px]! bg-white"
                     placeholder="Enter your password"
                     type="password"
                     error={fieldState.error}
