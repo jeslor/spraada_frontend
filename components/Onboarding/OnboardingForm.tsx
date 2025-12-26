@@ -26,12 +26,10 @@ import InputField from "@/components/Form/InputFeild";
 import {
   onboardingSchema,
   OnboardingData,
-} from "@/lib/validators/Onboarding.validators";
-import { useRouter } from "next/navigation";
+} from "@/lib/validators/profile/Onboarding.validators";
 import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
-import { updateUserDataInSession } from "@/lib/actions/Auth.actions";
 
 const steps = [
   {
