@@ -95,8 +95,8 @@ export default function EditProfileModal({
       {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100">
-          <div className="flex items-center gap-3 py-10">
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-100 ">
+          <div className="flex items-center gap-3 py-8">
             <div className="p-2 bg-primary-100 rounded-xl">
               <Icon
                 icon="solar:user-pen-bold"
@@ -119,11 +119,11 @@ export default function EditProfileModal({
         </div>
 
         {/* Form Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-140px)] px-6 py-6">
+        <div className="overflow-y-auto h-[calc(75vh-160px)] px-6 py-6">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleSubmit)}
-              className="space-y-6"
+              className="space-y-14"
             >
               {/* Personal Information Section */}
               <div className="space-y-4">
@@ -200,7 +200,7 @@ export default function EditProfileModal({
                           error={fieldState.error}
                           disabled={isLoading}
                           multiline
-                          rows={4}
+                          rows={9}
                           icon={
                             <Icon
                               icon="solar:document-text-linear"
