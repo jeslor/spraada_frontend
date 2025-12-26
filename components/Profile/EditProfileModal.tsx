@@ -140,7 +140,7 @@ export default function EditProfileModal({
                       <FormItem>
                         <FormControl>
                           <InputField
-                            className="pl-8 font-semibold"
+                            className="pl-8 font-normal text-primary-500"
                             {...field}
                             label="First Name"
                             placeholder="Enter your first name"
@@ -166,7 +166,7 @@ export default function EditProfileModal({
                       <FormItem>
                         <FormControl>
                           <InputField
-                            className="pl-8 font-semibold"
+                            className="pl-8 font-normal text-primary-500"
                             {...field}
                             label="Last Name"
                             placeholder="Enter your last name"
@@ -193,7 +193,7 @@ export default function EditProfileModal({
                     <FormItem>
                       <FormControl>
                         <InputField
-                          className="pl-8 font-semibold"
+                          className="pl-8 font-normal text-primary-500"
                           {...field}
                           label="Bio"
                           placeholder="Tell others about yourself..."
@@ -233,7 +233,7 @@ export default function EditProfileModal({
                     <FormItem>
                       <FormControl>
                         <InputField
-                          className="pl-8 font-semibold"
+                          className="pl-8 font-normal text-primary-500"
                           {...field}
                           label="Phone Number"
                           placeholder="+1 (555) 123-4567"
@@ -269,7 +269,7 @@ export default function EditProfileModal({
                       <FormItem>
                         <FormControl>
                           <InputField
-                            className="pl-8 font-semibold"
+                            className="pl-8 font-normal text-primary-500"
                             {...field}
                             label="Country"
                             placeholder="Enter your country"
@@ -295,7 +295,7 @@ export default function EditProfileModal({
                       <FormItem>
                         <FormControl>
                           <InputField
-                            className="pl-8 font-semibold"
+                            className="pl-8 font-normal text-primary-500"
                             {...field}
                             label="City"
                             placeholder="Enter your city"
@@ -322,7 +322,7 @@ export default function EditProfileModal({
                     <FormItem>
                       <FormControl>
                         <InputField
-                          className="pl-8 "
+                          className="pl-8 font-normal text-primary-500"
                           {...field}
                           label="Address (Optional)"
                           placeholder="Enter your street address"
