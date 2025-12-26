@@ -14,6 +14,7 @@ import {
 } from "@/store";
 import { User, Profile } from "@/store/profile/profile.types";
 import { cn } from "@/lib/utils";
+import { SpraadaButton } from "../ui/SpraadaButton";
 
 interface ProfileContentProps {
   initialUser: User;
@@ -147,13 +148,13 @@ export default function ProfileContent({
 
             {/* Edit Button - Only show on own profile */}
             {isOwnProfile && (
-              <button
+              <SpraadaButton
                 onClick={() => setIsEditModalOpen(true)}
                 className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <Icon icon="solar:pen-bold" className="text-base" />
                 Edit Profile
-              </button>
+              </SpraadaButton>
             )}
           </div>
 
@@ -168,7 +169,7 @@ export default function ProfileContent({
                 {user.role || "USER"}
               </span>
             </div>
-            <p className="text-gray-500 text-lg max-w-2xl leading-relaxed">
+            <p className="text-gray-500 text-lg max-w-2xl leading-relaxed truncate">
               {profile.bio || "No bio added yet. Tell others about yourself!"}
             </p>
           </div>
@@ -344,6 +345,7 @@ export default function ProfileContent({
 
       {/* Edit Profile Modal */}
       <EditProfileModal
+        userId={Number(user.id)}
         profile={profile}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

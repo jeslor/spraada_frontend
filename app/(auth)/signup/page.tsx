@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { Loader2, Mail, Lock, Check } from "lucide-react";
 
@@ -16,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
-import { SignUpData, AuthError } from "@/types/auth";
+import { AuthError } from "@/types/auth";
 import { FormData, signUpSchema } from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/actions/Auth.actions";
@@ -105,7 +104,7 @@ const SignUpPage = () => {
                   <InputField
                     {...field}
                     name="email"
-                    className="h-[45px] pl-10 text-[13px]!"
+                    className="h-[45px] pl-10 text-[13px]! bg-white"
                     label="Email address"
                     placeholder="Enter your email"
                     type="email"
@@ -132,7 +131,7 @@ const SignUpPage = () => {
                     label="Password"
                     placeholder="Create a password"
                     type="password"
-                    className="h-[45px] pl-10 text-[13px]!"
+                    className="h-[45px] pl-10 text-[13px]! bg-white"
                     error={fieldState.error}
                     disabled={isLoading}
                     icon={<Lock size={13} />}
@@ -180,7 +179,7 @@ const SignUpPage = () => {
                     {...field}
                     name="confirmPassword"
                     label="Confirm password"
-                    className="h-[45px] pl-10 text-[13px]!"
+                    className="h-[45px] pl-10 text-[13px]! bg-white"
                     placeholder="Confirm your password"
                     type="password"
                     error={fieldState.error}
