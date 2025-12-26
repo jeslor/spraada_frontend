@@ -176,7 +176,7 @@
   }
   /* Auth Layout */
   .auth-layout {
-    @apply min-h-screen bg-linear-to-br from-white via-primary-100/10 to-primary-100/30 flex;
+    @apply min-h-screen bg-linear-to-br from-white via-slate-200 to-primary-100/30 flex;
   }
 
   .auth-brand-side {
