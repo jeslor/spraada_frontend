@@ -231,9 +231,9 @@ export default function ProfileContent({
                         <h4 className="text-lg font-semibold text-gray-900 mb-2">
                           About Me
                         </h4>
-                        <p className="text-gray-600 leading-relaxed">
+                        <pre className="text-gray-600 leading-relaxed whitespace-pre-wrap ">
                           {profile.bio}
-                        </p>
+                        </pre>
                       </div>
                     </div>
                   </div>

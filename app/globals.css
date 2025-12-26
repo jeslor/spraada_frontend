@@ -166,6 +166,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  pre {
+    @apply font-sans  whitespace-pre-wrap break-words;
+  }
 }
 
 /* Reusable Auth Component Classes */
