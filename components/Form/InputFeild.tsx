@@ -85,7 +85,7 @@ const InputField = forwardRef<
                 onChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void
               }
               onBlur={onBlur}
-              rows={rows}
+              rows={rows || 4}
               className={cn(
                 icon
                   ? "pl-10"

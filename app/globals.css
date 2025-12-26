@@ -167,7 +167,7 @@
     @apply bg-background text-foreground;
   }
   pre {
-    @apply font-sans  whitespace-pre-wrap break-words;
+    @apply font-sans  whitespace-pre-wrap;
   }
 }
 
