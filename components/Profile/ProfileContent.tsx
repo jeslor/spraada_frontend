@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import ProfileAvatar from "@/components/Profile/ProfileAvatar";
+import EditProfileModal from "@/components/Profile/EditProfileModal";
 import {
   useProfile,
   useUser,
@@ -27,6 +28,7 @@ export default function ProfileContent({
 }: ProfileContentProps) {
   const { setUser, setProfile } = useProfileActions();
   const hasHydrated = useHasHydrated();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Get data from store (will be hydrated from localStorage or initial data)
   const storeProfile = useProfile();
@@ -53,6 +55,17 @@ export default function ProfileContent({
     setUser,
     setProfile,
   ]);
+
+  //stop windows from scrolling when the edit Modal is open
+  useEffect(() => {
+    if (isEditModalOpen) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [isEditModalOpen]);
 
   const displayStats = [
     {
@@ -134,7 +147,10 @@ export default function ProfileContent({
 
             {/* Edit Button - Only show on own profile */}
             {isOwnProfile && (
-              <button className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md">
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              >
                 <Icon icon="solar:pen-bold" className="text-base" />
                 Edit Profile
               </button>
@@ -325,6 +341,13 @@ export default function ProfileContent({
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        profile={profile}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
     </div>
   );
 }
