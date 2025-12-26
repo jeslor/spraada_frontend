@@ -1,24 +1,51 @@
 import { Icon } from "@iconify/react";
+import AddToolForm from "@/components/Tools/AddToolForm";
 
-const Page = () => {
+export default function AddToolPage() {
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
-        <div className="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center">
-          <Icon
-            icon="solar:home-2-bold"
-            className="text-5xl text-primary-600"
-          />
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="p-3 bg-primary-100 dark:bg-primary-800 rounded-xl">
+            <Icon
+              icon="solar:add-square-bold"
+              className="text-primary-600 dark:text-primary-400"
+              width={32}
+            />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-primary-800 dark:text-primary-100">
+              Add New Tool
+            </h1>
+            <p className="text-primary-600 dark:text-primary-400 mt-1">
+              List your tool and start earning from rentals
+            </p>
+          </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 text-center">
-          Add a new Tool!
-        </h1>
-        <p className="text-gray-600 text-center max-w-md">
-          Share your tools with the community and earn extra income by listing
-        </p>
+
+        {/* Info Banner */}
+        <div className="bg-primary-50 dark:bg-primary-900/50 border border-primary-200 dark:border-primary-700 rounded-xl p-4 flex items-start gap-3">
+          <Icon
+            icon="solar:info-circle-bold"
+            className="text-primary-500 dark:text-primary-400 shrink-0 mt-0.5"
+            width={20}
+          />
+          <div className="text-sm text-primary-700 dark:text-primary-300">
+            <p className="font-medium mb-1">Tips for a great listing:</p>
+            <ul className="list-disc list-inside space-y-1 text-primary-600 dark:text-primary-400">
+              <li>Use clear, well-lit photos from multiple angles</li>
+              <li>Be specific about the tool&apos;s condition and features</li>
+              <li>
+                Set competitive pricing based on similar tools in your area
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
+
+      {/* Form */}
+      <AddToolForm />
     </div>
   );
-};
-
-export default Page;
+}
