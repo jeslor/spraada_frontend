@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef } from "react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { cn } from "@/lib/utils";
@@ -29,16 +29,19 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const isInternalChange = useRef(false);
+  const onChangeRef = useRef(onChange);
+  const onBlurRef = useRef(onBlur);
 
-  const handleChange = useCallback(() => {
-    if (quillRef.current && !isInternalChange.current) {
-      const html = quillRef.current.root.innerHTML;
-      // Return empty string if only contains empty paragraph
-      const cleanHtml = html === "<p><br></p>" ? "" : html;
-      onChange?.(cleanHtml);
-    }
+  // Keep refs updated with latest callbacks
+  useEffect(() => {
+    onChangeRef.current = onChange;
   }, [onChange]);
 
+  useEffect(() => {
+    onBlurRef.current = onBlur;
+  }, [onBlur]);
+
+  // Initialize Quill editor once
   useEffect(() => {
     if (editorRef.current && !quillRef.current) {
       quillRef.current = new Quill(editorRef.current, {
@@ -57,20 +60,20 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         },
       });
 
-      quillRef.current.on("text-change", handleChange);
+      quillRef.current.on("text-change", () => {
+        if (quillRef.current && !isInternalChange.current) {
+          const html = quillRef.current.root.innerHTML;
+          const cleanHtml = html === "<p><br></p>" ? "" : html;
+          onChangeRef.current?.(cleanHtml);
+        }
+      });
 
       // Handle blur
       quillRef.current.root.addEventListener("blur", (event) => {
-        onBlur?.(event);
+        onBlurRef.current?.(event);
       });
     }
-
-    return () => {
-      if (quillRef.current) {
-        quillRef.current.off("text-change", handleChange);
-      }
-    };
-  }, [placeholder, disabled, handleChange, onBlur]);
+  }, [placeholder, disabled]);
 
   // Sync external value changes
   useEffect(() => {

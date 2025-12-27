@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,6 +10,17 @@ import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { toast } from "react-hot-toast";
 import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
+import CropImage from "@/components/Onboarding/CropImage";
+
+const MAX_PHOTOS = 5;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+
+interface ToolPhoto {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
 
 type AddToolFormData = z.infer<typeof addToolSchema>;
 
@@ -20,12 +31,19 @@ interface AddToolFormProps {
 export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [toolPhotos, setToolPhotos] = useState<ToolPhoto[]>([]);
+  const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(
+    null
+  );
+  const [photoError, setPhotoError] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    trigger,
     formState: { errors },
     reset,
   } = useForm<AddToolFormData>({
@@ -45,13 +63,88 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
+  //update the description value
   const handleDescriptionChange = (value: string) => {
-    setValue("description", value, { shouldValidate: true });
+    setValue("description", value);
+
+    // Trigger validation after a short delay to allow state to update
+    setTimeout(() => {
+      trigger("description");
+    }, 100);
   };
 
   const descriptionValue = watch("description");
 
+  // Photo handling functions
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+    setPhotoError("");
+
+    // Validate file count
+    if (toolPhotos.length >= MAX_PHOTOS) {
+      setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`);
+      e.target.value = "";
+      return;
+    }
+
+    // Validate file type
+    const isHeic = file.name.toLowerCase().endsWith(".heic");
+    if (!ALLOWED_TYPES.includes(file.type) && !isHeic) {
+      setPhotoError("Only JPG, PNG, WebP, or HEIC images are allowed");
+      e.target.value = "";
+      return;
+    }
+
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE) {
+      setPhotoError("File size must be less than 10MB");
+      e.target.value = "";
+      return;
+    }
+
+    setSelectedFileForCrop(file);
+    e.target.value = ""; // Reset input so same file can be selected again
+  };
+
+  //handling the cropped preview and file
+  const handleCropSave = (previewUrl: string, croppedFile: File) => {
+    const newPhoto: ToolPhoto = {
+      id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      file: croppedFile,
+      previewUrl,
+    };
+    setToolPhotos((prev) => [...prev, newPhoto]);
+    setSelectedFileForCrop(null);
+    setPhotoError("");
+  };
+
+  //Handle removing nd image from the image section
+  const handleRemovePhoto = (photoId: string) => {
+    setToolPhotos((prev) => {
+      const photo = prev.find((p) => p.id === photoId);
+      if (photo) {
+        URL.revokeObjectURL(photo.previewUrl);
+      }
+      return prev.filter((p) => p.id !== photoId);
+    });
+  };
+
+  //Check the number of photos every time the add button is clicked
+  const handleUploadClick = () => {
+    if (toolPhotos.length >= MAX_PHOTOS) {
+      setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const onSubmit = async (data: AddToolFormData) => {
+    if (toolPhotos.length === 0) {
+      setPhotoError("Please add at least one photo of the tool.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       // Convert to cents for API
@@ -80,10 +173,10 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   };
 
   return (
-    <div className="w-full max-w-3xl mr-auto">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <div className="w-full  xl:max-w-280 mr-auto lg:px-4 py-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
         {/* Basic Information Section */}
-        <section className="space-y-6">
+        <section className="space-y-10">
           <div className="flex items-center gap-3 pb-2  dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
@@ -106,6 +199,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
             <InputField
               {...register("name")}
               name="name"
+              className="border-[2.5px] h-11 border-primary-300 "
               label="Tool Name"
               placeholder="e.g., DeWalt 20V Cordless Drill"
               error={errors.name}
@@ -132,8 +226,8 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
         </section>
 
         {/* Category Section */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 pb-2 border-b border-primary-200 dark:border-primary-700">
+        <section className="space-y-10">
+          <div className="flex items-center gap-3   dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:widget-2-bold"
@@ -197,8 +291,8 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
         </section>
 
         {/* Pricing Section */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 pb-2 border-b border-primary-200 dark:border-primary-700">
+        <section className="space-y-10">
+          <div className="flex items-center gap-3  dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:dollar-bold"
@@ -345,9 +439,9 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
           </div>
         </section>
 
-        {/* Photo Upload Section - Placeholder */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 pb-2 border-b border-primary-200 dark:border-primary-700">
+        {/* Photo Upload Section */}
+        <section className="space-y-10">
+          <div className="flex items-center gap-3 dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:camera-bold"
@@ -360,30 +454,111 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 Photos
               </h2>
               <p className="text-sm text-primary-500 dark:text-primary-400">
-                Add photos to showcase your tool
+                Add photos to showcase your tool ({toolPhotos.length}/
+                {MAX_PHOTOS})
               </p>
             </div>
           </div>
 
-          <div className="border-2 border-dashed border-primary-300 dark:border-primary-600 rounded-xl p-8 text-center hover:border-primary-400 dark:hover:border-primary-500 transition-colors cursor-pointer bg-primary-50/50 dark:bg-primary-900/50">
-            <div className="flex flex-col items-center gap-3">
-              <div className="p-4 bg-primary-100 dark:bg-primary-800 rounded-full">
-                <Icon
-                  icon="solar:gallery-add-bold"
-                  className="text-primary-500 dark:text-primary-400"
-                  width={32}
+          {/* Crop Image Overlay */}
+          {selectedFileForCrop && (
+            <CropImage
+              fileName={selectedFileForCrop.name}
+              maxOutputSize={1200}
+              file={selectedFileForCrop}
+              onCancel={() => setSelectedFileForCrop(null)}
+              onSave={handleCropSave}
+              aspectRatio={4 / 3}
+            />
+          )}
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,.heic"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+
+          {/* Photo Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {/* Add photo button */}
+            {toolPhotos.length < MAX_PHOTOS && (
+              <button
+                type="button"
+                onClick={handleUploadClick}
+                className="aspect-4/3 rounded-xl border-2 border-dashed border-primary-300 dark:border-primary-600 
+                         hover:border-primary-400 dark:hover:border-primary-500 
+                         bg-primary-50/50 dark:bg-primary-900/50 
+                         hover:bg-primary-100/50 dark:hover:bg-primary-800/50
+                         transition-all duration-200 cursor-pointer
+                         flex flex-col items-center justify-center gap-2"
+              >
+                <div className="p-3 bg-primary-100 dark:bg-primary-800 rounded-full">
+                  <Icon
+                    icon="solar:gallery-add-bold"
+                    className="text-primary-500 dark:text-primary-400"
+                    width={24}
+                  />
+                </div>
+                <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
+                  Add Photo
+                </span>
+              </button>
+            )}
+            {/* Existing photos */}
+            {toolPhotos.map((photo, index) => (
+              <div
+                key={photo.id}
+                className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-primary-200 dark:border-primary-700 group"
+              >
+                <img
+                  src={photo.previewUrl}
+                  alt={`Tool photo ${index + 1}`}
+                  className="w-full h-full object-cover"
                 />
+                {/* Primary badge for first photo */}
+                {index === 0 && (
+                  <div className="absolute top-2 left-2 bg-primary-600 text-white text-xs font-medium px-2 py-1 rounded-md">
+                    Primary
+                  </div>
+                )}
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemovePhoto(photo.id)}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <Icon icon="solar:close-circle-bold" width={18} />
+                </button>
+                {/* Photo number */}
+                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded-md">
+                  {index + 1}/{MAX_PHOTOS}
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-primary-700 dark:text-primary-300">
-                  Click to upload photos
-                </p>
-                <p className="text-sm text-primary-500 dark:text-primary-400 mt-1">
-                  PNG, JPG up to 10MB (max 5 photos)
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
+
+          {/* Photo tips */}
+          {toolPhotos.length === 0 && (
+            <div className="text-center py-4">
+              <p className="text-sm text-primary-500 dark:text-primary-400">
+                PNG, JPG, WebP or HEIC up to 10MB each
+              </p>
+              <p className="text-xs text-primary-400 dark:text-primary-500 mt-1">
+                First photo will be the primary image shown in listings
+              </p>
+            </div>
+          )}
+
+          {/* Photo error */}
+          {photoError && (
+            <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1">
+              <Icon icon="solar:danger-circle-bold" width={16} />
+              {photoError}
+            </p>
+          )}
         </section>
 
         {/* Submit Section */}

@@ -44,7 +44,7 @@ export const fetchUserProfile = async (
   }
 };
 
-export const uploadImages = async (
+export const uploadResources = async (
   userId: number,
   formData: FormData
 ): Promise<ProfileActionResult<any>> => {
@@ -186,7 +186,7 @@ export const updateProfileAvatar = async ({
 }): Promise<ProfileActionResult<Profile>> => {
   try {
     // 1. Upload image to S3
-    const imageUploadResult = await uploadImages(userId, formData);
+    const imageUploadResult = await uploadResources(userId, formData);
     if (!imageUploadResult.success) {
       throw new Error(
         imageUploadResult.data?.message ||
