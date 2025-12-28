@@ -3,7 +3,7 @@ import AddToolForm from "@/components/Tools/AddToolForm";
 
 export default function AddToolPage() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="mr-auto lg:px-4 myContainer mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-4">
@@ -15,7 +15,7 @@ export default function AddToolPage() {
             />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-primary-800 dark:text-primary-100">
+            <h1 className="text-xl lg:text-3xl font-bold text-primary-800 dark:text-primary-100">
               Add New Tool
             </h1>
             <p className="text-primary-600 dark:text-primary-400 mt-1">
