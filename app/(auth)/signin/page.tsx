@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
-import { SignInData, AuthError } from "@/types/auth";
+import { SignInData, AuthError } from "@/types/auth.types";
 import { signInSchema } from "@/lib/validators/Auth.validators";
 import { signIn } from "@/lib/actions/Auth.actions";
 

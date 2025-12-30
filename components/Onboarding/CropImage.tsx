@@ -264,6 +264,7 @@ const CropImage = ({
             {/* Zoom Controls */}
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setScale((s) => Math.max(0.5, s - 0.1))}
                 className="p-2 text-gray-500 hover:text-[#073d44] transition-colors"
                 title="Zoom Out"
@@ -280,6 +281,7 @@ const CropImage = ({
                 className="w-20 sm:w-32 accent-[#073d44] h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
               <button
+                type="button"
                 onClick={() => setScale((s) => Math.min(3, s + 0.1))}
                 className="p-2 text-gray-500 hover:text-[#073d44] transition-colors"
                 title="Zoom In"
@@ -293,6 +295,7 @@ const CropImage = ({
             {/* Rotate & Aspect Controls */}
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setRotate((r) => (r + 90) % 360)}
                 className="p-2 text-gray-500 hover:text-[#073d44] transition-colors"
                 title="Rotate"
@@ -303,6 +306,7 @@ const CropImage = ({
               <div className="w-px h-6 bg-gray-200 mx-2" />
 
               <button
+                type="button"
                 onClick={toggleAspect}
                 className={`p-2 transition-colors rounded-md flex items-center gap-2 ${
                   isFixedAspect
@@ -322,10 +326,16 @@ const CropImage = ({
           </div>
 
           <div className="flex justify-end gap-3 pt-2 sm:pt-0">
-            <Button variant="outline" onClick={onCancel} className="h-10 px-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              className="h-10 px-6"
+            >
               Cancel
             </Button>
             <Button
+              type="button"
               onClick={handleSave}
               className="h-10 px-6 bg-[#073d44] hover:bg-[#052c31] text-white gap-2"
               disabled={isLoading || !completedCrop}

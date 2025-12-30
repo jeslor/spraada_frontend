@@ -156,13 +156,13 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
       };
 
       console.log("Submitting tool:", payload);
+      console.log("With photos:", toolPhotos);
 
       // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      toast.success("Tool added successfully!");
-      reset();
-      setSelectedCategory("");
+      const savedNewTool = await toast.success("Tool added successfully!");
+      // reset();
+      // setSelectedCategory("");
+      // setToolPhotos([]);
       onSuccess?.();
     } catch (error) {
       console.error("Failed to add tool:", error);
