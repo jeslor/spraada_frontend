@@ -1,7 +1,15 @@
 import { Icon } from "@iconify/react";
 import AddToolForm from "@/components/Tools/AddToolForm";
+import { getSession, Session } from "@/lib/session/session";
+import { redirect } from "next/navigation";
 
-export default function AddToolPage() {
+export default async function AddToolPage() {
+  const session: Session | null = await getSession();
+  const profileComplete = session?.user?.isOnboarded;
+
+  if (!profileComplete) {
+    redirect(`/profile/${session?.user?.id}`);
+  }
   return (
     <div className="mr-auto lg:px-4 myContainer mx-auto px-4 py-8">
       {/* Header */}

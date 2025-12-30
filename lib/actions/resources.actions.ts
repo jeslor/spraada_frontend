@@ -12,7 +12,7 @@ export const uploadResources = async (
     const imageUploadResult = await customFetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/upload/resources/${userId}?folder=${resourceFolder}`,
+      }/upload/resources/${userId}?resourceFolder=${resourceFolder}`,
       {
         method: "POST",
         body: formData,
