@@ -1,6 +1,6 @@
 "use server";
 
-import { SignInData } from "@/types/auth.types";
+import { SignInData } from "@/types/auth";
 import { createSession, deleteSession, getSession } from "../session/session";
 import { cookies } from "next/headers";
 import customFetch from "../customFetch";

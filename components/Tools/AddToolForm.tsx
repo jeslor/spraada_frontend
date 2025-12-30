@@ -11,16 +11,13 @@ import { toast } from "react-hot-toast";
 import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
+import { saveTool } from "@/lib/actions/tools.actions";
+import { useUser } from "@/store";
+import { ToolPhoto } from "@/types/tool.types";
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-
-interface ToolPhoto {
-  id: string;
-  file: File;
-  previewUrl: string;
-}
 
 type AddToolFormData = z.infer<typeof addToolSchema>;
 
@@ -37,6 +34,8 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   );
   const [photoError, setPhotoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const user = useUser();
 
   const {
     register,
@@ -125,7 +124,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     setToolPhotos((prev) => {
       const photo = prev.find((p) => p.id === photoId);
       if (photo) {
-        URL.revokeObjectURL(photo.previewUrl);
+        URL.revokeObjectURL(photo.previewUrl!);
       }
       return prev.filter((p) => p.id !== photoId);
     });
@@ -155,11 +154,19 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
         replacementValue: Math.round(data.replacementValue * 100),
       };
 
-      console.log("Submitting tool:", payload);
-      console.log("With photos:", toolPhotos);
-
       // TODO: Replace with actual API call
-      const savedNewTool = await toast.success("Tool added successfully!");
+      const savedNewTool = await saveTool({
+        toolInfo: {
+          ...payload,
+          dailyRate: Number(payload.dailyPriceCents),
+          replacementValue: Number(payload.replacementValue),
+          deposit: Number(payload.depositCents),
+          ownerId: Number(user?.id),
+        },
+        toolPhotos: toolPhotos.map((photo) => ({ file: photo.file })),
+      });
+
+      toast.success("Tool added successfully!");
       // reset();
       // setSelectedCategory("");
       // setToolPhotos([]);
@@ -527,7 +534,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 {/* Remove button */}
                 <button
                   type="button"
-                  onClick={() => handleRemovePhoto(photo.id)}
+                  onClick={() => handleRemovePhoto(photo.id!)}
                   className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                 >
                   <Icon icon="solar:close-circle-bold" width={18} />

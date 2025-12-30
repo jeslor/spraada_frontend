@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
-import { AuthError } from "@/types/auth.types";
+import { AuthError } from "@/types/auth";
 import { FormData, signUpSchema } from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/actions/Auth.actions";

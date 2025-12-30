@@ -5,13 +5,14 @@ import customFetch from "../customFetch";
 
 export const uploadResources = async (
   userId: number,
-  formData: FormData
+  formData: FormData,
+  resourceFolder: string
 ): Promise<ProfileActionResult<any>> => {
   try {
     const imageUploadResult = await customFetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/upload/resources/${userId}`,
+      }/upload/resources/${userId}?folder=${resourceFolder}`,
       {
         method: "POST",
         body: formData,

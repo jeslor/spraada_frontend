@@ -5,6 +5,7 @@ import customFetch from "../customFetch";
 import { Profile } from "@/store/profile/profile.types";
 import { uploadResources } from "./resources.actions";
 
+const RESOURCE_FOLDER = "profile-images";
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
 
 // =================helper functions for profile actions ===================
@@ -145,7 +146,11 @@ export const updateProfileAvatar = async ({
 }): Promise<ProfileActionResult<Profile>> => {
   try {
     // 1. Upload image to S3
-    const imageUploadResult = await uploadResources(userId, formData);
+    const imageUploadResult = await uploadResources(
+      userId,
+      formData,
+      RESOURCE_FOLDER
+    );
     if (!imageUploadResult.success) {
       throw new Error(
         imageUploadResult.data?.message ||
