@@ -30,6 +30,8 @@ import {
 import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
+import { useUser } from "@/store";
+import { uploadResources } from "@/lib/actions/resources.actions";
 
 const steps = [
   {
@@ -49,7 +51,10 @@ const steps = [
   },
 ];
 
+const RESOURCE_FOLDER = "profile-images";
+
 const OnboardingForm = ({ userRole }: { userRole: string }) => {
+  const user = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
@@ -109,20 +114,13 @@ const OnboardingForm = ({ userRole }: { userRole: string }) => {
       // 1. Upload Image
       const formData = new FormData();
       formData.append("images", croppedFile);
-      const uploadRes = await customFetch(
-        `${
-          process.env.BACKEND_API_URL || "http://localhost:4444"
-        }/upload/images`,
-        {
-          method: "POST",
-          headers: {
-            // "Content-Type": "multipart/form-data" is not needed
-          },
-          body: formData,
-        }
+      const uploadRes = await uploadResources(
+        Number(user?.id),
+        formData,
+        RESOURCE_FOLDER
       );
 
-      if (!uploadRes.ok) {
+      if (!uploadRes.success) {
         throw new Error(
           uploadRes.data?.message ||
             uploadRes.error ||

@@ -1,6 +1,5 @@
 "use server";
 
-import { custom } from "zod";
 import { uploadResources } from "./resources.actions";
 import customFetch from "../customFetch";
 import { ToolInfo, ToolPhoto } from "@/types/tool.types";
@@ -20,16 +19,12 @@ export const saveTool = async ({
       formToolData.append("images", photo.file);
     });
 
-    console.log(formToolData);
-
-    //Save the tool photos first
+    //Save the tool photos first using profileId
     const uploadedToolPhotosResponse = await uploadResources(
-      toolInfo.ownerId,
+      toolInfo.profileId,
       formToolData,
       RESOURCE_FOLDER
     );
-
-    console.log(uploadedToolPhotosResponse);
 
     if (!uploadedToolPhotosResponse.success) {
       throw new Error(
@@ -37,23 +32,37 @@ export const saveTool = async ({
       );
     }
 
-    // const savedToolResponse = await customFetch(
-    //   `${
-    //     process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-    //   }/tools`,
-    //   {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       ...otherData,
-    //       toolPhotos: uploadedToolPhotosResponse.data,
-    //     }),
-    //   }
-    // );
+    const savedToolResponse = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...toolInfo,
+          toolPhotos: uploadedToolPhotosResponse.data.map(
+            (photo: { key: string; url: string }) => ({
+              photoUrl: photo.url,
+              photoKey: photo.key,
+            })
+          ),
+        }),
+      }
+    );
 
-    console.log(uploadedToolPhotosResponse.data);
+    if (!savedToolResponse.ok) {
+      throw new Error(
+        savedToolResponse.data?.message ||
+          savedToolResponse.data?.error ||
+          savedToolResponse.error ||
+          "Failed to save tool"
+      );
+    }
+
+    console.log(savedToolResponse);
   } catch (error) {
     throw error;
   }

@@ -156,7 +156,9 @@ const Sidebar = ({ session }: SidebarProps) => {
                 )}
                 {showLabels && (
                   <span className="text-base truncate w-[162px] whitespace-nowrap">
-                    {`${profile?.firstName} ${initials.charAt(1) || ""}`}
+                    {user.isOnboarded
+                      ? `${profile?.firstName} ${initials.charAt(1) || ""}`
+                      : item.name}
                   </span>
                 )}
               </Link>
