@@ -12,8 +12,9 @@ import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
 import { saveTool } from "@/lib/actions/tools.actions";
-import { useUser } from "@/store";
+import { useProfile } from "@/store";
 import { ToolPhoto } from "@/types/tool.types";
+import { useRouter } from "next/navigation";
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -26,6 +27,7 @@ interface AddToolFormProps {
 }
 
 export default function AddToolForm({ onSuccess }: AddToolFormProps) {
+  const Router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [toolPhotos, setToolPhotos] = useState<ToolPhoto[]>([]);
@@ -35,7 +37,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const [photoError, setPhotoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const user = useUser();
+  const profile = useProfile();
 
   const {
     register,
@@ -157,20 +159,22 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
       // TODO: Replace with actual API call
       const savedNewTool = await saveTool({
         toolInfo: {
-          ...payload,
-          dailyRate: Number(payload.dailyPriceCents),
-          replacementValue: Number(payload.replacementValue),
-          deposit: Number(payload.depositCents),
-          ownerId: Number(user?.id),
+          name: payload.name,
+          description: payload.description,
+          category: payload.category,
+          dailyPriceCents: payload.dailyPriceCents,
+          depositCents: payload.depositCents,
+          replacementValue: payload.replacementValue,
+          profileId: profile!.id,
         },
         toolPhotos: toolPhotos.map((photo) => ({ file: photo.file })),
       });
 
       toast.success("Tool added successfully!");
-      // reset();
-      // setSelectedCategory("");
-      // setToolPhotos([]);
-      onSuccess?.();
+      reset();
+      setSelectedCategory("");
+      setToolPhotos([]);
+      Router.push("/toolbox");
     } catch (error) {
       console.error("Failed to add tool:", error);
       toast.error("Failed to add tool. Please try again.");

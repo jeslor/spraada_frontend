@@ -5,11 +5,11 @@ export interface ToolPhoto {
 }
 
 export interface ToolInfo {
-  ownerId: number;
+  profileId: number;
   name: string;
   description: string;
-  deposit: number;
+  depositCents: number;
   category: string;
-  dailyRate: number;
+  dailyPriceCents: number;
   replacementValue: number;
 }
