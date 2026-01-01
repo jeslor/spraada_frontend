@@ -16,7 +16,7 @@ export const saveTool = async ({
   try {
     const formToolData = new FormData();
     toolPhotos.forEach((photo: ToolPhoto) => {
-      formToolData.append("images", photo.file);
+      formToolData.append("images", photo.file as File);
     });
 
     //Save the tool photos first using profileId
@@ -63,6 +63,36 @@ export const saveTool = async ({
     }
 
     console.log(savedToolResponse);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getToolsByOwner = async (ownerId: number) => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/owner/${ownerId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch tools"
+      );
+    }
+
+    return response.data;
   } catch (error) {
     throw error;
   }

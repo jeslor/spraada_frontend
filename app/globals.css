@@ -396,3 +396,10 @@
     @apply animate-spin;
   }
 }
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
