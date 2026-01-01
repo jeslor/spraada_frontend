@@ -1,47 +1,39 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import ToolCard from "./ToolCard";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import { Tool } from "@/types/tool.types";
-import { useProfile } from "@/store";
+import {
+  useProfile,
+  useMyTools,
+  useToolsLoading,
+  useToolActions,
+} from "@/store";
 import NoTools from "./NoTools";
-import { getToolsByOwner } from "@/lib/actions/tools.actions";
 
 interface ToolContentProps {
   type: "owned" | "rented" | "borrowed";
-  tools?: Tool[];
-  isLoading?: boolean;
 }
 
 const ToolContent = ({ type }: ToolContentProps) => {
+  const router = useRouter();
   const profile = useProfile();
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const myTools = useMyTools();
+  const isLoading = useToolsLoading();
+  const { fetchMyTools } = useToolActions();
 
-  // Fetch tools based on type
-  const fetchTools = async () => {
-    try {
-      const fetchedMyTools = await getToolsByOwner(profile?.id!);
-      if (!fetchedMyTools) return;
-      setTools(fetchedMyTools);
-      console.log(fetchedMyTools);
-    } catch (error) {
-      console.error("Failed to fetch tools:", error);
-    }
-  };
-
+  // Fetch tools based on type (only if not already loaded)
   useEffect(() => {
-    if (type === "owned" && profile?.id) {
-      setIsLoading(true);
-      fetchTools().finally(() => setIsLoading(false));
+    if (type === "owned" && profile?.id && myTools.length === 0) {
+      fetchMyTools(profile.id);
     }
   }, [type, profile?.id]);
 
-  // Handle edit tool
+  // Handle edit tool - navigate to edit page
   const handleEdit = (tool: Tool) => {
-    console.log("Edit tool:", tool.id);
-    // TODO: Open edit modal
+    router.push(`/toolbox/edit/${tool.id}`);
   };
 
   // Handle delete tool
@@ -55,6 +47,9 @@ const ToolContent = ({ type }: ToolContentProps) => {
     console.log("Rent tool:", tool.id);
     // TODO: Open rental modal
   };
+
+  // Get the appropriate tools based on type
+  const tools = type === "owned" ? myTools : [];
 
   // Loading state
   if (isLoading && tools.length === 0) {
