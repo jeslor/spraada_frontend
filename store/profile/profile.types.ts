@@ -1,34 +1,6 @@
+import { Tool } from "@/types/tool.types";
+
 // Profile entity types
-export interface Listing {
-  id: string;
-  title: string;
-  description: string;
-  dailyPriceCents: number;
-  city: string;
-  country: string;
-  photos?: { id: string; url: string }[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Booking {
-  id: string;
-  start: string;
-  end: string;
-  status: "confirmed" | "pending" | "cancelled";
-  listingId?: string;
-  listing?: Listing;
-  createdAt?: string;
-}
-
-export interface Transaction {
-  id: string;
-  amount: number;
-  type: "payment" | "payout" | "refund";
-  status: "completed" | "pending" | "failed";
-  createdAt: string;
-  description?: string;
-}
 
 export interface Profile {
   id: number;
@@ -45,9 +17,9 @@ export interface Profile {
   city: string;
   phone?: string;
   userId: number;
-  listings?: Listing[];
-  bookings?: Booking[];
-  transactions?: Transaction[];
+  myToolBox?: Tool[];
+  myRentals?: [];
+  transactions?: [];
   createdAt?: string;
   updatedAt?: string;
 }
@@ -89,15 +61,6 @@ export interface ProfileActions {
   // Avatar/Cover updates
   updateAvatar: (avatarUrl: string, avatarUrlKey?: string) => void;
   updateCover: (coverUrl: string, coverUrlKey?: string) => void;
-
-  // Listings management
-  addListing: (listing: Listing) => void;
-  updateListing: (listingId: string, updates: Partial<Listing>) => void;
-  removeListing: (listingId: string) => void;
-
-  // Bookings management
-  addBooking: (booking: Booking) => void;
-  updateBookingStatus: (bookingId: string, status: Booking["status"]) => void;
 
   // Error handling
   setError: (error: string | null) => void;

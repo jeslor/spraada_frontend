@@ -1,5 +1,5 @@
 import { useProfileStore } from "./profile.store";
-import { Profile, User, Listing, Booking, Transaction } from "./profile.types";
+import { Profile, User } from "./profile.types";
 
 // ==================== Basic Selectors ====================
 
@@ -45,51 +45,22 @@ export const useCoverUrl = (): string | undefined =>
 
 // ==================== Collections Selectors ====================
 
-export const useListings = (): Listing[] =>
-  useProfileStore((state) => state.profile?.listings || []);
-
-export const useListingsCount = (): number =>
-  useProfileStore((state) => state.profile?.listings?.length || 0);
-
-export const useBookings = (): Booking[] =>
-  useProfileStore((state) => state.profile?.bookings || []);
+export const useMyToolsCount = (): number =>
+  useProfileStore((state) => state.profile?.myToolBox?.length || 0);
 
 export const useBookingsCount = (): number =>
-  useProfileStore((state) => state.profile?.bookings?.length || 0);
+  useProfileStore((state) => state.profile?.myRentals?.length || 0);
 
-export const useTransactions = (): Transaction[] =>
-  useProfileStore((state) => state.profile?.transactions || []);
-
-// ==================== Filtered Selectors ====================
-
-export const usePendingBookings = (): Booking[] =>
-  useProfileStore(
-    (state) =>
-      state.profile?.bookings?.filter((b) => b.status === "pending") || []
-  );
-
-export const useConfirmedBookings = (): Booking[] =>
-  useProfileStore(
-    (state) =>
-      state.profile?.bookings?.filter((b) => b.status === "confirmed") || []
-  );
-
-export const useListingById = (id: string): Listing | undefined =>
-  useProfileStore((state) => state.profile?.listings?.find((l) => l.id === id));
+export const useTransactionsCount = (): number =>
+  useProfileStore((state) => state.profile?.transactions?.length || 0);
 
 // ==================== Stats Selectors ====================
 
 export const useProfileStats = () => {
-  const profile = useProfileStore((state) => state.profile);
-
   return {
-    listingsCount: profile?.listings?.length || 0,
-    bookingsCount: profile?.bookings?.length || 0,
-    transactionsCount: profile?.transactions?.length || 0,
-    pendingBookings:
-      profile?.bookings?.filter((b) => b.status === "pending").length || 0,
-    confirmedBookings:
-      profile?.bookings?.filter((b) => b.status === "confirmed").length || 0,
+    myToolsCount: useMyToolsCount() || 0,
+    bookingsCount: useBookingsCount() || 0,
+    transactionsCount: useTransactionsCount() || 0,
   };
 };
 
@@ -103,13 +74,7 @@ export const useProfileActions = () => {
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const updateAvatar = useProfileStore((state) => state.updateAvatar);
   const updateCover = useProfileStore((state) => state.updateCover);
-  const addListing = useProfileStore((state) => state.addListing);
-  const updateListing = useProfileStore((state) => state.updateListing);
-  const removeListing = useProfileStore((state) => state.removeListing);
-  const addBooking = useProfileStore((state) => state.addBooking);
-  const updateBookingStatus = useProfileStore(
-    (state) => state.updateBookingStatus
-  );
+
   const setError = useProfileStore((state) => state.setError);
   const clearError = useProfileStore((state) => state.clearError);
 
@@ -121,11 +86,7 @@ export const useProfileActions = () => {
     updateProfile,
     updateAvatar,
     updateCover,
-    addListing,
-    updateListing,
-    removeListing,
-    addBooking,
-    updateBookingStatus,
+
     setError,
     clearError,
   };
