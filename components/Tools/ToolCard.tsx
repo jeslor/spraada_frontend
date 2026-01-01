@@ -308,7 +308,7 @@ export default function ToolCard({
                 e.preventDefault();
                 onEdit(tool);
               }}
-              className="p-2.5 bg-white rounded-full hover:bg-primary-50 transition-colors shadow-lg"
+              className="p-2.5 bg-white rounded-full hover:bg-primary-50 transition-colors shadow-lg cursor-pointer"
               title="Edit tool"
             >
               <Icon
@@ -325,7 +325,7 @@ export default function ToolCard({
                 e.preventDefault();
                 onDelete(tool);
               }}
-              className="p-2.5 bg-white rounded-full hover:bg-red-50 transition-colors shadow-lg"
+              className="p-2.5 bg-white rounded-full hover:bg-red-50 transition-colors shadow-lg cursor-pointer"
               title="Delete tool"
             >
               <Icon

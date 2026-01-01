@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,26 +11,46 @@ import { toast } from "react-hot-toast";
 import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
-import { saveTool } from "@/lib/actions/tools.actions";
+import { updateTool } from "@/lib/actions/tools.actions";
 import { useProfile, useToolActions } from "@/store";
-import { ToolPhoto } from "@/types/tool.types";
+import { Tool, ToolPhoto } from "@/types/tool.types";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
 
-type AddToolFormData = z.infer<typeof addToolSchema>;
+type EditToolFormData = z.infer<typeof addToolSchema>;
 
-interface AddToolFormProps {
+interface ExistingPhoto {
+  photoUrl: string;
+  photoKey: string;
+  photoUrlKey?: string;
+}
+
+interface EditToolFormProps {
+  tool: Tool;
   onSuccess?: () => void;
 }
 
-export default function AddToolForm({ onSuccess }: AddToolFormProps) {
+export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   const Router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [toolPhotos, setToolPhotos] = useState<ToolPhoto[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    tool.category
+  );
+
+  // Separate state for existing photos (from DB) and new photos (to upload)
+  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>(() => {
+    return (tool.toolPhotos || []).map((photo) => ({
+      photoUrl: photo.photoUrl,
+      photoKey: photo.photoUrlKey || "",
+      photoUrlKey: photo.photoUrlKey,
+    }));
+  });
+  const [newPhotos, setNewPhotos] = useState<ToolPhoto[]>([]);
+
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(
     null
   );
@@ -38,7 +58,9 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profile = useProfile();
-  const { fetchMyTools } = useToolActions();
+  const { updateTool: updateToolInStore, fetchMyTools } = useToolActions();
+
+  const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
   const {
     register,
@@ -47,16 +69,15 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     watch,
     trigger,
     formState: { errors },
-    reset,
-  } = useForm<AddToolFormData>({
+  } = useForm<EditToolFormData>({
     resolver: zodResolver(addToolSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      category: "",
-      dailyPrice: undefined,
-      deposit: undefined,
-      replacementValue: undefined,
+      name: tool.name,
+      description: tool.description,
+      category: tool.category,
+      dailyPrice: tool.dailyPriceCents / 100,
+      deposit: tool.depositCents / 100,
+      replacementValue: tool.replacementValue / 100,
     },
   });
 
@@ -65,11 +86,8 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
-  //update the description value
   const handleDescriptionChange = (value: string) => {
     setValue("description", value);
-
-    // Trigger validation after a short delay to allow state to update
     setTimeout(() => {
       trigger("description");
     }, 100);
@@ -84,14 +102,12 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     const file = e.target.files[0];
     setPhotoError("");
 
-    // Validate file count
-    if (toolPhotos.length >= MAX_PHOTOS) {
+    if (totalPhotoCount >= MAX_PHOTOS) {
       setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`);
       e.target.value = "";
       return;
     }
 
-    // Validate file type
     const isHeic = file.name.toLowerCase().endsWith(".heic");
     if (!ALLOWED_TYPES.includes(file.type) && !isHeic) {
       setPhotoError("Only JPG, PNG, WebP, or HEIC images are allowed");
@@ -99,7 +115,6 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
       return;
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       setPhotoError("File size must be less than 10MB");
       e.target.value = "";
@@ -107,49 +122,49 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     }
 
     setSelectedFileForCrop(file);
-    e.target.value = ""; // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
-  //handling the cropped preview and file
   const handleCropSave = (previewUrl: string, croppedFile: File) => {
     const newPhoto: ToolPhoto = {
       id: `photo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
       file: croppedFile,
       previewUrl,
     };
-    setToolPhotos((prev) => [...prev, newPhoto]);
+    setNewPhotos((prev) => [...prev, newPhoto]);
     setSelectedFileForCrop(null);
     setPhotoError("");
   };
 
-  //Handle removing nd image from the image section
-  const handleRemovePhoto = (photoId: string) => {
-    setToolPhotos((prev) => {
+  const handleRemoveExistingPhoto = (photoUrl: string) => {
+    setExistingPhotos((prev) => prev.filter((p) => p.photoUrl !== photoUrl));
+  };
+
+  const handleRemoveNewPhoto = (photoId: string) => {
+    setNewPhotos((prev) => {
       const photo = prev.find((p) => p.id === photoId);
-      if (photo) {
-        URL.revokeObjectURL(photo.previewUrl!);
+      if (photo?.previewUrl) {
+        URL.revokeObjectURL(photo.previewUrl);
       }
       return prev.filter((p) => p.id !== photoId);
     });
   };
 
-  //Check the number of photos every time the add button is clicked
   const handleUploadClick = () => {
-    if (toolPhotos.length >= MAX_PHOTOS) {
+    if (totalPhotoCount >= MAX_PHOTOS) {
       setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`);
       return;
     }
     fileInputRef.current?.click();
   };
 
-  const onSubmit = async (data: AddToolFormData) => {
-    if (toolPhotos.length === 0) {
+  const onSubmit = async (data: EditToolFormData) => {
+    if (totalPhotoCount === 0) {
       setPhotoError("Please add at least one photo of the tool.");
       return;
     }
     setIsSubmitting(true);
     try {
-      // Convert to cents for API
       const payload = {
         ...data,
         dailyPriceCents: Math.round(data.dailyPrice * 100),
@@ -157,7 +172,8 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
         replacementValue: Math.round(data.replacementValue * 100),
       };
 
-      const savedNewTool = await saveTool({
+      const updatedTool = await updateTool({
+        toolId: tool.id,
         toolInfo: {
           name: payload.name,
           description: payload.description,
@@ -167,33 +183,35 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
           replacementValue: payload.replacementValue,
           profileId: profile!.id,
         },
-        toolPhotos: toolPhotos.map((photo) => ({ file: photo.file })),
+        newPhotos: newPhotos.filter((p) => p.file),
+        existingPhotos: existingPhotos.map((p) => ({
+          photoUrl: p.photoUrl,
+          photoKey: p.photoKey || p.photoUrlKey || "",
+        })),
       });
 
-      // Refresh the tools in the store to include the new tool
+      // Refresh the tools in the store to get the updated data
       if (profile?.id) {
         await fetchMyTools(profile.id);
       }
 
-      toast.success("Tool added successfully!");
-      reset();
-      setSelectedCategory("");
-      setToolPhotos([]);
+      toast.success("Tool updated successfully!");
+      onSuccess?.();
       Router.push("/toolbox");
     } catch (error) {
-      console.error("Failed to add tool:", error);
-      toast.error("Failed to add tool. Please try again.");
+      console.error("Failed to update tool:", error);
+      toast.error("Failed to update tool. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full  xl:max-w-280 mr-auto lg:px-4 py-8">
+    <div className="w-full xl:max-w-280 mr-auto lg:px-4 py-8">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
         {/* Basic Information Section */}
         <section className="space-y-10">
-          <div className="flex items-center gap-3 pb-2  dark:border-primary-700">
+          <div className="flex items-center gap-3 pb-2 dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:info-circle-bold"
@@ -206,7 +224,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 Basic Information
               </h2>
               <p className="text-sm text-primary-500 dark:text-primary-400">
-                Tell us about your tool
+                Update your tool details
               </p>
             </div>
           </div>
@@ -215,7 +233,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
             <InputField
               {...register("name")}
               name="name"
-              className="border-[2.5px] h-11 border-primary-300 "
+              className="border-[2.5px] h-11 border-primary-300"
               label="Tool Name"
               placeholder="e.g., DeWalt 20V Cordless Drill"
               error={errors.name}
@@ -243,7 +261,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
 
         {/* Category Section */}
         <section className="space-y-10">
-          <div className="flex items-center gap-3   dark:border-primary-700">
+          <div className="flex items-center gap-3 dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:widget-2-bold"
@@ -308,7 +326,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
 
         {/* Pricing Section */}
         <section className="space-y-10">
-          <div className="flex items-center gap-3  dark:border-primary-700">
+          <div className="flex items-center gap-3 dark:border-primary-700">
             <div className="p-2 bg-primary-100 dark:bg-primary-800 rounded-lg">
               <Icon
                 icon="solar:dollar-bold"
@@ -321,7 +339,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 Pricing
               </h2>
               <p className="text-sm text-primary-500 dark:text-primary-400">
-                Set your rental rates and protection values
+                Update your rental rates and protection values
               </p>
             </div>
           </div>
@@ -470,8 +488,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 Photos
               </h2>
               <p className="text-sm text-primary-500 dark:text-primary-400">
-                Add photos to showcase your tool ({toolPhotos.length}/
-                {MAX_PHOTOS})
+                Manage your tool photos ({totalPhotoCount}/{MAX_PHOTOS})
               </p>
             </div>
           </div>
@@ -499,8 +516,72 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
 
           {/* Photo Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {/* Existing photos from database */}
+            {existingPhotos.map((photo, index) => (
+              <div
+                key={photo.photoUrl}
+                className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-primary-200 dark:border-primary-700 group"
+              >
+                <Image
+                  src={photo.photoUrl}
+                  alt={`Tool photo ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                {/* Primary badge for first photo */}
+                {index === 0 && newPhotos.length === 0 && (
+                  <div className="absolute top-2 left-2 bg-primary-600 text-white text-xs font-medium px-2 py-1 rounded-md">
+                    Primary
+                  </div>
+                )}
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExistingPhoto(photo.photoUrl)}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <Icon icon="solar:close-circle-bold" width={18} />
+                </button>
+                {/* Photo number */}
+                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded-md">
+                  {index + 1}/{MAX_PHOTOS}
+                </div>
+              </div>
+            ))}
+
+            {/* New photos to upload */}
+            {newPhotos.map((photo, index) => (
+              <div
+                key={photo.id}
+                className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-green-400 dark:border-green-600 group"
+              >
+                <img
+                  src={photo.previewUrl}
+                  alt={`New photo ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+                {/* New badge */}
+                <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+                  New
+                </div>
+                {/* Remove button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveNewPhoto(photo.id!)}
+                  className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                >
+                  <Icon icon="solar:close-circle-bold" width={18} />
+                </button>
+                {/* Photo number */}
+                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded-md">
+                  {existingPhotos.length + index + 1}/{MAX_PHOTOS}
+                </div>
+              </div>
+            ))}
+
             {/* Add photo button */}
-            {toolPhotos.length < MAX_PHOTOS && (
+            {totalPhotoCount < MAX_PHOTOS && (
               <button
                 type="button"
                 onClick={handleUploadClick}
@@ -523,41 +604,10 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
                 </span>
               </button>
             )}
-            {/* Existing photos */}
-            {toolPhotos.map((photo, index) => (
-              <div
-                key={photo.id}
-                className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-primary-200 dark:border-primary-700 group"
-              >
-                <img
-                  src={photo.previewUrl}
-                  alt={`Tool photo ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
-                {/* Primary badge for first photo */}
-                {index === 0 && (
-                  <div className="absolute top-2 left-2 bg-primary-600 text-white text-xs font-medium px-2 py-1 rounded-md">
-                    Primary
-                  </div>
-                )}
-                {/* Remove button */}
-                <button
-                  type="button"
-                  onClick={() => handleRemovePhoto(photo.id!)}
-                  className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                >
-                  <Icon icon="solar:close-circle-bold" width={18} />
-                </button>
-                {/* Photo number */}
-                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded-md">
-                  {index + 1}/{MAX_PHOTOS}
-                </div>
-              </div>
-            ))}
           </div>
 
           {/* Photo tips */}
-          {toolPhotos.length === 0 && (
+          {totalPhotoCount === 0 && (
             <div className="text-center py-4">
               <p className="text-sm text-primary-500 dark:text-primary-400">
                 PNG, JPG, WebP or HEIC up to 10MB each
@@ -584,7 +634,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
             variant="secondary"
             size="lg"
             leftIcon="solar:arrow-left-bold"
-            onClick={() => window.history.back()}
+            onClick={() => Router.push("/toolbox")}
           >
             Cancel
           </SpraadaButton>
@@ -594,10 +644,10 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
             size="lg"
             fullWidth
             isLoading={isSubmitting}
-            loadingText="Adding Tool..."
-            leftIcon="solar:add-circle-bold"
+            loadingText="Saving Changes..."
+            leftIcon="solar:pen-bold"
           >
-            Add Tool to Listing
+            Save Changes
           </SpraadaButton>
         </div>
       </form>
