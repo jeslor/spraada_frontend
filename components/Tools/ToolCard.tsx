@@ -239,8 +239,10 @@ const DefaultCard = ({
   onDelete?: (toolId: Tool) => void;
   isDeleting?: boolean;
 }) => {
-  const isOwnedByUser = isToolOwnedByUser(tool);
-  const isFavoriteTool = isFavorite(tool.id); // Placeholder for favorite state
+  //   const isOwnedByUser = isToolOwnedByUser(tool);
+  const isOwnedByUser = false;
+  //   const isFavoriteTool = isFavorite(tool.id);
+  const isFavoriteTool = false;
   const [imageIndex, setImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -299,8 +301,11 @@ const DefaultCard = ({
           </div>
         )}
 
+        {/* overlay top section */}
+        <div className="absolute top-0 left-0 z-2 w-full h-20 bg-linear-to-b from-black/10 to-transparent"></div>
+
         {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-3 flex items-center justify-between">
+        <div className="absolute z-20 top-0 left-0 right-0 p-3 flex items-center justify-between">
           {/* Status Badge */}
           <div
             className={`px-2.5 py-1 rounded-full text-[8px] font-semibold ${
@@ -315,7 +320,7 @@ const DefaultCard = ({
 
         {/* Quick Actions - on hover */}
         <div
-          className={`absolute right-3 top-2 flex  gap-2 transition-all duration-200 z-20 ${
+          className={`absolute  right-3 top-2 flex  gap-2 transition-all duration-200 z-20 ${
             isHovered || !isOwnedByUser
               ? "opacity-100"
               : "opacity-0 pointer-events-none"
@@ -357,17 +362,19 @@ const DefaultCard = ({
             <button
               onClick={handleFavorite}
               disabled={isFavoriteWorking}
-              className={`size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer ${
-                isFavoriteTool
-                  ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
-                  : "bg-primary-100 text-gray-700 hover:bg-gray-50"
-              }`}
+              className="relative rounded-full flex items-center justify-center
+             transition cursor-pointer hover:text-[37px] transition-text text-[35px]"
             >
-              {isFavoriteTool ? (
-                <Icon icon="mdi:heart" width={15} />
-              ) : (
-                <Icon icon="mdi:heart-outline" width={18} />
-              )}
+              {/* White outline (always visible) */}
+              <Icon icon="fe:heart-o" className="absolute z-2 text-white " />
+
+              {/* Fill */}
+              <Icon
+                icon="fe:heart"
+                className={` ${
+                  isFavoriteTool ? "text-primary-500 " : "text-black/20 "
+                }`}
+              />
             </button>
           )}
         </div>
@@ -382,13 +389,13 @@ const DefaultCard = ({
                   (prev) => (prev - 1 + photos.length) % photos.length
                 );
               }}
-              className={`absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
+              className={`absolute left-2 top-1/2 -translate-y-1/2 size-6 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
                 isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
               <Icon
                 icon="solar:alt-arrow-left-linear"
-                width={18}
+                width={14}
                 className="text-gray-800"
               />
             </button>
@@ -397,13 +404,13 @@ const DefaultCard = ({
                 e.stopPropagation();
                 setImageIndex((prev) => (prev + 1) % photos.length);
               }}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
+              className={`absolute right-2 top-1/2 -translate-y-1/2 size-6 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
                 isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
               <Icon
                 icon="solar:alt-arrow-right-linear"
-                width={18}
+                width={14}
                 className="text-gray-800"
               />
             </button>
