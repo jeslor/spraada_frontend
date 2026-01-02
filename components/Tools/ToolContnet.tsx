@@ -7,6 +7,8 @@ import { Tool } from "@/types/tool.types";
 import {
   useProfile,
   useMyTools,
+  useRentedTools,
+  useBorrowedTools,
   useToolsLoading,
   useToolActions,
   useToolsHasHydrated,
@@ -22,6 +24,8 @@ const ToolContent = ({ type }: ToolContentProps) => {
   const router = useRouter();
   const profile = useProfile();
   const myTools = useMyTools();
+  const rentedTools = useRentedTools();
+  const borrowedTools = useBorrowedTools();
   const isLoading = useToolsLoading();
   const hasHydrated = useToolsHasHydrated();
   const { fetchMyTools } = useToolActions();
@@ -29,15 +33,14 @@ const ToolContent = ({ type }: ToolContentProps) => {
 
   // Fetch tools based on type (only if not already loaded)
   useEffect(() => {
-    if (
-      type === "owned" &&
-      profile?.id &&
-      hasHydrated &&
-      myTools.length === 0 &&
-      !hasFetched
-    ) {
-      setHasFetched(true);
-      fetchMyTools(profile.id);
+    if (profile?.id && hasHydrated && !hasFetched) {
+      if (type === "owned" && myTools.length === 0) {
+        setHasFetched(true);
+        fetchMyTools(profile.id);
+      } else if (type === "rented" || type === "borrowed") {
+        // TODO: Add fetch actions for rented/borrowed tools when backend supports it
+        setHasFetched(true);
+      }
     }
   }, [type, profile?.id, hasHydrated, myTools.length, hasFetched]);
 
@@ -59,7 +62,12 @@ const ToolContent = ({ type }: ToolContentProps) => {
   };
 
   // Get the appropriate tools based on type
-  const tools = type === "owned" ? myTools : [];
+  const tools =
+    type === "owned"
+      ? myTools
+      : type === "rented"
+      ? rentedTools
+      : borrowedTools;
 
   // Show skeleton while:
   // 1. Store hasn't hydrated yet
