@@ -68,7 +68,7 @@ const ToolContent = ({ type }: ToolContentProps) => {
   // Tools grid
   return (
     <div className="mt-8 ">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6">
         {tools.map((tool) => (
           <ToolCard
             key={tool.id}

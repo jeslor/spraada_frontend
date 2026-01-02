@@ -239,10 +239,9 @@ const DefaultCard = ({
   onDelete?: (toolId: Tool) => void;
   isDeleting?: boolean;
 }) => {
-  //   const isOwnedByUser = isToolOwnedByUser(tool);
-  const isOwnedByUser = false;
-  //   const isFavoriteTool = isFavorite(tool.id);
-  const isFavoriteTool = false;
+  const isOwnedByUser = isToolOwnedByUser(tool);
+  const isFavoriteTool = isFavorite(tool.id);
+
   const [imageIndex, setImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
