@@ -9,6 +9,7 @@ import { getToolById } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById } from "@/store";
 import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
+import ViewToolError from "@/components/Tools/ViewToolError";
 
 // Format cents to currency
 const formatPrice = (cents: number) => {
@@ -42,19 +43,13 @@ export default function ViewToolPage() {
 
   const isOwner = profile && tool && tool.profileId === profile.id;
 
-  // Fetch tool data
-
+  // Fetch tool data - always fetch from API to ensure complete data with profile
   const fetchTool = async () => {
     setIsLoading(true);
     setError(null);
 
-    if (toolFromStore) {
-      setTool(toolFromStore);
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Always fetch from API to get complete data including profile
       const fetchedTool = await getToolById(toolId);
       if (!fetchedTool) {
         setError("Tool not found");
@@ -63,7 +58,12 @@ export default function ViewToolPage() {
       setTool(fetchedTool);
     } catch (err) {
       console.error("Failed to fetch tool:", err);
-      setError("Failed to load tool");
+      // Fallback to store data if API fails
+      if (toolFromStore) {
+        setTool(toolFromStore);
+      } else {
+        setError("Failed to load tool");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -71,7 +71,7 @@ export default function ViewToolPage() {
 
   useEffect(() => {
     if (toolId) fetchTool();
-  }, [toolId, toolFromStore]);
+  }, [toolId]);
 
   // Loading state
   if (isLoading) {
@@ -84,32 +84,7 @@ export default function ViewToolPage() {
 
   // Error state
   if (error || !tool) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-linear-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 flex items-center justify-center">
-            <Icon
-              icon="solar:box-minimalistic-broken"
-              className="text-red-500"
-              width={48}
-            />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Tool Not Found
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mb-6">
-            This tool may have been removed or the link is incorrect.
-          </p>
-          <Link
-            href="/toolbox"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors"
-          >
-            <Icon icon="solar:arrow-left-linear" width={18} />
-            Browse Tools
-          </Link>
-        </div>
-      </div>
-    );
+    return <ViewToolError />;
   }
 
   const descriptionLength = tool.description?.length || 0;
@@ -197,7 +172,7 @@ export default function ViewToolPage() {
 
             {/* Description Section */}
             <section>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+              <h2 className="text-[24px] font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <Icon
                   icon="solar:document-text-linear"
                   className="text-primary-500"
@@ -205,52 +180,55 @@ export default function ViewToolPage() {
                 />
                 About this tool
               </h2>
-              <div className="relative">
+              <div className="relative bg-white py-6 px-4 dark:bg-gray-800 rounded-lg border border-primary-200/30 dark:border-primary-700 overflow-hidden">
                 <div
-                  className={`prose prose-sm prose-gray dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 
+                  className={`prose prose-sm prose-gray dark:prose-invert max-w-none text-gray-600 dark:text-gray-300 text-[14px] leading-7
                     prose-headings:text-gray-900 dark:prose-headings:text-gray-100 
                     prose-strong:text-gray-800 dark:prose-strong:text-gray-200
                     prose-a:text-primary-600 dark:prose-a:text-primary-400
                     ${
                       !showFullDescription && shouldTruncateDescription
-                        ? "line-clamp-6"
+                        ? "line-clamp-7"
                         : ""
                     }`}
                   dangerouslySetInnerHTML={{ __html: tool.description }}
                 />
                 {shouldTruncateDescription && (
-                  <div
-                    className={
-                      !showFullDescription
-                        ? "absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-white dark:from-gray-900 to-transparent"
-                        : ""
-                    }
-                  >
+                  <>
+                    {!showFullDescription && (
+                      <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
+                    )}
                     <button
                       onClick={() =>
                         setShowFullDescription(!showFullDescription)
                       }
-                      className="mt-4 text-primary-600 dark:text-primary-400 font-medium hover:underline flex items-center gap-1"
+                      className="relative mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg transition-colors"
                     >
                       {showFullDescription ? (
                         <>
+                          <Icon
+                            icon="solar:minimize-square-linear"
+                            width={16}
+                          />
                           Show less
-                          <Icon icon="solar:alt-arrow-up-linear" width={16} />
                         </>
                       ) : (
                         <>
+                          <Icon
+                            icon="solar:maximize-square-linear"
+                            width={16}
+                          />
                           Read more
-                          <Icon icon="solar:alt-arrow-down-linear" width={16} />
                         </>
                       )}
                     </button>
-                  </div>
+                  </>
                 )}
               </div>
             </section>
 
             {/* Specifications Grid */}
-            <section>
+            <section className="bg-white py-5 px-4 rounded-2xl border border-primary-200/30 dark:border-primary-700 shadow-sm space-y-4">
               <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <Icon
                   icon="solar:widget-linear"
@@ -276,7 +254,7 @@ export default function ViewToolPage() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg text-center">
                   <Icon
                     icon="solar:shield-check-linear"
-                    className="mx-auto mb-1.5 text-green-500"
+                    className="mx-auto mb-1.5 text-primary-500"
                     width={20}
                   />
                   <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
@@ -289,7 +267,7 @@ export default function ViewToolPage() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg text-center">
                   <Icon
                     icon="solar:dollar-minimalistic-linear"
-                    className="mx-auto mb-1.5 text-amber-500"
+                    className="mx-auto mb-1.5 text-primary-500"
                     width={20}
                   />
                   <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
@@ -302,7 +280,7 @@ export default function ViewToolPage() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-800/60 rounded-lg text-center">
                   <Icon
                     icon="solar:calendar-linear"
-                    className="mx-auto mb-1.5 text-blue-500"
+                    className="mx-auto mb-1.5 text-primary-500"
                     width={20}
                   />
                   <p className="text-[10px] text-gray-500 dark:text-gray-400 mb-0.5">
@@ -420,32 +398,87 @@ export default function ViewToolPage() {
                 {/* CTA Buttons */}
                 <div className="space-y-2.5 mb-5">
                   {isOwner ? (
-                    <Link
-                      href={`/toolbox/edit/${tool.id}`}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      <Icon icon="solar:pen-bold" width={16} />
-                      Edit Tool Listing
-                    </Link>
+                    <>
+                      {/* Owner Actions */}
+                      <Link
+                        href={`/toolbox/edit/${tool.id}`}
+                        className="flex items-center justify-center gap-2 w-full py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
+                      >
+                        <Icon icon="solar:pen-bold" width={16} />
+                        Edit Tool Listing
+                      </Link>
+                      <button
+                        className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-lg transition-all border-2 ${
+                          tool.available
+                            ? "border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                            : "border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40"
+                        }`}
+                      >
+                        <Icon
+                          icon={
+                            tool.available
+                              ? "solar:clock-circle-bold"
+                              : "solar:check-circle-bold"
+                          }
+                          width={16}
+                        />
+                        {tool.available
+                          ? "Mark as Unavailable"
+                          : "Mark as Available"}
+                      </button>
+                      <button className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-300 font-medium rounded-lg transition-all">
+                        <Icon icon="solar:chart-2-linear" width={16} />
+                        View Analytics
+                      </button>
+                    </>
                   ) : (
                     <>
+                      {/* Non-Owner Actions */}
                       <button
                         disabled={!tool.available}
-                        className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-lg transition-all ${
+                        className={`flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold rounded-lg transition-all ${
                           tool.available
                             ? "bg-primary-600 hover:bg-primary-700 text-white hover:shadow-lg hover:shadow-primary-500/25"
                             : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                         }`}
                       >
-                        <Icon icon="solar:bag-check-bold" width={16} />
+                        <Icon icon="solar:hand-shake-bold" width={18} />
                         {tool.available
-                          ? "Request to Rent"
+                          ? "Request to Borrow"
                           : "Currently Unavailable"}
                       </button>
-                      <button className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-gray-200 dark:border-gray-600 hover:border-primary-300 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 text-gray-700 dark:text-gray-200 font-semibold rounded-lg transition-all">
-                        <Icon icon="solar:chat-round-line-bold" width={16} />
+                      <button className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 hover:border-primary-400 dark:hover:border-primary-500 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold rounded-lg transition-all">
+                        <Icon icon="solar:chat-round-dots-bold" width={16} />
                         Message Owner
                       </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setIsFavorited(!isFavorited)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border ${
+                            isFavorited
+                              ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+                              : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                          }`}
+                        >
+                          <Icon
+                            icon={
+                              isFavorited
+                                ? "solar:heart-bold"
+                                : "solar:heart-linear"
+                            }
+                            width={14}
+                          />
+                          {isFavorited ? "Saved" : "Save"}
+                        </button>
+                        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <Icon icon="solar:share-linear" width={14} />
+                          Share
+                        </button>
+                        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                          <Icon icon="solar:flag-linear" width={14} />
+                          Report
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -546,23 +579,56 @@ export default function ViewToolPage() {
             </p>
           </div>
           {isOwner ? (
-            <Link
-              href={`/toolbox/edit/${tool.id}`}
-              className="px-5 py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
-            >
-              Edit Tool
-            </Link>
+            <div className="flex gap-2">
+              <button
+                className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                  tool.available
+                    ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                    : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
+                }`}
+              >
+                <Icon
+                  icon={
+                    tool.available
+                      ? "solar:clock-circle-bold"
+                      : "solar:check-circle-bold"
+                  }
+                  width={18}
+                />
+              </button>
+              <Link
+                href={`/toolbox/edit/${tool.id}`}
+                className="px-5 py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
+              >
+                Edit Tool
+              </Link>
+            </div>
           ) : (
-            <button
-              disabled={!tool.available}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-                tool.available
-                  ? "bg-primary-600 hover:bg-primary-700 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {tool.available ? "Request to Rent" : "Unavailable"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setIsFavorited(!isFavorited)}
+                className={`p-2.5 rounded-lg transition-colors ${
+                  isFavorited
+                    ? "bg-red-50 dark:bg-red-900/20 text-red-500"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-500"
+                }`}
+              >
+                <Icon
+                  icon={isFavorited ? "solar:heart-bold" : "solar:heart-linear"}
+                  width={20}
+                />
+              </button>
+              <button
+                disabled={!tool.available}
+                className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                  tool.available
+                    ? "bg-primary-600 hover:bg-primary-700 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {tool.available ? "Borrow" : "Unavailable"}
+              </button>
+            </div>
           )}
         </div>
       </div>

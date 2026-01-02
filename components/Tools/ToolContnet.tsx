@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import { Tool } from "@/types/tool.types";
@@ -9,6 +9,7 @@ import {
   useMyTools,
   useToolsLoading,
   useToolActions,
+  useToolsHasHydrated,
 } from "@/store";
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard";
@@ -22,14 +23,23 @@ const ToolContent = ({ type }: ToolContentProps) => {
   const profile = useProfile();
   const myTools = useMyTools();
   const isLoading = useToolsLoading();
+  const hasHydrated = useToolsHasHydrated();
   const { fetchMyTools } = useToolActions();
+  const [hasFetched, setHasFetched] = useState(false);
 
   // Fetch tools based on type (only if not already loaded)
   useEffect(() => {
-    if (type === "owned" && profile?.id && myTools.length === 0) {
+    if (
+      type === "owned" &&
+      profile?.id &&
+      hasHydrated &&
+      myTools.length === 0 &&
+      !hasFetched
+    ) {
+      setHasFetched(true);
       fetchMyTools(profile.id);
     }
-  }, [type, profile?.id]);
+  }, [type, profile?.id, hasHydrated, myTools.length, hasFetched]);
 
   // Handle edit tool - navigate to edit page
   const handleEdit = (tool: Tool) => {
@@ -51,8 +61,16 @@ const ToolContent = ({ type }: ToolContentProps) => {
   // Get the appropriate tools based on type
   const tools = type === "owned" ? myTools : [];
 
-  // Loading state
-  if (isLoading && tools.length === 0) {
+  // Show skeleton while:
+  // 1. Store hasn't hydrated yet
+  // 2. Still loading from API
+  // 3. Waiting for initial fetch (profile exists, no tools, hasn't fetched yet)
+  const shouldShowSkeleton =
+    !hasHydrated ||
+    isLoading ||
+    (profile?.id && tools.length === 0 && !hasFetched);
+
+  if (shouldShowSkeleton) {
     return (
       <div className="mt-8">
         <ToolsSkeletonGrid count={6} variant="default" />

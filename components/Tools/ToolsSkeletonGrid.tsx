@@ -76,7 +76,7 @@ export default function ToolsSkeletonGrid({
   variant = "default",
 }: ToolsSkeletonGridProps) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6">
       {Array.from({ length: count }).map((_, index) => (
         <ToolCardSkeleton key={index} variant={variant} />
       ))}

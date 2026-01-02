@@ -97,10 +97,10 @@ export default function ImageGallery({
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="space-y-3 bg-white dark:bg-gray-900 rounded-2xl p-3 sm:p-4 border border-primary-200/30 dark:border-primary-700">
         {/* Main Image Container */}
         <div
-          className="relative group"
+          className="relative group "
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -179,7 +179,7 @@ export default function ImageGallery({
 
         {/* Thumbnail Strip */}
         {hasMultiplePhotos && (
-          <div className="flex gap-3 overflow-x-auto py-2 px-1 scrollbar-hide snap-x snap-mandatory">
+          <div className="flex gap-3 overflow-x-auto py-3 px-2 scrollbar-hide snap-x snap-mandatory bg-gray-50 dark:bg-gray-800/50 rounded-xl">
             {photos.map((photo, idx) => (
               <button
                 key={idx}
@@ -187,7 +187,7 @@ export default function ImageGallery({
                   setIsImageLoaded(false);
                   setSelectedIndex(idx);
                 }}
-                className={`relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden snap-start transition-all duration-200 border-2 ${
+                className={`relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden snap-start transition-all duration-200 border-2 bg-white dark:bg-gray-800 ${
                   idx === selectedIndex
                     ? "border-primary-500 ring-2 ring-primary-500/30 scale-105 shadow-md"
                     : "border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100 hover:border-primary-300 dark:hover:border-primary-600"
