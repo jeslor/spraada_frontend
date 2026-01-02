@@ -91,7 +91,7 @@ export default function ViewToolPage() {
   const shouldTruncateDescription = descriptionLength > 400;
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-8 myContainer px-8">
+    <div className="min-h-screen pb-24 lg:pb-8 px-4  lg:px-8">
       {/* Header - Back button & Actions */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 -mx-4 px-4 lg:-mx-8 lg:px-8 py-3 mb-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
