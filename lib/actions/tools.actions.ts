@@ -46,7 +46,7 @@ export const saveTool = async ({
           toolPhotos: uploadedToolPhotosResponse.data.map(
             (photo: { key: string; url: string }) => ({
               photoUrl: photo.url,
-              photoKey: photo.key,
+              photoUrlKey: photo.key,
             })
           ),
         }),

@@ -35,7 +35,7 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
   const hasMultiplePhotos = photos.length > 1;
 
   return (
-    <Link href={`/tools/${tool.id}`} className="group block">
+    <Link href={`/toolbox/view/${tool.id}`} className="group block">
       <div
         className="space-y-3"
         onMouseEnter={() => setIsHovered(true)}
@@ -177,7 +177,7 @@ const RentalCard = ({
 
   return (
     <Link
-      href={`/tools/${tool.id}`}
+      href={`/toolbox/view/${tool.id}`}
       className="group flex gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
     >
       {/* Image */}
@@ -301,7 +301,10 @@ const DefaultCard = ({
         )}
 
         {/* overlay top section */}
-        <div className="absolute top-0 left-0 z-2 w-full h-20 bg-linear-to-b from-black/10 to-transparent"></div>
+        <div className="absolute top-0 left-0 z-2 w-full h-20 bg-linear-to-b from-black/30 to-transparent"></div>
+
+        {/* overlay bottom section */}
+        <div className="absolute bottom-0 left-0 z-2 w-full h-15 bg-linear-to-t from-black/30 to-transparent"></div>
 
         {/* Top Bar */}
         <div className="absolute z-20 top-0 left-0 right-0 p-3 flex items-center justify-between">
@@ -450,7 +453,7 @@ const DefaultCard = ({
             {tool.category || "Uncategorized"}
           </span>
           <Link
-            href={`/toolbox/${tool.id}`}
+            href={`/toolbox/view/${tool.id}`}
             className="font-semibold text-gray-900 text-[14px]  line-clamp-1 group-hover:text-primary-600 transition-colors"
           >
             {tool.name}
@@ -467,7 +470,7 @@ const DefaultCard = ({
           </div>
 
           <Link
-            href={`/toolbox/${tool.id}`}
+            href={`/toolbox/view/${tool.id}`}
             className="flex items-center gap-1.5 px-2.5 py-1 bg-primary-100 rounded-lg"
           >
             <Icon
