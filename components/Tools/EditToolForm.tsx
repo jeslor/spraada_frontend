@@ -3,31 +3,25 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Icon } from "@iconify/react";
 import InputField from "@/components/Form/InputFeild";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { toast } from "react-hot-toast";
-import { addToolSchema } from "@/lib/validators/tools/tools.validator";
+import {
+  addToolSchema,
+  EditToolFormData,
+} from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
-import { updateTool } from "@/lib/actions/tools.actions";
-import { useProfile, useToolActions } from "@/store";
+import { useProfile, useToolActions, useUser } from "@/store";
 import { Tool, ToolPhoto } from "@/types/tool.types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { updateTool } from "@/lib/actions/tools.actions";
 
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-
-type EditToolFormData = z.infer<typeof addToolSchema>;
-
-interface ExistingPhoto {
-  photoUrl: string;
-  photoKey: string;
-  photoUrlKey?: string;
-}
 
 interface EditToolFormProps {
   tool: Tool;
@@ -41,27 +35,30 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     tool.category
   );
 
-  // Separate state for existing photos (from DB) and new photos (to upload)
-  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>(() => {
-    return (tool.toolPhotos || []).map((photo) => ({
-      photoUrl: photo.photoUrl,
-      photoKey: photo.photoUrlKey || "",
-      photoUrlKey: photo.photoUrlKey,
-    }));
-  });
-  const [newPhotos, setNewPhotos] = useState<ToolPhoto[]>([]);
+  // Separate state for existing photos (from DB), deleted and new photos (to upload)
+  const [existingPhotos, setExistingPhotos] = useState<ToolPhoto[]>(
+    tool.toolPhotos || []
+  );
 
+  const [newPhotos, setNewPhotos] = useState<ToolPhoto[]>([]);
+  const [deletedPhotos, setDeletedPhotos] = useState<ToolPhoto[]>([]);
+
+  //pick new photos to upload
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(
     null
   );
   const [photoError, setPhotoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  //get profile and user, tools from store
   const profile = useProfile();
+  const user = useUser();
+
   const { updateTool: updateToolInStore, fetchMyTools } = useToolActions();
 
   const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
+  //form state
   const {
     register,
     handleSubmit,
@@ -136,10 +133,17 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setPhotoError("");
   };
 
+  //Separate delete handlers for existing and new photos
+  //remove existing photo if user chooses to remove it and add it to deleted list
   const handleRemoveExistingPhoto = (photoUrl: string) => {
+    const deletedPhoto = existingPhotos.find((p) => p.photoUrl === photoUrl);
+    if (deletedPhoto) {
+      setDeletedPhotos((prev) => [...prev, deletedPhoto]);
+    }
     setExistingPhotos((prev) => prev.filter((p) => p.photoUrl !== photoUrl));
   };
 
+  //remove new photo if user chooses to remove it
   const handleRemoveNewPhoto = (photoId: string) => {
     setNewPhotos((prev) => {
       const photo = prev.find((p) => p.id === photoId);
@@ -150,6 +154,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     });
   };
 
+  // Handle upload button click to check the total photo count
   const handleUploadClick = () => {
     if (totalPhotoCount >= MAX_PHOTOS) {
       setPhotoError(`Maximum ${MAX_PHOTOS} photos allowed`);
@@ -174,6 +179,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
 
       const updatedTool = await updateTool({
         toolId: tool.id,
+        userId: Number(user!.id),
         toolInfo: {
           name: payload.name,
           description: payload.description,
@@ -184,16 +190,17 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
           profileId: profile!.id,
         },
         newPhotos: newPhotos.filter((p) => p.file),
-        existingPhotos: existingPhotos.map((p) => ({
-          photoUrl: p.photoUrl,
-          photoKey: p.photoKey || p.photoUrlKey || "",
-        })),
+        existingPhotos,
+        deletedPhotos,
       });
 
+      // Update tool in the store
+      updateToolInStore(tool.id, updatedTool);
+
       // Refresh the tools in the store to get the updated data
-      if (profile?.id) {
-        await fetchMyTools(profile.id);
-      }
+      //   if (profile?.id) {
+      //     await fetchMyTools(profile.id);
+      //   }
 
       toast.success("Tool updated successfully!");
       onSuccess?.();
@@ -517,13 +524,13 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
           {/* Photo Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
             {/* Existing photos from database */}
-            {existingPhotos.map((photo, index) => (
+            {existingPhotos.map((photo: ToolPhoto, index) => (
               <div
                 key={photo.photoUrl}
                 className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-primary-200 dark:border-primary-700 group"
               >
                 <Image
-                  src={photo.photoUrl}
+                  src={photo.photoUrl!}
                   alt={`Tool photo ${index + 1}`}
                   fill
                   className="object-cover"
@@ -538,7 +545,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
                 {/* Remove button */}
                 <button
                   type="button"
-                  onClick={() => handleRemoveExistingPhoto(photo.photoUrl)}
+                  onClick={() => handleRemoveExistingPhoto(photo.photoUrl!)}
                   className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                 >
                   <Icon icon="solar:close-circle-bold" width={18} />

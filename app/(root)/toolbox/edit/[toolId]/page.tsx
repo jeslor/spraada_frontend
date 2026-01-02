@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/types/tool.types";
 import { getToolById } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById, useToolActions } from "@/store";
 import EditToolForm from "@/components/Tools/EditToolForm";
+import LoadingUI from "@/components/ui/Loading";
 
 export default function EditToolPage() {
   const params = useParams();
@@ -23,50 +24,50 @@ export default function EditToolPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadTool = async () => {
-      setIsLoading(true);
-      setError(null);
+  const getToolFromStoreOrAPI = async () => {
+    setIsLoading(true);
+    setError(null);
 
-      // If tool is in store, use it directly (no API call)
-      if (toolFromStore) {
-        // Check if the user owns this tool
-        if (profile && toolFromStore.profileId !== profile.id) {
-          setError("You don't have permission to edit this tool");
-          setIsLoading(false);
-          return;
-        }
-        setTool(toolFromStore);
+    // If tool is in store, use it directly (no API call)
+    if (toolFromStore) {
+      // Check if the user owns this tool
+      if (profile && toolFromStore.profileId !== profile.id) {
+        setError("You don't have permission to edit this tool");
         setIsLoading(false);
         return;
       }
+      setTool(toolFromStore);
+      setIsLoading(false);
+      return;
+    }
 
-      // If not in store, fetch from API as fallback
-      try {
-        const fetchedTool = await getToolById(toolId);
+    // If not in store, fetch from API as fallback
+    try {
+      const fetchedTool = await getToolById(toolId);
 
-        if (!fetchedTool) {
-          setError("Tool not found");
-          return;
-        }
-
-        // Check if the user owns this tool
-        if (profile && fetchedTool.profileId !== profile.id) {
-          setError("You don't have permission to edit this tool");
-          return;
-        }
-
-        setTool(fetchedTool);
-      } catch (err) {
-        console.error("Failed to fetch tool:", err);
-        setError("Failed to load tool. Please try again.");
-      } finally {
-        setIsLoading(false);
+      if (!fetchedTool) {
+        setError("Tool not found");
+        return;
       }
-    };
 
+      // Check if the user owns this tool
+      if (profile && fetchedTool.profileId !== profile.id) {
+        setError("You don't have permission to edit this tool");
+        return;
+      }
+
+      setTool(fetchedTool);
+    } catch (err) {
+      console.error("Failed to fetch tool:", err);
+      setError("Failed to load tool. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (toolId && profile?.id) {
-      loadTool();
+      getToolFromStoreOrAPI();
     }
   }, [toolId, profile?.id, toolFromStore]);
 
@@ -74,12 +75,7 @@ export default function EditToolPage() {
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin" />
-          <p className="text-primary-600 dark:text-primary-400">
-            Loading tool...
-          </p>
-        </div>
+        <LoadingUI />
       </div>
     );
   }
@@ -101,7 +97,7 @@ export default function EditToolPage() {
           </h2>
           <Link
             href="/toolbox"
-            className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline"
+            className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:underline font-bold"
           >
             <Icon icon="solar:arrow-left-bold" width={20} />
             Back to Toolbox
@@ -111,8 +107,9 @@ export default function EditToolPage() {
     );
   }
 
-  if (!tool) {
-    return null;
+  //Just take the user back if tool not found
+  if (!tool && !isLoading) {
+    return redirect("/toolbox");
   }
 
   return (
@@ -121,7 +118,7 @@ export default function EditToolPage() {
       <div className="mb-8">
         <Link
           href="/toolbox"
-          className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors mb-4"
+          className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors mb-4 hover:underline font-bold"
         >
           <Icon icon="solar:arrow-left-bold" width={20} />
           <span>Back to Toolbox</span>
@@ -136,7 +133,7 @@ export default function EditToolPage() {
 
       {/* Edit Form */}
       <EditToolForm
-        tool={tool}
+        tool={tool!}
         onSuccess={() => {
           router.push("/toolbox");
         }}

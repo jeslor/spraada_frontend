@@ -3,7 +3,7 @@
 import { ProfileActionResult } from "@/types/profile.types";
 import customFetch from "../customFetch";
 import { Profile } from "@/store/profile/profile.types";
-import { uploadResources } from "./resources.actions";
+import { deleteResource, uploadResources } from "./resources.actions";
 
 const RESOURCE_FOLDER = "profile-images";
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
@@ -79,53 +79,6 @@ export const updateUserProfile = async (
       success: false,
       error:
         error instanceof Error ? error.message : "Failed to update profile",
-    };
-  }
-};
-
-// delete Images using profile and userId
-export const deleteResource = async ({
-  userId,
-  keys,
-  profileId,
-}: {
-  userId: number;
-  keys: string[];
-  profileId: number;
-}): Promise<ProfileActionResult> => {
-  try {
-    const deleteOldResource = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/upload/deleteOldProfileOrCoverImages/${userId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          keys,
-          profileId,
-        }),
-      }
-    );
-
-    if (!deleteOldResource.ok) {
-      throw new Error(
-        deleteOldResource.data?.message ||
-          deleteOldResource.error ||
-          "Failed to delete old profile images"
-      );
-    }
-
-    return { success: true, data: keys };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "Failed to delete old profile images",
     };
   }
 };

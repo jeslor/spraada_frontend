@@ -37,3 +37,5 @@ export const addToolSchema = z.object({
     .min(1, "Replacement value must be at least $1")
     .max(100000, "Replacement value cannot exceed $100,000"),
 });
+
+export type EditToolFormData = z.infer<typeof addToolSchema>;
