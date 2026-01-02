@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { IsToolOwnedByUser } from "@/store/tool/tool.selectors";
+import { isFavorite, isToolOwnedByUser } from "@/store/tool/tool.selectors";
 
 interface ToolCardProps {
   tool: Tool;
@@ -239,9 +239,8 @@ const DefaultCard = ({
   onDelete?: (toolId: Tool) => void;
   isDeleting?: boolean;
 }) => {
-  //   const isOwnedByUser = IsToolOwnedByUser(tool);
-  const isOwnedByUser = false;
-  const isFavorite = true; // Placeholder for favorite state
+  const isOwnedByUser = isToolOwnedByUser(tool);
+  const isFavoriteTool = isFavorite(tool.id); // Placeholder for favorite state
   const [imageIndex, setImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -359,12 +358,12 @@ const DefaultCard = ({
               onClick={handleFavorite}
               disabled={isFavoriteWorking}
               className={`size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer ${
-                isFavorite
+                isFavoriteTool
                   ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
                   : "bg-primary-100 text-gray-700 hover:bg-gray-50"
               }`}
             >
-              {isFavorite ? (
+              {isFavoriteTool ? (
                 <Icon icon="mdi:heart" width={15} />
               ) : (
                 <Icon icon="mdi:heart-outline" width={18} />

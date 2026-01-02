@@ -19,6 +19,7 @@ export interface Profile {
   userId: number;
   myToolBox?: Tool[];
   myRentals?: [];
+  favoriteTools?: Tool[];
   transactions?: [];
   createdAt?: string;
   updatedAt?: string;
