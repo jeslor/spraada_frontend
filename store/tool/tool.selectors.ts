@@ -1,3 +1,4 @@
+import { useProfile } from "../profile/profile.selectors";
 import { useToolStore } from "./tool.store";
 import { Tool } from "@/types/tool.types";
 
@@ -54,6 +55,17 @@ export const useAvailableTools = (): Tool[] =>
 
 export const useUnavailableTools = (): Tool[] =>
   useToolStore((state) => state.myTools.filter((t) => !t.available));
+
+export const isToolOwnedByUser = (tool: Tool): boolean => {
+  const profile = useProfile();
+  return tool.profileId === profile?.id;
+};
+
+export const isFavorite = (toolId: string): boolean => {
+  const profile = useProfile();
+  const favoriteTools = profile?.favoriteTools || [];
+  return favoriteTools.some((tool: Tool) => tool.id === toolId);
+};
 
 // ==================== Action Hooks ====================
 

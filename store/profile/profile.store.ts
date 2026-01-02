@@ -1,14 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import {
-  Profile,
-  ProfileStore,
-  ProfileState,
-  Listing,
-  Booking,
-  User,
-} from "./profile.types";
+import { Profile, ProfileStore, ProfileState, User } from "./profile.types";
 import {
   fetchUserProfile,
   updateUserProfile,
@@ -142,71 +135,6 @@ export const useProfileStore = create<ProfileStore>()(
             state.profile.coverUrl = coverUrl;
             if (coverUrlKey) {
               state.profile.coverUrlKey = coverUrlKey;
-            }
-          }
-        });
-      },
-
-      // ==================== Listings Management ====================
-
-      addListing: (listing: Listing) => {
-        set((state) => {
-          if (state.profile) {
-            state.profile.listings = [
-              ...(state.profile.listings || []),
-              listing,
-            ];
-          }
-        });
-      },
-
-      updateListing: (listingId: string, updates: Partial<Listing>) => {
-        set((state) => {
-          if (state.profile?.listings) {
-            const index = state.profile.listings.findIndex(
-              (l) => l.id === listingId
-            );
-            if (index !== -1) {
-              state.profile.listings[index] = {
-                ...state.profile.listings[index],
-                ...updates,
-              };
-            }
-          }
-        });
-      },
-
-      removeListing: (listingId: string) => {
-        set((state) => {
-          if (state.profile?.listings) {
-            state.profile.listings = state.profile.listings.filter(
-              (l) => l.id !== listingId
-            );
-          }
-        });
-      },
-
-      // ==================== Bookings Management ====================
-
-      addBooking: (booking: Booking) => {
-        set((state) => {
-          if (state.profile) {
-            state.profile.bookings = [
-              ...(state.profile.bookings || []),
-              booking,
-            ];
-          }
-        });
-      },
-
-      updateBookingStatus: (bookingId: string, status: Booking["status"]) => {
-        set((state) => {
-          if (state.profile?.bookings) {
-            const index = state.profile.bookings.findIndex(
-              (b) => b.id === bookingId
-            );
-            if (index !== -1) {
-              state.profile.bookings[index].status = status;
             }
           }
         });

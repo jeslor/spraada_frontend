@@ -11,6 +11,7 @@ import {
   useProfileStats,
   useProfileActions,
   useHasHydrated,
+  useMyToolsCount,
 } from "@/store";
 import { User, Profile } from "@/store/profile/profile.types";
 import { cn } from "@/lib/utils";
@@ -68,15 +69,19 @@ export default function ProfileContent({
     }
   }, [isEditModalOpen]);
 
+  const { myToolsCount, bookingsCount, transactionsCount } = useProfileStats();
+
   const displayStats = [
     {
       label: "My tools",
-      value: isOwnProfile ? stats.listingsCount : profile.listings?.length || 0,
+      value: isOwnProfile ? myToolsCount : myToolsCount || 0,
       icon: "solar:box-bold",
     },
     {
       label: "My Rentals",
-      value: isOwnProfile ? stats.bookingsCount : profile.bookings?.length || 0,
+      value: isOwnProfile
+        ? stats.bookingsCount
+        : profile.myRentals?.length || 0,
       icon: "solar:hand-shake-bold",
     },
     {

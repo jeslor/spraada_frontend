@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ToolCard from "./ToolCard";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import { Tool } from "@/types/tool.types";
 import {
@@ -12,6 +11,7 @@ import {
   useToolActions,
 } from "@/store";
 import NoTools from "./NoTools";
+import ToolCard from "./ToolCard";
 
 interface ToolContentProps {
   type: "owned" | "rented" | "borrowed";
@@ -68,7 +68,7 @@ const ToolContent = ({ type }: ToolContentProps) => {
   // Tools grid
   return (
     <div className="mt-8 ">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6">
         {tools.map((tool) => (
           <ToolCard
             key={tool.id}
@@ -80,7 +80,6 @@ const ToolContent = ({ type }: ToolContentProps) => {
                 ? "rental"
                 : "borrowed"
             }
-            onEdit={type === "owned" ? handleEdit : undefined}
             onDelete={type === "owned" ? handleDelete : undefined}
             onRent={type !== "owned" ? handleRent : undefined}
             showOwner={type === "borrowed"}
