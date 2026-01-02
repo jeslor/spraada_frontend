@@ -1,398 +1,510 @@
 "use client";
 
-import React, { useState } from "react";
+import { Tool } from "@/types/tool.types";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { Tool, RentalInfo } from "@/types/tool.types";
-import { SpraadaButton } from "@/components/ui/SpraadaButton";
-
-export type ToolCardVariant = "default" | "compact" | "rental" | "borrowed";
+import { IsToolOwnedByUser } from "@/store/tool/tool.selectors";
 
 interface ToolCardProps {
   tool: Tool;
-  variant?: ToolCardVariant;
-  rentalInfo?: RentalInfo;
-  onEdit?: (tool: Tool) => void;
-  onDelete?: (tool: Tool) => void;
-  onRent?: (tool: Tool) => void;
+  variant?: "default" | "compact" | "rental" | "borrowed";
+  onDelete?: (toolId: Tool) => void;
+  onRent?: (toolId: Tool) => void;
   showOwner?: boolean;
-  className?: string;
+  isDeleting?: boolean;
 }
 
 // Format cents to dollars
-const formatPrice = (cents: number): string => {
+//Move this to a utils file later if reused elsewhere
+const formatPrice = (cents: number) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(cents / 100);
 };
 
-// Get status badge styles
-const getStatusStyles = (status: RentalInfo["status"]) => {
-  const styles = {
-    pending:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-    confirmed:
-      "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-    active:
-      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-    completed:
-      "bg-primary-100 text-primary-800 dark:bg-primary-900/30 dark:text-primary-400",
-    cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
-  };
-  return styles[status];
-};
-
-// Get status icon
-const getStatusIcon = (status: RentalInfo["status"]) => {
-  const icons = {
-    pending: "solar:clock-circle-bold",
-    confirmed: "solar:check-circle-bold",
-    active: "solar:play-circle-bold",
-    completed: "solar:verified-check-bold",
-    cancelled: "solar:close-circle-bold",
-  };
-  return icons[status];
-};
-
-export default function ToolCard({
-  tool,
-  variant = "default",
-  rentalInfo,
-  onEdit,
-  onDelete,
-  onRent,
-  showOwner = false,
-  className = "",
-}: ToolCardProps) {
-  const [imageError, setImageError] = useState(false);
+// Compact variant - Airbnb-style grid listing
+const CompactCard = ({ tool }: { tool: Tool }) => {
+  const [imageIndex, setImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const photos = tool.toolPhotos || [];
+  const hasMultiplePhotos = photos.length > 1;
 
-  const primaryPhoto = tool.toolPhotos?.[0]?.photoUrl as string | undefined;
-  const photoCount = tool.toolPhotos?.length || 0;
-
-  // Compact variant for grid lists
-  if (variant === "compact") {
-    return (
-      <Link
-        href={`/tools/${tool.id}`}
-        className={`group block bg-white dark:bg-primary-900 rounded-xl border border-primary-100 dark:border-primary-800 overflow-hidden hover:shadow-lg hover:border-primary-300 dark:hover:border-primary-600 transition-all duration-200 ${className}`}
+  return (
+    <Link href={`/tools/${tool.id}`} className="group block">
+      <div
+        className="space-y-3"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        {/* Image */}
-        <div className="relative aspect-4/3 bg-primary-100 dark:bg-primary-800 overflow-hidden">
-          {primaryPhoto && !imageError ? (
-            <Image
-              src={primaryPhoto}
+        {/* Image Container */}
+        <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+          {photos.length > 0 ? (
+            <img
+              src={photos[imageIndex]?.photoUrl || "/placeholder-tool.png"}
               alt={tool.name}
-              fill
-              //   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400pxs"
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={() => setImageError(true)}
-              //   unoptimized
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center">
               <Icon
-                icon="solar:tools-bold-duotone"
-                className="text-primary-300 dark:text-primary-600"
+                icon="solar:box-linear"
+                className="text-gray-300"
                 width={48}
               />
             </div>
           )}
-          {/* Availability badge */}
+
+          {/* Favorite Button */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="absolute top-3 right-3 p-1.5 hover:scale-110 transition-transform"
+          >
+            <Icon
+              icon="solar:heart-linear"
+              className="text-white drop-shadow-md"
+              width={24}
+            />
+          </button>
+
+          {/* Availability Badge */}
           {!tool.available && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2 py-1 rounded-md">
+            <div className="absolute top-3 left-3 px-2 py-1 bg-white/90 backdrop-blur-sm rounded-md text-xs font-medium text-gray-700">
               Unavailable
             </div>
+          )}
+
+          {/* Image Navigation Dots */}
+          {hasMultiplePhotos && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              {photos.slice(0, 5).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setImageIndex(idx);
+                  }}
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    idx === imageIndex ? "bg-white" : "bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Navigation Arrows */}
+          {hasMultiplePhotos && isHovered && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setImageIndex(
+                    (prev) => (prev - 1 + photos.length) % photos.length
+                  );
+                }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform opacity-0 group-hover:opacity-100"
+              >
+                <Icon
+                  icon="solar:alt-arrow-left-linear"
+                  width={16}
+                  className="text-gray-800"
+                />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setImageIndex((prev) => (prev + 1) % photos.length);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-transform opacity-0 group-hover:opacity-100"
+              >
+                <Icon
+                  icon="solar:alt-arrow-right-linear"
+                  width={16}
+                  className="text-gray-800"
+                />
+              </button>
+            </>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-3">
-          <h3 className="font-semibold text-primary-800 dark:text-primary-100 truncate group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-            {tool.name}
-          </h3>
-          <p className="text-sm text-primary-500 dark:text-primary-400 mt-0.5">
-            {tool.category}
-          </p>
-          <p className="text-lg font-bold text-primary-700 dark:text-primary-200 mt-2">
-            {formatPrice(tool.dailyPriceCents)}
-            <span className="text-sm font-normal text-primary-400">/day</span>
-          </p>
-        </div>
-      </Link>
-    );
-  }
-
-  // Rental/Borrowed variant with status info
-  if (variant === "rental" || variant === "borrowed") {
-    return (
-      <div
-        className={`bg-white dark:bg-primary-900 rounded-xl border border-primary-100 dark:border-primary-800 overflow-hidden hover:shadow-md transition-shadow ${className}`}
-      >
-        <div className="flex flex-col sm:flex-row">
-          {/* Image */}
-          <div className="relative w-full sm:w-40 h-32 sm:h-auto bg-primary-100 dark:bg-primary-800 shrink-0">
-            {primaryPhoto && !imageError ? (
-              <Image
-                src={primaryPhoto}
-                alt={tool.name}
-                fill
-                sizes="160px"
-                className="object-cover"
-                onError={() => setImageError(true)}
-                unoptimized
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium text-gray-900 truncate">{tool.name}</h3>
+            <div className="flex items-center gap-1 text-gray-900">
+              <Icon
+                icon="solar:star-bold"
+                className="text-gray-900"
+                width={14}
               />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Icon
-                  icon="solar:tools-bold-duotone"
-                  className="text-primary-300 dark:text-primary-600"
-                  width={40}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <Link
-                  href={`/tools/${tool.id}`}
-                  className="font-semibold text-primary-800 dark:text-primary-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors line-clamp-1"
-                >
-                  {tool.name}
-                </Link>
-                <p className="text-sm text-primary-500 dark:text-primary-400">
-                  {tool.category}
-                </p>
-              </div>
-
-              {/* Status badge */}
-              {rentalInfo && (
-                <div
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0 ${getStatusStyles(
-                    rentalInfo.status
-                  )}`}
-                >
-                  <Icon icon={getStatusIcon(rentalInfo.status)} width={14} />
-                  <span className="capitalize">{rentalInfo.status}</span>
-                </div>
-              )}
+              <span className="text-sm font-medium">4.8</span>
             </div>
-
-            {/* Rental details */}
-            {rentalInfo && (
-              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                <div className="flex items-center gap-1.5 text-primary-600 dark:text-primary-400">
-                  <Icon icon="solar:calendar-bold" width={16} />
-                  <span>
-                    {new Date(rentalInfo.startDate).toLocaleDateString()} -{" "}
-                    {new Date(rentalInfo.endDate).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-primary-700 dark:text-primary-300 font-medium">
-                  <Icon icon="solar:wallet-bold" width={16} />
-                  <span>{formatPrice(rentalInfo.totalCents)}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Owner info */}
-            {showOwner && tool.profile && variant === "borrowed" && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-primary-500 dark:text-primary-400">
-                <div className="w-6 h-6 rounded-full bg-primary-200 dark:bg-primary-700 overflow-hidden">
-                  {tool.profile.avatarUrl ? (
-                    <Image
-                      src={tool.profile.avatarUrl}
-                      alt={`${tool.profile.firstName}`}
-                      width={24}
-                      height={24}
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-medium text-primary-600 dark:text-primary-300">
-                      {tool.profile.firstName?.[0]}
-                    </div>
-                  )}
-                </div>
-                <span>
-                  Owned by {tool.profile.firstName} {tool.profile.lastName?.[0]}
-                  .
-                </span>
-              </div>
-            )}
           </div>
+          <p className="text-sm text-gray-500 truncate">{tool.category}</p>
+          <p className="text-sm text-gray-900">
+            <span className="font-semibold">
+              {formatPrice(tool.dailyPriceCents)}
+            </span>
+            <span className="text-gray-500"> / day</span>
+          </p>
         </div>
       </div>
-    );
-  }
+    </Link>
+  );
+};
 
-  // Default variant - full card for toolbox
+// Rental/Borrowed variant - horizontal card
+const RentalCard = ({
+  tool,
+  variant,
+}: {
+  tool: Tool;
+  variant: "rental" | "borrowed";
+}) => {
+  const isRental = variant === "rental";
+  const photo = tool.toolPhotos?.[0];
+
+  return (
+    <Link
+      href={`/tools/${tool.id}`}
+      className="group flex gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
+    >
+      {/* Image */}
+      <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
+        {photo ? (
+          <img src={photo.photoUrl} alt={tool.name} className="object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Icon
+              icon="solar:box-linear"
+              className="text-gray-300"
+              width={32}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                isRental
+                  ? "bg-primary-100 text-primary-700"
+                  : "bg-amber-100 text-amber-700"
+              }`}
+            >
+              {isRental ? "Renting Out" : "Borrowed"}
+            </span>
+          </div>
+          <h3 className="font-medium text-gray-900 truncate">{tool.name}</h3>
+          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+            <Icon icon="solar:user-linear" width={14} />
+            {isRental ? "Rented to: John D." : "From: Sarah M."}
+          </p>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <span className="text-xs text-gray-500 flex items-center gap-1">
+            <Icon icon="solar:calendar-linear" width={14} />
+            Ends in 3 days
+          </span>
+          <span className="font-semibold text-gray-900">
+            {formatPrice(tool.dailyPriceCents)}/day
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Default variant - Full featured toolbox card
+const DefaultCard = ({
+  tool,
+  onDelete,
+  isDeleting,
+}: {
+  tool: Tool;
+  onDelete?: (toolId: Tool) => void;
+  isDeleting?: boolean;
+}) => {
+  //   const isOwnedByUser = IsToolOwnedByUser(tool);
+  const isOwnedByUser = false;
+  const isFavorite = true; // Placeholder for favorite state
+  const [imageIndex, setImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isFavoriteWorking, setIsFavoriteWorking] = useState(false);
+
+  const photos = tool.toolPhotos || [];
+  const hasMultiplePhotos = photos.length > 1;
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showDeleteConfirm && onDelete) {
+      onDelete(tool);
+    } else {
+      setShowDeleteConfirm(true);
+      setTimeout(() => setShowDeleteConfirm(false), 3000);
+    }
+  };
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    setIsFavoriteWorking(true);
+    e.preventDefault();
+    e.stopPropagation();
+    // Implement favorite logic here
+    setIsFavoriteWorking(false);
+  };
+
   return (
     <div
-      className={`group bg-white dark:bg-primary-900 rounded-xl border border-primary-100 dark:border-primary-800 overflow-hidden hover:shadow-lg hover:border-primary-200 dark:hover:border-primary-700 transition-all duration-200 ${className}`}
+      className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setShowDeleteConfirm(false);
+      }}
     >
-      {/* Image section */}
-      <div className="relative aspect-4/3 bg-primary-100 dark:bg-primary-800 overflow-hidden">
-        {primaryPhoto && !imageError ? (
-          <Image
-            src={primaryPhoto}
+      {/* Image Section */}
+      <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
+        {photos.length > 0 ? (
+          <img
+            src={
+              (photos[imageIndex]?.photoUrl as string) ||
+              "/placeholder-tool.png"
+            }
             alt={tool.name}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={() => setImageError(true)}
-            unoptimized
+            className="object-cover transition-opacity duration-300"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <Icon
-              icon="solar:tools-bold-duotone"
-              className="text-primary-300 dark:text-primary-600"
+              icon="solar:box-linear"
+              className="text-gray-300"
               width={64}
             />
           </div>
         )}
 
-        {/* Photo count badge */}
-        {photoCount > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs font-medium px-2 py-1 rounded-md flex items-center gap-1">
-            <Icon icon="solar:gallery-bold" width={14} />
-            {photoCount}
+        {/* Top Bar */}
+        <div className="absolute top-0 left-0 right-0 p-3 flex items-center justify-between">
+          {/* Status Badge */}
+          <div
+            className={`px-2.5 py-1 rounded-full text-[8px] font-semibold ${
+              tool.available
+                ? "bg-primary-100 text-primary-700"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {tool.available ? "Available" : "Unavailable"}
           </div>
+        </div>
+
+        {/* Quick Actions - on hover */}
+        <div
+          className={`absolute right-3 top-2 flex  gap-2 transition-all duration-200 z-20 ${
+            isHovered || !isOwnedByUser
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
+          }`}
+        >
+          {isOwnedByUser ? (
+            <>
+              <Link
+                href={`/toolbox/edit/${tool.id}`}
+                className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center shadow-xl hover:bg-gray-50 transition-colors"
+              >
+                <Icon
+                  icon="solar:pen-linear"
+                  className="text-gray-700"
+                  width={15}
+                />
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className={`size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer ${
+                  showDeleteConfirm
+                    ? "bg-red-500 text-white"
+                    : "bg-primary-100 text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                {isDeleting ? (
+                  <Icon
+                    icon="solar:refresh-bold"
+                    className="animate-spin"
+                    width={15}
+                  />
+                ) : (
+                  <Icon icon="solar:trash-bin-2-linear" width={18} />
+                )}
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleFavorite}
+              disabled={isFavoriteWorking}
+              className={`size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer ${
+                isFavorite
+                  ? "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                  : "bg-primary-100 text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {isFavorite ? (
+                <Icon icon="mdi:heart" width={15} />
+              ) : (
+                <Icon icon="mdi:heart-outline" width={18} />
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Navigation Arrows */}
+        {hasMultiplePhotos && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageIndex(
+                  (prev) => (prev - 1 + photos.length) % photos.length
+                );
+              }}
+              className={`absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
+                isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <Icon
+                icon="solar:alt-arrow-left-linear"
+                width={18}
+                className="text-gray-800"
+              />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setImageIndex((prev) => (prev + 1) % photos.length);
+              }}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
+                isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <Icon
+                icon="solar:alt-arrow-right-linear"
+                width={18}
+                className="text-gray-800"
+              />
+            </button>
+          </>
         )}
 
-        {/* Availability badge */}
-        <div
-          className={`absolute top-2 left-2 text-xs font-medium px-2.5 py-1 rounded-md flex items-center gap-1 ${
-            tool.available ? "bg-green-500 text-white" : "bg-red-500 text-white"
-          }`}
-        >
-          <Icon
-            icon={
-              tool.available
-                ? "solar:check-circle-bold"
-                : "solar:close-circle-bold"
-            }
-            width={14}
-          />
-          {tool.available ? "Available" : "Unavailable"}
-        </div>
-
-        {/* Quick actions overlay */}
-        <div
-          className={`absolute inset-0 bg-black/40 flex items-center justify-center gap-2 transition-opacity duration-200 ${
-            isHovered ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <Link
-            href={`/tools/${tool.id}`}
-            className="p-2.5 bg-white rounded-full hover:bg-primary-50 transition-colors shadow-lg"
-            title="View details"
-          >
-            <Icon
-              icon="solar:eye-bold"
-              className="text-primary-700"
-              width={20}
-            />
-          </Link>
-          {onEdit && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                onEdit(tool);
-              }}
-              className="p-2.5 bg-white rounded-full hover:bg-primary-50 transition-colors shadow-lg cursor-pointer"
-              title="Edit tool"
-            >
-              <Icon
-                icon="solar:pen-bold"
-                className="text-primary-700"
-                width={20}
+        {/* Photo Dots */}
+        {hasMultiplePhotos && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+            {photos.slice(0, 5).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setImageIndex(idx);
+                }}
+                className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
+                  idx === imageIndex
+                    ? "w-4 bg-white"
+                    : "w-1.5 bg-white/50 hover:bg-white/80"
+                }`}
               />
-            </button>
-          )}
-          {onDelete && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                onDelete(tool);
-              }}
-              className="p-2.5 bg-white rounded-full hover:bg-red-50 transition-colors shadow-lg cursor-pointer"
-              title="Delete tool"
-            >
-              <Icon
-                icon="solar:trash-bin-trash-bold"
-                className="text-red-600"
-                width={20}
-              />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Content section */}
-      <div className="p-4">
-        {/* Category tag */}
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-800 px-2 py-0.5 rounded">
-            {tool.category}
-          </span>
-        </div>
-
-        {/* Title */}
-        <h3 className="font-semibold text-lg text-primary-800 dark:text-primary-100 line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {tool.name}
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-primary-500 dark:text-primary-400 mt-1 line-clamp-2">
-          {tool.description.replace(/<[^>]*>/g, "")}
-        </p>
-
-        {/* Price info */}
-        <div className="mt-4 pt-4 border-t border-primary-100 dark:border-primary-800">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-2xl font-bold text-primary-700 dark:text-primary-200">
-                {formatPrice(tool.dailyPriceCents)}
-                <span className="text-sm font-normal text-primary-400">
-                  /day
-                </span>
-              </p>
-              <p className="text-xs text-primary-400 mt-0.5">
-                Deposit: {formatPrice(tool.depositCents)}
-              </p>
-            </div>
-
-            {onRent && tool.available && (
-              <SpraadaButton
-                variant="primary"
-                size="sm"
-                rightIcon="solar:arrow-right-linear"
-                onClick={() => onRent(tool)}
-              >
-                Rent Now
-              </SpraadaButton>
+            ))}
+            {photos.length > 5 && (
+              <span className="text-white/80 text-xs ml-1">
+                +{photos.length - 5}
+              </span>
             )}
           </div>
+        )}
+      </div>
+
+      {/* Content Section */}
+      <div className="p-4 space-y-3 border-t border-gray-100">
+        {/* Category & Title */}
+        <div>
+          <span className="text-[9px] font-medium text-primary-600 uppercase tracking-wide">
+            {tool.category || "Uncategorized"}
+          </span>
+          <Link
+            href={`/toolbox/${tool.id}`}
+            className="font-semibold text-gray-900 text-[14px]  line-clamp-1 group-hover:text-primary-600 transition-colors"
+          >
+            {tool.name}
+          </Link>
         </div>
 
-        {/* Stats row */}
-        <div className="mt-4 flex items-center gap-4 text-xs text-primary-400">
-          <div className="flex items-center gap-1">
-            <Icon icon="solar:calendar-date-bold" width={14} />
-            <span>Added {new Date(tool.createdAt).toLocaleDateString()}</span>
+        {/* Pricing */}
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div>
+            <span className="text-xl font-bold text-gray-900">
+              {formatPrice(tool.dailyPriceCents)}
+            </span>
+            <span className="text-gray-500 text-sm"> / day</span>
           </div>
+
+          <Link
+            href={`/toolbox/${tool.id}`}
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-primary-100 rounded-lg"
+          >
+            <Icon
+              icon="lsicon:view-outline"
+              className="text-primary-600"
+              width={18}
+            />
+            <span className="text-xs font-medium text-primary-700">
+              view tool
+            </span>
+          </Link>
         </div>
       </div>
+
+      {/* Delete Confirm Toast */}
+      {showDeleteConfirm && (
+        <div className="absolute bottom-4 right-4 px-3 py-2 bg-red-500 text-white text-xs font-medium rounded-lg shadow-lg">
+          Click again to delete
+        </div>
+      )}
     </div>
   );
-}
+};
+
+// Main ToolCard component
+export const ToolCard = ({
+  tool,
+  variant = "default",
+  onDelete,
+  isDeleting,
+}: ToolCardProps) => {
+  switch (variant) {
+    case "compact":
+      return <CompactCard tool={tool} />;
+    case "rental":
+    case "borrowed":
+      return <RentalCard tool={tool} variant={variant} />;
+    default:
+      return (
+        <DefaultCard tool={tool} onDelete={onDelete} isDeleting={isDeleting} />
+      );
+  }
+};
+
+export default ToolCard;
