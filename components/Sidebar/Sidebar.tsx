@@ -11,7 +11,7 @@ import {
   useProfile,
   useUser,
   useHasHydrated,
-  useProfileActions,
+  useClearProfile,
   useProfileInitials,
 } from "@/store";
 
@@ -44,7 +44,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   // Get profile from Zustand store
   const profile = useProfile();
   const user = useUser();
-  const { clearProfile } = useProfileActions();
+  const clearProfile = useClearProfile();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
 

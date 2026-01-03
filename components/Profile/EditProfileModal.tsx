@@ -19,7 +19,7 @@ import { Profile } from "@/store/profile/profile.types";
 import { cn } from "@/lib/utils";
 import { editProfileSchema } from "@/lib/validators/profile/editProfile.validator";
 import { updateUserProfile } from "@/lib/actions/profile.actions";
-import { useProfileActions } from "@/store";
+import { useUpdateProfile } from "@/store";
 import toast from "react-hot-toast";
 
 type EditProfileData = z.infer<typeof editProfileSchema>;
@@ -39,7 +39,7 @@ export default function EditProfileModal({
 }: EditProfileModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const { updateProfile } = useProfileActions();
+  const updateProfile = useUpdateProfile();
 
   const form = useForm<EditProfileData>({
     resolver: zodResolver(editProfileSchema),

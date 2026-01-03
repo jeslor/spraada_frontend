@@ -30,7 +30,6 @@ import {
 import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
-import { useUser } from "@/store";
 import { uploadResources } from "@/lib/actions/resources.actions";
 
 const steps = [
@@ -53,8 +52,12 @@ const steps = [
 
 const RESOURCE_FOLDER = "profile-images";
 
-const OnboardingForm = ({ userRole }: { userRole: string }) => {
-  const user = useUser();
+interface OnboardingFormProps {
+  userRole: string;
+  userId: string;
+}
+
+const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
@@ -115,7 +118,7 @@ const OnboardingForm = ({ userRole }: { userRole: string }) => {
       const formData = new FormData();
       formData.append("images", croppedFile);
       const uploadRes = await uploadResources(
-        Number(user?.id),
+        Number(userId),
         formData,
         RESOURCE_FOLDER
       );
@@ -137,22 +140,7 @@ const OnboardingForm = ({ userRole }: { userRole: string }) => {
         avatarUrlKey: uploadedImage ? uploadedImage.key : null,
       };
 
-      const response = await customFetch(
-        `${process.env.BACKEND_API_URL || "http://localhost:4444"}/profile`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userProfileData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          response.data?.message || response.error || "Failed to create profile"
-        );
-      }
+      //save the user profile data
 
       // Move to completed step instead of refreshing immediately
       setCurrentStep(3);

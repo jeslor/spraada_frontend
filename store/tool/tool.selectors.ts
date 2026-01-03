@@ -41,7 +41,7 @@ export const useToolById = (toolId: string): Tool | undefined => {
   });
 };
 
-export const useMyToolsCount = (): number =>
+export const useMyToolsStoreCount = (): number =>
   useToolStore((state) => state.myTools.length);
 
 export const useRentedToolsCount = (): number =>
@@ -69,26 +69,40 @@ export const isFavorite = (toolId: string): boolean => {
 
 // ==================== Action Hooks ====================
 
-export const useToolActions = () => {
-  const setMyTools = useToolStore((state) => state.setMyTools);
-  const setRentedTools = useToolStore((state) => state.setRentedTools);
-  const setBorrowedTools = useToolStore((state) => state.setBorrowedTools);
-  const clearTools = useToolStore((state) => state.clearTools);
-  const addTool = useToolStore((state) => state.addTool);
-  const updateTool = useToolStore((state) => state.updateTool);
-  const removeTool = useToolStore((state) => state.removeTool);
-  const fetchMyTools = useToolStore((state) => state.fetchMyTools);
-  const getToolById = useToolStore((state) => state.getToolById);
+// Individual action hooks for stable references
+export const useSetMyTools = () => useToolStore((state) => state.setMyTools);
 
+export const useSetRentedTools = () =>
+  useToolStore((state) => state.setRentedTools);
+
+export const useSetBorrowedTools = () =>
+  useToolStore((state) => state.setBorrowedTools);
+
+export const useClearTools = () => useToolStore((state) => state.clearTools);
+
+export const useAddTool = () => useToolStore((state) => state.addTool);
+
+export const useUpdateToolAction = () =>
+  useToolStore((state) => state.updateTool);
+
+export const useRemoveTool = () => useToolStore((state) => state.removeTool);
+
+export const useFetchMyTools = () =>
+  useToolStore((state) => state.fetchMyTools);
+
+export const useGetToolById = () => useToolStore((state) => state.getToolById);
+
+// Combined actions hook (use individual hooks above when possible for better performance)
+export const useToolActions = () => {
   return {
-    setMyTools,
-    setRentedTools,
-    setBorrowedTools,
-    clearTools,
-    addTool,
-    updateTool,
-    removeTool,
-    fetchMyTools,
-    getToolById,
+    setMyTools: useSetMyTools(),
+    setRentedTools: useSetRentedTools(),
+    setBorrowedTools: useSetBorrowedTools(),
+    clearTools: useClearTools(),
+    addTool: useAddTool(),
+    updateTool: useUpdateToolAction(),
+    removeTool: useRemoveTool(),
+    fetchMyTools: useFetchMyTools(),
+    getToolById: useGetToolById(),
   };
 };

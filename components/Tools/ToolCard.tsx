@@ -279,7 +279,7 @@ const DefaultCard = ({
       }}
     >
       {/* Image Section */}
-      <div className="relative aspect-4/3 bg-gray-100 overflow-hidden">
+      <div className="relative aspect-4/3 bg-gray-100 overflow-hidden ">
         {photos.length > 0 ? (
           <img
             src={
@@ -287,8 +287,8 @@ const DefaultCard = ({
               "/placeholder-tool.png"
             }
             alt={tool.name}
-            className="object-cover transition-opacity duration-300"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-opacity duration-300 h-full w-full object-top"
+            sizes=""
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

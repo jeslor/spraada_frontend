@@ -10,7 +10,7 @@ import {
   useRentedTools,
   useBorrowedTools,
   useToolsLoading,
-  useToolActions,
+  useFetchMyTools,
   useToolsHasHydrated,
 } from "@/store";
 import NoTools from "./NoTools";
@@ -28,21 +28,24 @@ const ToolContent = ({ type }: ToolContentProps) => {
   const borrowedTools = useBorrowedTools();
   const isLoading = useToolsLoading();
   const hasHydrated = useToolsHasHydrated();
-  const { fetchMyTools } = useToolActions();
+  const fetchMyTools = useFetchMyTools();
   const [hasFetched, setHasFetched] = useState(false);
+
+  // Memoize profileId to prevent unnecessary effect runs
+  const profileId = profile?.id;
 
   // Fetch tools based on type (only if not already loaded)
   useEffect(() => {
-    if (profile?.id && hasHydrated && !hasFetched) {
+    if (profileId && hasHydrated && !hasFetched) {
       if (type === "owned" && myTools.length === 0) {
         setHasFetched(true);
-        fetchMyTools(profile.id);
+        fetchMyTools(profileId);
       } else if (type === "rented" || type === "borrowed") {
         // TODO: Add fetch actions for rented/borrowed tools when backend supports it
         setHasFetched(true);
       }
     }
-  }, [type, profile?.id, hasHydrated, myTools.length, hasFetched]);
+  }, [type, profileId, hasHydrated, myTools.length, hasFetched, fetchMyTools]);
 
   // Handle edit tool - navigate to edit page
   const handleEdit = (tool: Tool) => {

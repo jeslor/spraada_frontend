@@ -1,9 +1,9 @@
 "use server";
 
-import { ProfileActionResult } from "@/types/profile.types";
 import customFetch from "../customFetch";
-import { Profile } from "@/store/profile/profile.types";
+import { Profile, ProfileActionResult } from "@/store/profile/profile.types";
 import { deleteResource, uploadResources } from "./resources.actions";
+import { getSession, updateSessionUserData } from "../session/session";
 
 const RESOURCE_FOLDER = "profile-images";
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
@@ -84,6 +84,50 @@ export const updateUserProfile = async (
 };
 
 //================Main actions ==================
+
+// create profile
+export const createProfile = async (userProfileData: {}): Promise<
+  ProfileActionResult<Profile>
+> => {
+  try {
+    //create the profile
+    const response = await customFetch(
+      `${process.env.BACKEND_API_URL || "http://localhost:4444"}/profile`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userProfileData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message || response.error || "Failed to create profile"
+      );
+    }
+
+    const session = await getSession();
+
+    await updateSessionUserData({
+      userRole: session?.user.role!,
+      UserOnboarded: true,
+    });
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile avatar",
+    };
+  }
+};
 
 //Update profile avatar
 export const updateProfileAvatar = async ({
