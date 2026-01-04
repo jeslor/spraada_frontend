@@ -22,10 +22,16 @@ export const navItems: NavItem[] = [
     activeIcon: "solar:box-bold",
   },
   {
-    name: "My Rentals",
+    name: "Tools I Borrowed",
+    href: "/borrowed",
+    icon: "solar:delivery-linear",
+    activeIcon: "solar:delivery-bold",
+  },
+  {
+    name: "Tools I Rented Out",
     href: "/rentals",
-    icon: "solar:hand-shake-linear",
-    activeIcon: "solar:hand-shake-bold",
+    icon: "solar:hand-money-linear",
+    activeIcon: "solar:hand-money-bold",
   },
   {
     name: "Messages",

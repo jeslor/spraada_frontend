@@ -2,7 +2,7 @@ import ToolContent from "@/components/Tools/ToolContnet";
 import { getSession } from "@/lib/session/session";
 import { redirect } from "next/navigation";
 
-export default async function RentalsPage() {
+export default async function BorrowedToolsPage() {
   const session = await getSession();
   if (!session) redirect("/signin");
   if (!session.user?.isOnboarded) {
@@ -14,13 +14,13 @@ export default async function RentalsPage() {
       <div className="px-0 xl:px-10 flex flex-col w-full">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Tools I Rented Out
+            Tools I Borrowed
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Tools you&apos;ve rented out to other users
+            Tools you&apos;ve borrowed from other users
           </p>
         </div>
-        <ToolContent type="rented" />
+        <ToolContent type="borrowed" />
       </div>
     </div>
   );

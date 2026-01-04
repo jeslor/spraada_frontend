@@ -1,6 +1,6 @@
 "use server";
 
-import { uploadResources } from "./resources.actions";
+import { deleteResource, uploadResources } from "./resources.actions";
 import customFetch from "../customFetch";
 import { Tool, ToolInfo, ToolPhoto } from "@/types/tool.types";
 
@@ -46,7 +46,7 @@ export const saveTool = async ({
           toolPhotos: uploadedToolPhotosResponse.data.map(
             (photo: { key: string; url: string }) => ({
               photoUrl: photo.url,
-              photoKey: photo.key,
+              photoUrlKey: photo.key,
             })
           ),
         }),
@@ -129,20 +129,40 @@ export const getToolById = async (toolId: string): Promise<Tool | null> => {
 
 export const updateTool = async ({
   toolId,
+  userId,
   toolInfo,
   newPhotos,
   existingPhotos,
+  deletedPhotos,
 }: {
   toolId: string;
+  userId: number;
   toolInfo: Partial<ToolInfo>;
   newPhotos?: ToolPhoto[];
-  existingPhotos?: { photoUrl: string; photoKey: string }[];
+  existingPhotos: ToolPhoto[];
+  deletedPhotos: ToolPhoto[];
 }): Promise<Tool> => {
   try {
-    let allPhotos: { photoUrl: string; photoKey: string }[] = [
-      ...(existingPhotos || []),
-    ];
+    if (!toolId || !toolInfo.profileId) {
+      throw new Error("Tool ID and Profile ID are required for updating tool");
+    }
+    //Delete the photos deleted by user from database and from the profile
+    if (deletedPhotos.length > 0) {
+      const someOldPhototosDeleteResponse = await deleteResource({
+        userId: userId,
+        keys: deletedPhotos.map((photo) => photo.photoUrlKey!),
+        profileId: toolInfo.profileId,
+      });
 
+      if (!someOldPhototosDeleteResponse.success) {
+        throw new Error(
+          someOldPhototosDeleteResponse.error ||
+            "Failed to delete old tool photos"
+        );
+      }
+    }
+
+    let allPhotos: ToolPhoto[] = [...(existingPhotos || [])];
     // Upload new photos if any
     if (newPhotos && newPhotos.length > 0) {
       const formToolData = new FormData();
@@ -168,7 +188,7 @@ export const updateTool = async ({
       const newUploadedPhotos = uploadedToolPhotosResponse.data.map(
         (photo: { key: string; url: string }) => ({
           photoUrl: photo.url,
-          photoKey: photo.key,
+          photoUrlKey: photo.key,
         })
       );
       allPhotos = [...allPhotos, ...newUploadedPhotos];
@@ -179,6 +199,7 @@ export const updateTool = async ({
       updatePayload.toolPhotos = allPhotos;
     }
 
+    // Update the tool details with the combined photos
     const response = await customFetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
@@ -193,6 +214,8 @@ export const updateTool = async ({
     );
 
     if (!response.ok) {
+      console.log(response);
+
       throw new Error(
         response.data?.message ||
           response.data?.error ||
