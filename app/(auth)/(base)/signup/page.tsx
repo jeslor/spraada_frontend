@@ -16,7 +16,11 @@ import {
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
 import { AuthError } from "@/types/auth";
-import { FormData, signUpSchema } from "@/lib/validators/Auth.validators";
+import {
+  FormData,
+  signUpSchema,
+  userPasswordRequirements,
+} from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/actions/Auth.actions";
 
@@ -38,12 +42,7 @@ const SignUpPage = () => {
 
   const password = form.watch("password") || "";
 
-  const passwordRequirements = [
-    { met: password.length >= 8, text: "At least 8 characters" },
-    { met: /[a-z]/.test(password), text: "One lowercase letter" },
-    { met: /[A-Z]/.test(password), text: "One uppercase letter" },
-    { met: /\d/.test(password), text: "One number" },
-  ];
+  const passwordRequirements = userPasswordRequirements(password);
 
   const onSubmit = async (data: FormData) => {
     try {

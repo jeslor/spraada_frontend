@@ -1,12 +1,12 @@
 "use client";
+import { Icon } from "@iconify/react";
 
-import { useState, useEffect, Suspense } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, Lock, ArrowLeft, Check } from "lucide-react";
-import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { Loader2, Check, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,186 +16,60 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import InputField from "@/components/Form/InputFeild";
+import { AuthError } from "@/types/auth";
+import {
+  NewPasswordData,
+  newPasswordSchema,
+  signInSchema,
+  userPasswordRequirements,
+} from "@/lib/validators/Auth.validators";
 
-const resetPasswordSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+const backendURL = "http://localhost:4444";
 
-type ResetPasswordData = z.infer<typeof resetPasswordSchema>;
-
-const ResetPasswordContent = () => {
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
+const SignInPage = () => {
+  const [url, setUrl] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
+  const Router = useRouter();
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
-  const form = useForm<ResetPasswordData>({
-    resolver: zodResolver(resetPasswordSchema),
+  const form = useForm<NewPasswordData>({
+    resolver: zodResolver(newPasswordSchema),
     defaultValues: {
       password: "",
       confirmPassword: "",
     },
   });
 
+  useEffect(() => {
+    setUrl(`${backendURL}/auth/google/login`);
+  }, []);
+
   const password = form.watch("password") || "";
 
-  const passwordRequirements = [
-    { met: password.length >= 8, text: "At least 8 characters" },
-    { met: /[a-z]/.test(password), text: "One lowercase letter" },
-    { met: /[A-Z]/.test(password), text: "One uppercase letter" },
-    { met: /\d/.test(password), text: "One number" },
-  ];
+  const passwordRequirements = userPasswordRequirements(password);
 
-  // Validate token on mount
-  useEffect(() => {
-    const validateToken = async () => {
-      if (!token) {
-        setIsTokenValid(false);
-        return;
-      }
-
-      try {
-        // TODO: Implement token validation API call
-        // const response = await validateResetToken(token);
-
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setIsTokenValid(true);
-      } catch (err) {
-        setIsTokenValid(false);
-      }
-    };
-
-    validateToken();
-  }, [token]);
-
-  const onSubmit = async (data: ResetPasswordData) => {
+  const onSubmit = async (data: NewPasswordData) => {
     try {
       setIsLoading(true);
       setError("");
-
-      // TODO: Implement reset password API call
-      // const response = await resetPassword(token, data.password);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      setIsSuccess(true);
     } catch (err) {
-      setError("Failed to reset password. Please try again.");
+      const authError = err as AuthError;
+      setError(authError.message || "Failed to sign in. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Loading state while validating token
-  if (isTokenValid === null) {
-    return (
-      <>
-        <div className="auth-form-header">
-          <h1 className="auth-form-title">Validating link...</h1>
-          <p className="auth-form-subtitle">
-            Please wait while we verify your reset link
-          </p>
-        </div>
-        <div className="flex justify-center">
-          <Loader2 className="h-8 w-8 text-primary-600 animate-spin" />
-        </div>
-      </>
-    );
-  }
-
-  // Invalid or expired token
-  if (!isTokenValid) {
-    return (
-      <>
-        <div className="auth-form-header">
-          <h1 className="auth-form-title">Link expired</h1>
-          <p className="auth-form-subtitle">
-            This password reset link is invalid or has expired
-          </p>
-        </div>
-
-        <div className="auth-form-error">
-          <p>
-            Password reset links expire after 1 hour for security reasons.
-            Please request a new link to reset your password.
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          className="spraada-primary-button h-11 w-full"
-          onClick={() => router.push("/forgot_Password")}
-        >
-          Request new link
-        </Button>
-
-        <div className="auth-footer">
-          <p>
-            <Link
-              href="/signin"
-              className="auth-link inline-flex items-center gap-1"
-            >
-              <ArrowLeft size={14} />
-              Back to sign in
-            </Link>
-          </p>
-        </div>
-      </>
-    );
-  }
-
-  // Success state
-  if (isSuccess) {
-    return (
-      <>
-        <div className="auth-form-header">
-          <h1 className="auth-form-title">Password reset</h1>
-          <p className="auth-form-subtitle">
-            Your password has been successfully updated
-          </p>
-        </div>
-
-        <div className="auth-form-success">
-          <p>You can now sign in with your new password.</p>
-        </div>
-
-        <Button
-          type="button"
-          className="spraada-primary-button h-11 w-full"
-          onClick={() => router.push("/signin")}
-        >
-          Continue to sign in
-        </Button>
-      </>
-    );
-  }
-
   return (
     <>
       {/* Header */}
       <div className="auth-form-header">
-        <h1 className="auth-form-title">Set new password</h1>
-        <p className="auth-form-subtitle">
-          Your new password must be different from previously used passwords
+        <h1 className="auth-form-title">Create New Password</h1>
+        <p className="auth-form-subtitle text-[13px]">
+          Enter your new password below to complete the reset process.Ensure
+          that it is strong
         </p>
       </div>
 
@@ -218,13 +92,13 @@ const ResetPasswordContent = () => {
                   <InputField
                     {...field}
                     name="password"
-                    label="New password"
-                    placeholder="Enter your new password"
-                    className="h-[45px] pl-10 text-[13px]! bg-white"
+                    label="Password"
+                    placeholder="Create a password"
                     type="password"
+                    className="h-[45px] pl-10 text-[13px]! bg-white"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={15} />}
+                    icon={<Lock size={13} />}
                     showPasswordToggle={true}
                     showPassword={showPassword}
                     onTogglePassword={() => setShowPassword(!showPassword)}
@@ -269,12 +143,12 @@ const ResetPasswordContent = () => {
                     {...field}
                     name="confirmPassword"
                     label="Confirm password"
-                    placeholder="Confirm your new password"
                     className="h-[45px] pl-10 text-[13px]! bg-white"
+                    placeholder="Confirm your password"
                     type="password"
                     error={fieldState.error}
                     disabled={isLoading}
-                    icon={<Lock size={15} />}
+                    icon={<Lock size={13} />}
                     showPasswordToggle={true}
                     showPassword={showConfirmPassword}
                     onTogglePassword={() =>
@@ -296,48 +170,16 @@ const ResetPasswordContent = () => {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Resetting password...
+                Signing in...
               </>
             ) : (
-              "Reset password"
+              "Reset Password"
             )}
           </Button>
         </form>
       </Form>
-
-      {/* Footer */}
-      <div className="auth-footer">
-        <p>
-          <Link
-            href="/signin"
-            className="auth-link inline-flex items-center gap-1"
-          >
-            <ArrowLeft size={14} />
-            Back to sign in
-          </Link>
-        </p>
-      </div>
     </>
   );
 };
 
-const ResetPasswordPage = () => {
-  return (
-    <Suspense
-      fallback={
-        <>
-          <div className="auth-form-header">
-            <h1 className="auth-form-title">Loading...</h1>
-          </div>
-          <div className="flex justify-center">
-            <Loader2 className="h-8 w-8 text-primary-600 animate-spin" />
-          </div>
-        </>
-      }
-    >
-      <ResetPasswordContent />
-    </Suspense>
-  );
-};
-
-export default ResetPasswordPage;
+export default SignInPage;
