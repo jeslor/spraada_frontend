@@ -204,7 +204,7 @@
   }
 
   .auth-form-subtitle {
-    @apply text-primary-600 dark:text-primary-300;
+    @apply text-primary-600 dark:text-primary-300 opacity-70;
   }
 
   .auth-form-error {
