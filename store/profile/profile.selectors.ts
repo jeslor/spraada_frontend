@@ -66,28 +66,41 @@ export const useProfileStats = () => {
 
 // ==================== Action Selectors ====================
 
+// Individual action hooks for stable references
+export const useSetProfile = () => useProfileStore((state) => state.setProfile);
+
+export const useSetUser = () => useProfileStore((state) => state.setUser);
+
+export const useClearProfile = () =>
+  useProfileStore((state) => state.clearProfile);
+
+export const useFetchProfile = () =>
+  useProfileStore((state) => state.fetchProfile);
+
+export const useUpdateProfile = () =>
+  useProfileStore((state) => state.updateProfile);
+
+export const useUpdateAvatar = () =>
+  useProfileStore((state) => state.updateAvatar);
+
+export const useUpdateCover = () =>
+  useProfileStore((state) => state.updateCover);
+
+export const useSetError = () => useProfileStore((state) => state.setError);
+
+export const useClearError = () => useProfileStore((state) => state.clearError);
+
+// Combined actions hook (use individual hooks above when possible for better performance)
 export const useProfileActions = () => {
-  const setProfile = useProfileStore((state) => state.setProfile);
-  const setUser = useProfileStore((state) => state.setUser);
-  const clearProfile = useProfileStore((state) => state.clearProfile);
-  const fetchProfile = useProfileStore((state) => state.fetchProfile);
-  const updateProfile = useProfileStore((state) => state.updateProfile);
-  const updateAvatar = useProfileStore((state) => state.updateAvatar);
-  const updateCover = useProfileStore((state) => state.updateCover);
-
-  const setError = useProfileStore((state) => state.setError);
-  const clearError = useProfileStore((state) => state.clearError);
-
   return {
-    setProfile,
-    setUser,
-    clearProfile,
-    fetchProfile,
-    updateProfile,
-    updateAvatar,
-    updateCover,
-
-    setError,
-    clearError,
+    setProfile: useSetProfile(),
+    setUser: useSetUser(),
+    clearProfile: useClearProfile(),
+    fetchProfile: useFetchProfile(),
+    updateProfile: useUpdateProfile(),
+    updateAvatar: useUpdateAvatar(),
+    updateCover: useUpdateCover(),
+    setError: useSetError(),
+    clearError: useClearError(),
   };
 };

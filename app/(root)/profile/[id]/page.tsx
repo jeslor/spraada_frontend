@@ -15,13 +15,26 @@ export default async function ProfilePage({
   const user = await getUser(id);
   if (!user) redirect("/signin");
 
-  const profile = user.profile || user;
   const isOwnProfile = session.user.id === id;
+
+  // Layout handles onboarding form for non-onboarded users
+  // This page only renders for onboarded users or when viewing others' profiles
+
+  // For users without a profile viewing someone else's incomplete profile
+  if (!user.profile) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="text-center py-16">
+          <p className="text-gray-500">This profile is not yet complete.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ProfileContent
       initialUser={user}
-      initialProfile={profile}
+      initialProfile={user.profile}
       isOwnProfile={isOwnProfile}
     />
   );

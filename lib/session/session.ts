@@ -55,13 +55,14 @@ export async function getSession(): Promise<Session | null> {
     return payload as Session;
   } catch (error) {
     console.error("Invalid session token:", error);
-    return redirect("/signin");
+    // Return null instead of redirecting - let the calling code handle the redirect
+    return null;
   }
 }
 
 export async function clearSession() {
   const cookieStore = await cookies();
-  cookieStore.set("session", "", {
+  cookieStore.set("spraada_session", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: new Date(0),

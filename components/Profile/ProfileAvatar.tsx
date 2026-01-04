@@ -5,11 +5,9 @@ import { Icon } from "@iconify/react";
 import CropImage from "@/components/Onboarding/CropImage";
 import customFetch from "@/lib/customFetch";
 import { useRouter } from "next/navigation";
-import { Profile, useProfileActions } from "@/store";
-import {
-  ProfileActionResult,
-  updateProfileAvatar,
-} from "@/lib/actions/profile.actions";
+import { Profile, useUpdateAvatar } from "@/store";
+import { updateProfileAvatar } from "@/lib/actions/profile.actions";
+import { ProfileActionResult } from "@/types/profile.types";
 
 interface ProfileAvatarProps {
   avatarUrlKey: string;
@@ -36,7 +34,7 @@ export default function ProfileAvatar({
   const [error, setError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const { updateAvatar } = useProfileActions();
+  const updateAvatar = useUpdateAvatar();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

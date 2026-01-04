@@ -1,6 +1,6 @@
-import { Tool } from "@/types/tool.types";
-
 // Profile entity types
+
+import { Tool } from "../tool/tool.types";
 
 export interface Profile {
   id: number;
@@ -23,6 +23,12 @@ export interface Profile {
   transactions?: [];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface ProfileActionResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
 export interface User {

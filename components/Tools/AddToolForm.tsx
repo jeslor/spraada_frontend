@@ -12,7 +12,7 @@ import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
 import { saveTool } from "@/lib/actions/tools.actions";
-import { useProfile, useToolActions } from "@/store";
+import { useProfile, useFetchMyTools } from "@/store";
 import { ToolPhoto } from "@/types/tool.types";
 import { useRouter } from "next/navigation";
 
@@ -38,7 +38,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profile = useProfile();
-  const { fetchMyTools } = useToolActions();
+  const fetchMyTools = useFetchMyTools();
 
   const {
     register,

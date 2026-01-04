@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useProfileStore } from "@/store";
 import { User } from "@/store/profile/profile.types";
 
@@ -15,10 +15,12 @@ interface ProfileInitializerProps {
 export function ProfileInitializer({ user }: ProfileInitializerProps) {
   const setUser = useProfileStore((state) => state.setUser);
   const hasHydrated = useProfileStore((state) => state._hasHydrated);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
-    // Only set user after hydration to avoid overwriting persisted data
-    if (hasHydrated && user) {
+    // Only set user once after hydration to avoid re-render loops
+    if (hasHydrated && user && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       setUser(user);
     }
   }, [user, setUser, hasHydrated]);

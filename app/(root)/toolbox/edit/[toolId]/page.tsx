@@ -6,7 +6,7 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/types/tool.types";
 import { getToolById } from "@/lib/actions/tools.actions";
-import { useProfile, useToolById, useToolActions } from "@/store";
+import { useProfile, useToolById, useFetchMyTools } from "@/store";
 import EditToolForm from "@/components/Tools/EditToolForm";
 import LoadingUI from "@/components/ui/Loading";
 
@@ -18,7 +18,7 @@ export default function EditToolPage() {
 
   // Try to get tool from store first
   const toolFromStore = useToolById(toolId);
-  const { fetchMyTools } = useToolActions();
+  const fetchMyTools = useFetchMyTools();
 
   const [tool, setTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(true);

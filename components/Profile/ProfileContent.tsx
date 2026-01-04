@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
 import ProfileAvatar from "@/components/Profile/ProfileAvatar";
@@ -9,7 +9,8 @@ import {
   useProfile,
   useUser,
   useProfileStats,
-  useProfileActions,
+  useSetUser,
+  useSetProfile,
   useHasHydrated,
   useMyToolsCount,
 } from "@/store";
@@ -28,9 +29,11 @@ export default function ProfileContent({
   initialProfile,
   isOwnProfile,
 }: ProfileContentProps) {
-  const { setUser, setProfile } = useProfileActions();
+  const setUser = useSetUser();
+  const setProfile = useSetProfile();
   const hasHydrated = useHasHydrated();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const hasSyncedRef = useRef(false);
 
   // Get data from store (will be hydrated from localStorage or initial data)
   const storeProfile = useProfile();
@@ -43,9 +46,10 @@ export default function ProfileContent({
   const user =
     isOwnProfile && hasHydrated && storeUser ? storeUser : initialUser;
 
-  // Sync initial data to store if viewing own profile
+  // Sync initial data to store if viewing own profile (only once after hydration)
   useEffect(() => {
-    if (isOwnProfile && hasHydrated) {
+    if (isOwnProfile && hasHydrated && !hasSyncedRef.current) {
+      hasSyncedRef.current = true;
       setUser(initialUser);
       setProfile(initialProfile);
     }

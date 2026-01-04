@@ -59,7 +59,7 @@ const ProfileLayout = async ({
           <main>{children}</main>
         ) : (
           <div className="flex items-center justify-center min-h-[60vh]">
-            <OnboardingForm userRole={user.role} />
+            <OnboardingForm userRole={user.role} userId={id} />
           </div>
         )}
       </div>

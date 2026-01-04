@@ -13,7 +13,12 @@ import {
 } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
-import { useProfile, useToolActions, useUser } from "@/store";
+import {
+  useProfile,
+  useUpdateToolAction,
+  useFetchMyTools,
+  useUser,
+} from "@/store";
 import { Tool, ToolPhoto } from "@/types/tool.types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -54,7 +59,8 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   const profile = useProfile();
   const user = useUser();
 
-  const { updateTool: updateToolInStore, fetchMyTools } = useToolActions();
+  const updateToolInStore = useUpdateToolAction();
+  const fetchMyTools = useFetchMyTools();
 
   const totalPhotoCount = existingPhotos.length + newPhotos.length;
 

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 export default async function ToolboxPage() {
   const session = await getSession();
+
   if (!session) redirect("/signin");
   if (!session.user?.isOnboarded) {
     redirect(`/profile/${session.user?.id}`);
