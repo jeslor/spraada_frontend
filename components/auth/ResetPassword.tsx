@@ -20,8 +20,9 @@ import {
   newPasswordSchema,
   userPasswordRequirements,
 } from "@/lib/validators/Auth.validators";
-import { tokenExpiryCheck } from "@/lib/actions/Auth.actions";
+import { saveNewPassword, tokenExpiryCheck } from "@/lib/actions/Auth.actions";
 import { SpraadaButton } from "../ui/SpraadaButton";
+import { Icon } from "@iconify/react";
 
 const backendURL = process.env.BACKEND_API_URL;
 
@@ -66,6 +67,11 @@ const ResetPassword = ({
   const onSubmit = async (data: NewPasswordData) => {
     try {
       setIsLoading(true);
+      const response = await saveNewPassword(token, email, data.password);
+      if (!response.success) {
+        throw new Error(response.data);
+      }
+      Router.push("/signin");
       setError("");
     } catch (err) {
       const authError = err as AuthError;
@@ -75,17 +81,15 @@ const ResetPassword = ({
     }
   };
 
-  console.log("token valid frontend", tokenValid);
-
   return (
     <>
       {/* Header */}
       <div className="auth-form-header">
         <h1 className="auth-form-title">
-          {tokenValid ? "Create New Password" : "Reset Token Expired"}
+          {isTokenValid ? "Create New Password" : "Reset Token Expired"}
         </h1>
         <p className="auth-form-subtitle text-[13px]">
-          {tokenValid
+          {isTokenValid
             ? "Enter your new password below to complete the reset process. Ensure that it is strong"
             : "The password reset link has expired. Please request a new one."}
         </p>
@@ -94,13 +98,23 @@ const ResetPassword = ({
       {/* Error Message */}
       {error && <div className="auth-form-error">{error}</div>}
       {!tokenValid ? (
-        <SpraadaButton
-          variant="link"
-          className="text-sm mt-2"
-          onClick={() => Router.push("/forgot_password")}
-        >
-          Request New Password Reset Link
-        </SpraadaButton>
+        <div className="flex justify-center flex-col items-center">
+          <div>
+            <Icon
+              icon="solar:shield-keyhole-bold-duotone"
+              width="58"
+              height="48"
+              className="text-primary-600"
+            />
+          </div>
+          <SpraadaButton
+            variant="link"
+            className="text-sm mt-2"
+            onClick={() => Router.push("/forgot_password")}
+          >
+            Request New Password Reset Link
+          </SpraadaButton>
+        </div>
       ) : (
         <Form {...form}>
           <form
