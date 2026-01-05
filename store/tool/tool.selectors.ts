@@ -1,6 +1,6 @@
 import { useProfile } from "../profile/profile.selectors";
 import { useToolStore } from "./tool.store";
-import { Tool } from "@/types/tool.types";
+import { Tool } from "./tool.types";
 
 // ==================== Basic Selectors ====================
 
