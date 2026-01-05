@@ -131,7 +131,7 @@ const SignInPage = () => {
           />
 
           <div className="flex items-center justify-end">
-            <Link href="/forgot-password" className="auth-link text-sm">
+            <Link href="/forgot_password" className="auth-link text-sm">
               Forgot your password?
             </Link>
           </div>
