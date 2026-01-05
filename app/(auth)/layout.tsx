@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Wrench, Hammer, Drill, Settings } from "lucide-react";
 
 const AuthLayout = async ({ children }: { children: React.ReactNode }) => {

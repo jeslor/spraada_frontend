@@ -29,7 +29,7 @@ import {
   resetPasswordRequest,
 } from "@/lib/actions/Auth.actions";
 
-const SignUpPage = () => {
+const ForgotPassword = () => {
   const Router = useRouter();
   const [error, setError] = useState<string>("");
   const [emailSent, setEmailSent] = useState<boolean>(false);
@@ -191,4 +191,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default ForgotPassword;

@@ -260,3 +260,59 @@ export const resetPasswordRequest = async (
     };
   }
 };
+
+//check if user with reset token exists
+export const userWithTokenExists = async (token: string, email: string) => {
+  const response = await fetch(
+    `${process.env.BACKEND_API_URL}/auth/check-reset-token-exists`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token, email }),
+    }
+  );
+
+  if (!response.ok) {
+    return {
+      exists: false,
+    };
+  }
+
+  const result = await response.json();
+  return {
+    exists: result.exists,
+  };
+};
+
+//check if Token is still valid
+export const tokenExpiryCheck = async (
+  token: string,
+  email: string
+): Promise<{ valid: boolean }> => {
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_API_URL}/auth/check-reset-token-expired`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, email }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to verify reset token");
+    }
+    const result = await response.json();
+
+    return {
+      valid: result.valid,
+    };
+  } catch (error) {
+    console.log("Error verifying reset token:", error);
+    return { valid: false };
+  }
+};
