@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { ToolStore, ToolState } from "./tool.types";
-import { Tool } from "@/types/tool.types";
+import { ToolStore, ToolState, Tool } from "./tool.types";
+
 import { getToolsByOwner } from "@/lib/actions/tools.actions";
 
 // Initial state

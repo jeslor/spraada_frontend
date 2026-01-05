@@ -13,6 +13,7 @@ import {
   useHasHydrated,
   useClearProfile,
   useProfileInitials,
+  useClearTools,
 } from "@/store";
 
 interface SidebarProps {
@@ -45,6 +46,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const profile = useProfile();
   const user = useUser();
   const clearProfile = useClearProfile();
+  const clearTools = useClearTools();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
 
@@ -57,8 +59,9 @@ const Sidebar = ({ session }: SidebarProps) => {
       console.error("Sign out failed:", await response.text());
       return;
     } else {
-      // Clear profile from Zustand store
+      // Clear profile and tools from Zustand store
       clearProfile();
+      clearTools();
       window.location.href = "/signin";
     }
   };
