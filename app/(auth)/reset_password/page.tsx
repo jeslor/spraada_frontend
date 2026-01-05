@@ -1,4 +1,3 @@
-import React from "react";
 import ResetPassword from "@/components/auth/ResetPassword";
 import { redirect } from "next/navigation";
 import {
@@ -24,6 +23,7 @@ const page = async ({
 
   if (!response.exists) redirect("/");
 
+  // set the validity value and message from the server
   let message = "";
   let tokenValid = false;
 

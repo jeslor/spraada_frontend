@@ -316,3 +316,42 @@ export const tokenExpiryCheck = async (
     return { valid: false };
   }
 };
+
+//save new password for user
+export const saveNewPassword = async (
+  token: string,
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean; data: string }> => {
+  try {
+    if (!token || !email || !newPassword) {
+      throw new Error("Missing required fields");
+    }
+    const response = await fetch(
+      `${process.env.BACKEND_API_URL}/auth/save-new-password`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, email, newPassword }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData?.message || "Failed to save new password");
+    }
+
+    return {
+      success: true,
+      data: "Password updated successfully",
+    };
+  } catch (error) {
+    console.log("Error saving new password:", error);
+    return {
+      success: false,
+      data: (error as Error).message,
+    };
+  }
+};
