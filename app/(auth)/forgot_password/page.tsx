@@ -24,6 +24,10 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { getEmailProviderUrl } from "@/lib/helpers/emailHelpers";
+import {
+  checkIfUserExists,
+  resetPasswordRequest,
+} from "@/lib/actions/Auth.actions";
 
 const SignUpPage = () => {
   const Router = useRouter();
@@ -45,19 +49,22 @@ const SignUpPage = () => {
       setIsLoading(true);
       setError("");
 
-      // const user = await signUp(data);
-      // if (user && "error" in user) {
-      //   throw new Error(user.error);
-      // }
+      // check whether the email exists first
+      const userExistsResponse = await checkIfUserExists(data.email);
+      if (!userExistsResponse) {
+        throw new Error("No account found with this email address.");
+      }
 
-      console.log(data.email);
+      // send a request to the backend to create a reset token then send it to th user email
+      const response = await resetPasswordRequest(data.email);
 
+      if (!response.success) {
+        throw new Error(response.data);
+      }
+
+      //set the email provider url and show the email sent message
       setEmailProviderUrl(getEmailProviderUrl(data.email)!);
       setEmailSent(true);
-
-      // Router.push("/");
-
-      // Remove confirmPassword before sending to API
     } catch (err) {
       const authError = err as AuthError;
       if (

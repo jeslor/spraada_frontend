@@ -6,7 +6,6 @@ import {
   updateTokensInSession,
   updateSessionUserData,
 } from "../session/session";
-import { cookies } from "next/headers";
 import customFetch from "../customFetch";
 
 //sign up a new user with email, password and confirm password, then return the access and refresh tokens
@@ -155,6 +154,7 @@ const updateSessionWithNewTokens = async (
   }
 };
 
+//update user data in session such that it reflects changes like role updates or onboarding status
 export const updateUserDataInSession = async ({
   userRole,
   UserOnboarded,
@@ -172,7 +172,7 @@ export const updateUserDataInSession = async ({
     console.log("Error updating user data in session:", error);
   }
 };
-
+//fetch the user from the API by ID
 export const getUser = async (id: string) => {
   try {
     const response = await customFetch(
@@ -198,5 +198,65 @@ export const getUser = async (id: string) => {
   } catch (error) {
     console.log("Error fetching user data:", error);
     return null;
+  }
+};
+
+//Check if user exists no token
+export const checkIfUserExists = async (email: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_API_URL}/auth/check-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    if (!response.status.toString().startsWith("2")) {
+      return false;
+    }
+
+    const result = await response.json();
+    return result ? true : false;
+  } catch (error) {
+    console.log("Error checking if user exists:", error);
+    return false;
+  }
+};
+
+//send password reset request
+export const resetPasswordRequest = async (
+  email: string
+): Promise<{ success: boolean; data: string }> => {
+  try {
+    const response = await fetch(
+      `${process.env.BACKEND_API_URL}/auth/reset-password-request`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      }
+    );
+
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error("Failed to send password reset request");
+    }
+    return {
+      success: true,
+      data: "Password reset email sent successfully",
+    };
+  } catch (error) {
+    console.log("Error sending password reset request:", error);
+    return {
+      success: false,
+      data: (error as Error).message,
+    };
   }
 };
