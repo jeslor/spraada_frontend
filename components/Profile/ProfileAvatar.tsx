@@ -5,9 +5,8 @@ import { Icon } from "@iconify/react";
 import CropImage from "@/components/Onboarding/CropImage";
 import customFetch from "@/lib/customFetch";
 import { useRouter } from "next/navigation";
-import { Profile, useUpdateAvatar } from "@/store";
+import { Profile, useUpdateAvatar, ProfileActionResult } from "@/store";
 import { updateProfileAvatar } from "@/lib/actions/profile.actions";
-import { ProfileActionResult } from "@/types/profile.types";
 
 interface ProfileAvatarProps {
   avatarUrlKey: string;

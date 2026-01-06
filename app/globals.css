@@ -169,6 +169,10 @@
   pre {
     @apply font-sans  whitespace-pre-wrap;
   }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
 
 /* Reusable Auth Component Classes */

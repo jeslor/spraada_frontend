@@ -9,7 +9,7 @@ import InputField from "@/components/Form/InputFeild";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { toast } from "react-hot-toast";
 import { addToolSchema } from "@/lib/validators/tools/tools.validator";
-import { toolCategories } from "@/lib/constants/tools";
+import { toolCategoriesForForms } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
 import { saveTool } from "@/lib/actions/tools.actions";
 import { useProfile, useFetchMyTools, ToolPhoto, useUser } from "@/store";
@@ -263,7 +263,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {toolCategories.map((category) => (
+            {toolCategoriesForForms.map((category) => (
               <button
                 key={category.value}
                 type="button"

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { redirect, useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/types/tool.types";
+import { Tool } from "@/store";
 import { getToolById } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById, useFetchMyTools } from "@/store";
 import EditToolForm from "@/components/Tools/EditToolForm";
