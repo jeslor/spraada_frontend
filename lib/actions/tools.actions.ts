@@ -22,7 +22,7 @@ export const saveTool = async ({
 
     //Save the tool photos first using profileId
     const uploadedToolPhotosResponse = await uploadResources(
-      toolInfo.profileId,
+      toolInfo.userId!,
       formToolData,
       RESOURCE_FOLDER
     );

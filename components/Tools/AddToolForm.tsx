@@ -12,8 +12,7 @@ import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategories } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
 import { saveTool } from "@/lib/actions/tools.actions";
-import { useProfile, useFetchMyTools } from "@/store";
-import { ToolPhoto } from "@/types/tool.types";
+import { useProfile, useFetchMyTools, ToolPhoto, useUser } from "@/store";
 import { useRouter } from "next/navigation";
 
 const MAX_PHOTOS = 5;
@@ -38,6 +37,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profile = useProfile();
+  const user = useUser();
   const fetchMyTools = useFetchMyTools();
 
   const {
@@ -166,6 +166,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
           depositCents: payload.depositCents,
           replacementValue: payload.replacementValue,
           profileId: profile!.id,
+          userId: Number(user?.id),
         },
         toolPhotos: toolPhotos.map((photo) => ({ file: photo.file })),
       });

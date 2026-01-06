@@ -8,6 +8,7 @@ export interface ToolPhoto {
 
 export interface ToolInfo {
   profileId: number;
+  userId?: number;
   name: string;
   description: string;
   depositCents: number;

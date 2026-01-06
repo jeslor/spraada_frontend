@@ -1,6 +1,6 @@
 "use server";
 
-import { ProfileActionResult } from "@/types/profile.types";
+import { ProfileActionResult } from "@/store";
 import customFetch from "../customFetch";
 
 export const uploadResources = async (
