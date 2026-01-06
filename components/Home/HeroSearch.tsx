@@ -3,34 +3,27 @@
 import { useState, useRef } from "react";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toolCategories } from "@/lib/constants/tools";
 
 interface SearchState {
-  location: string;
+  searchTerm: string;
   category: string;
   dateRange: string;
 }
-
-const toolCategories = [
-  { id: "all", label: "All Tools", icon: "solar:box-bold-duotone" },
-  { id: "power", label: "Power Tools", icon: "solar:bolt-bold-duotone" },
-  { id: "hand", label: "Hand Tools", icon: "solar:hand-stars-bold-duotone" },
-  { id: "garden", label: "Garden", icon: "solar:leaf-bold-duotone" },
-  { id: "automotive", label: "Automotive", icon: "solar:wheel-bold-duotone" },
-  {
-    id: "cleaning",
-    label: "Cleaning",
-    icon: "solar:washing-machine-bold-duotone",
-  },
-  { id: "painting", label: "Painting", icon: "solar:pallete-2-bold-duotone" },
-  { id: "measuring", label: "Measuring", icon: "solar:ruler-bold-duotone" },
-];
 
 export const HeroSearch = () => {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [searchState, setSearchState] = useState<SearchState>({
-    location: "",
+    searchTerm: "",
     category: "",
     dateRange: "",
   });
@@ -56,7 +49,8 @@ export const HeroSearch = () => {
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (searchState.location) params.set("location", searchState.location);
+    if (searchState.searchTerm)
+      params.set("searchTerm", searchState.searchTerm);
     if (searchState.category) params.set("category", searchState.category);
     router.push(`/browse?${params.toString()}`);
   };
@@ -118,40 +112,52 @@ export const HeroSearch = () => {
                     type="text"
                     placeholder="Find a tool now!!"
                     className="w-full bg-transparent text-xs sm:text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
-                    value={searchState.location}
+                    value={searchState.searchTerm}
                     onChange={(e) =>
                       setSearchState({
                         ...searchState,
-                        location: e.target.value,
+                        searchTerm: e.target.value,
                       })
                     }
                   />
                 </div>
 
                 {/* Category Dropdown */}
-                <div className="relative group flex-1 h-full flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 md:px-4 py-2.5 sm:py-3 md:py-4 hover:bg-primary-100 rounded-lg sm:rounded-xl md:rounded-full border-t md:border-t-0 border-gray-100 md:mr-2">
+                <div className="relative group flex-1 h-full flex items-center gap-2 sm:gap-3 px-2.5 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 hover:bg-primary-100 rounded-lg sm:rounded-xl md:rounded-full border-t md:border-t-0 border-gray-100 md:mr-2">
                   <span className="hidden md:block absolute inset-y-0.5 right-0 bg-primary-800/30 w-px h-[70%] top-[15%] group-hover:opacity-0"></span>
-                  <Icon
-                    icon="solar:widget-bold-duotone"
-                    className="text-primary-500 shrink-0 w-4 h-4 sm:w-5 sm:h-5"
-                  />
-                  <select
-                    className="w-full bg-transparent text-xs sm:text-sm text-gray-700 focus:outline-none cursor-pointer appearance-none"
-                    value={searchState.category}
-                    onChange={(e) => {
-                      const selectedValue = e.target.value;
-                      // Find the category id (use "all" for empty selection)
-                      const categoryId = selectedValue || "all";
-                      handleCategorySelect(categoryId);
+                  <Select
+                    value={searchState.category || "all"}
+                    onValueChange={(value) => {
+                      handleCategorySelect(value);
                     }}
                   >
-                    <option value="">All Categories</option>
-                    {toolCategories.slice(1).map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full border-0 shadow-none bg-transparent focus:ring-0 focus-visible:ring-0 px-0 h-auto py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 [&>svg]:text-primary-500">
+                      <div className="flex items-center gap-2">
+                        <SelectValue placeholder="All Categories" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent
+                      className="bg-white border border-gray-200 rounded-xl shadow-lg min-w-[200px]"
+                      position="popper"
+                      sideOffset={8}
+                    >
+                      {toolCategories.map((cat) => (
+                        <SelectItem
+                          key={cat.id}
+                          value={cat.id}
+                          className="flex items-center gap-2 py-2.5 px-3 cursor-pointer hover:bg-primary-50 focus:bg-primary-50 rounded-lg mx-1 my-0.5 text-sm"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Icon
+                              icon={cat.icon}
+                              className="w-4 h-4 text-primary-500"
+                            />
+                            <span>{cat.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Search Button */}
@@ -210,7 +216,7 @@ export const HeroSearch = () => {
           <div className="flex items-center gap-2 pb-2 w-max px-7">
             {toolCategories.map((category) => (
               <button
-                key={category.id}
+                key={category.id + category.label}
                 ref={(el) => {
                   pillRefs.current[category.id] = el;
                 }}

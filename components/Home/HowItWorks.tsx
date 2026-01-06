@@ -1,61 +1,8 @@
 "use client";
 
+import { benefits, howItWorks } from "@/lib/constants/tools";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-
-const howItWorks = [
-  {
-    icon: "solar:magnifer-bold-duotone",
-    title: "Search",
-    description: "Find the tools you need from neighbors in your community",
-    color: "bg-blue-100 text-blue-600",
-  },
-  {
-    icon: "solar:calendar-bold-duotone",
-    title: "Book",
-    description: "Reserve tools for the days you need them",
-    color: "bg-amber-100 text-amber-600",
-  },
-  {
-    icon: "solar:hand-shake-bold-duotone",
-    title: "Pick Up",
-    description: "Meet your neighbor and pick up the tool",
-    color: "bg-green-100 text-green-600",
-  },
-  {
-    icon: "solar:box-bold-duotone",
-    title: "Return",
-    description: "Return the tool when you're done and leave a review",
-    color: "bg-purple-100 text-purple-600",
-  },
-];
-
-const benefits = [
-  {
-    icon: "solar:wallet-money-bold-duotone",
-    title: "Save Money",
-    description:
-      "Why buy expensive tools you'll only use once? Rent them for a fraction of the cost.",
-    stat: "80%",
-    statLabel: "Average savings",
-  },
-  {
-    icon: "solar:leaf-bold-duotone",
-    title: "Eco-Friendly",
-    description:
-      "Reduce waste and environmental impact by sharing tools instead of buying new ones.",
-    stat: "50%",
-    statLabel: "Less waste",
-  },
-  {
-    icon: "solar:users-group-rounded-bold-duotone",
-    title: "Build Community",
-    description:
-      "Connect with neighbors and build lasting relationships in your community.",
-    stat: "500+",
-    statLabel: "Active members",
-  },
-];
 
 export const HowItWorks = () => {
   return (
@@ -151,11 +98,11 @@ export const HowItWorks = () => {
             href="/browse"
             className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
           >
-            <Icon icon="solar:magnifer-bold" width={20} />
+            <Icon icon="ic:baseline-search" width={20} />
             Browse Tools
           </Link>
           <Link
-            href="/toolbox/add"
+            href="/create"
             className="inline-flex items-center gap-2 bg-white border border-gray-200 hover:border-primary-300 hover:bg-primary-50 text-gray-700 px-6 py-3 rounded-xl font-medium transition-colors"
           >
             <Icon icon="solar:add-circle-bold" width={20} />

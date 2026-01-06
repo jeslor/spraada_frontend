@@ -49,14 +49,14 @@ const Page = () => {
       <div className="w-full max-w-[1400px] flex justify-center mx-auto">
         <HeroSearch />
       </div>
-      {/* 
+
       {/* Featured Tools Grid */}
-      {/* <Suspense fallback={<ToolsSkeleton />}>
+      <Suspense fallback={<ToolsSkeleton />}>
         <FeaturedToolsServer />
-      </Suspense> */}
+      </Suspense>
 
       {/* How It Works Section */}
-      {/* <HowItWorks />  */}
+      <HowItWorks />
     </div>
   );
 };
