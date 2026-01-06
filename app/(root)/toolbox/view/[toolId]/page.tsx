@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/types/tool.types";
+import { Tool } from "@/store";
 import { getToolById } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById } from "@/store";
 import LoadingUI from "@/components/ui/Loading";

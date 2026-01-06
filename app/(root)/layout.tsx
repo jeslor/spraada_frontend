@@ -15,7 +15,9 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
       <ToastProvider />
       <ProfileInitializer user={user} />
       <Sidebar session={session} />
-      <main className="flex-1 ml-20 xl:ml-64">{children}</main>
+      <main className="flex-1 ml-20 xl:ml-64 min-w-0 overflow-x-hidden">
+        {children}
+      </main>
     </div>
   );
 };

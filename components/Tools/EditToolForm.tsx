@@ -18,8 +18,9 @@ import {
   useUpdateToolAction,
   useFetchMyTools,
   useUser,
+  Tool,
+  ToolPhoto,
 } from "@/store";
-import { Tool, ToolPhoto } from "@/types/tool.types";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { updateTool } from "@/lib/actions/tools.actions";

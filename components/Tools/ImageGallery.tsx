@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { Icon } from "@iconify/react";
-import { Tool } from "@/types/tool.types";
+import { Tool } from "@/store";
 
 interface ImageGalleryProps {
   photos: Tool["toolPhotos"];

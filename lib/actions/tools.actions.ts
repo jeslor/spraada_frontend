@@ -99,6 +99,36 @@ export const getToolsByOwner = async (ownerId: number) => {
   }
 };
 
+export const getAllTools = async (limit?: number) => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools${limit ? `?limit=${limit}` : ""}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch tools"
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getToolById = async (toolId: string): Promise<Tool | null> => {
   try {
     const response = await customFetch(
