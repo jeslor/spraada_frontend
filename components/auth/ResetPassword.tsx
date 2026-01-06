@@ -42,6 +42,7 @@ const ResetPassword = ({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const Router = useRouter();
 
   //check whether the token is still valid
@@ -71,7 +72,7 @@ const ResetPassword = ({
       if (!response.success) {
         throw new Error(response.data);
       }
-      Router.push("/signin");
+      setIsSuccess(true);
       setError("");
     } catch (err) {
       const authError = err as AuthError;
@@ -80,6 +81,39 @@ const ResetPassword = ({
       setIsLoading(false);
     }
   };
+
+  // Success state
+  if (isSuccess) {
+    return (
+      <>
+        <div className="auth-form-header">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <Icon
+                icon="solar:check-circle-bold"
+                width="40"
+                height="40"
+                className="text-green-600"
+              />
+            </div>
+          </div>
+          <h1 className="auth-form-title">Password Reset Successful!</h1>
+          <p className="auth-form-subtitle text-[13px] mt-3">
+            You can now login with your new password. If you encounter any
+            problems, please contact our support team.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          className="spraada-primary-button h-11 w-full"
+          onClick={() => Router.push("/signin")}
+        >
+          Back to Login
+        </Button>
+      </>
+    );
+  }
 
   return (
     <>

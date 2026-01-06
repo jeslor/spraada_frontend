@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
-import { Tool } from "@/types/tool.types";
 import {
   useProfile,
   useMyTools,
@@ -12,9 +11,15 @@ import {
   useToolsLoading,
   useFetchMyTools,
   useToolsHasHydrated,
+  Tool,
+  useSetMyTools,
+  useSetBorrowedTools,
+  useSetRentedTools,
 } from "@/store";
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard";
+import { deleteTool } from "@/lib/actions/tools.actions";
+import toast from "react-hot-toast";
 
 interface ToolContentProps {
   type: "owned" | "rented" | "borrowed";
@@ -24,6 +29,9 @@ const ToolContent = ({ type }: ToolContentProps) => {
   const router = useRouter();
   const profile = useProfile();
   const myTools = useMyTools();
+  const setMyTools = useSetMyTools();
+  const setBorrowedTools = useSetBorrowedTools();
+  const setRentedTools = useSetRentedTools();
   const rentedTools = useRentedTools();
   const borrowedTools = useBorrowedTools();
   const isLoading = useToolsLoading();
@@ -47,15 +55,27 @@ const ToolContent = ({ type }: ToolContentProps) => {
     }
   }, [type, profileId, hasHydrated, myTools.length, hasFetched, fetchMyTools]);
 
-  // Handle edit tool - navigate to edit page
-  const handleEdit = (tool: Tool) => {
-    router.push(`/toolbox/edit/${tool.id}`);
-  };
-
   // Handle delete tool
-  const handleDelete = (tool: Tool) => {
-    console.log("Delete tool:", tool.id);
-    // TODO: Show confirmation dialog
+  const handleDelete = async (tool: Tool) => {
+    try {
+      const deleteToolResult = await deleteTool(tool, profileId!);
+      if (deleteToolResult.success) {
+        // Refresh tools list
+
+        if (type === "owned") {
+          setMyTools(myTools.filter((t) => t.id !== tool.id));
+        } else if (type === "rented") {
+          setRentedTools(rentedTools.filter((t) => t.id !== tool.id));
+        } else if (type === "borrowed") {
+          setBorrowedTools(borrowedTools.filter((t) => t.id !== tool.id));
+        }
+        toast.success(deleteToolResult.data);
+      } else {
+        console.error("Failed to delete tool:", deleteToolResult.data);
+      }
+    } catch (error) {
+      console.error("Error deleting tool:", error);
+    }
   };
 
   // Handle rent action

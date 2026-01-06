@@ -2,7 +2,8 @@
 
 import { deleteResource, uploadResources } from "./resources.actions";
 import customFetch from "../customFetch";
-import { Tool, ToolInfo, ToolPhoto } from "@/types/tool.types";
+import { Tool, ToolInfo, ToolPhoto } from "@/store";
+import { success } from "zod";
 
 const RESOURCE_FOLDER = "tool-images";
 
@@ -21,7 +22,7 @@ export const saveTool = async ({
 
     //Save the tool photos first using profileId
     const uploadedToolPhotosResponse = await uploadResources(
-      toolInfo.profileId,
+      toolInfo.userId!,
       formToolData,
       RESOURCE_FOLDER
     );
@@ -230,17 +231,21 @@ export const updateTool = async ({
   }
 };
 
-export const deleteTool = async (toolId: string): Promise<void> => {
+export const deleteTool = async (
+  tool: Tool,
+  profileId: number
+): Promise<{ success: boolean; data: string }> => {
   try {
     const response = await customFetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/${toolId}`,
+      }/tools/${tool.id}`,
       {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ profileId }),
       }
     );
 
@@ -252,7 +257,15 @@ export const deleteTool = async (toolId: string): Promise<void> => {
           "Failed to delete tool"
       );
     }
+
+    return {
+      success: true,
+      data: "Tool deleted successfully",
+    };
   } catch (error) {
-    throw error;
+    return {
+      success: false,
+      data: error instanceof Error ? error.message : "Failed to delete tool",
+    };
   }
 };

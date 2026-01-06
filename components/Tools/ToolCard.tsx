@@ -1,11 +1,11 @@
 "use client";
 
-import { Tool } from "@/types/tool.types";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { isFavorite, isToolOwnedByUser } from "@/store/tool/tool.selectors";
+import { Tool } from "@/store";
+import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 
 interface ToolCardProps {
   tool: Tool;
@@ -250,15 +250,10 @@ const DefaultCard = ({
   const photos = tool.toolPhotos || [];
   const hasMultiplePhotos = photos.length > 1;
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (showDeleteConfirm && onDelete) {
-      onDelete(tool);
-    } else {
-      setShowDeleteConfirm(true);
-      setTimeout(() => setShowDeleteConfirm(false), 3000);
-    }
+    setShowDeleteConfirm(true);
   };
 
   const handleFavorite = (e: React.MouseEvent) => {
@@ -341,13 +336,9 @@ const DefaultCard = ({
                 />
               </Link>
               <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={isDeleting}
-                className={`size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer ${
-                  showDeleteConfirm
-                    ? "bg-red-500 text-white"
-                    : "bg-primary-100 text-gray-700 hover:bg-gray-50"
-                }`}
+                className="size-7 rounded-full flex items-center justify-center shadow-md transition-colors cursor-pointer bg-primary-100 text-gray-700 hover:bg-red-100 hover:text-red-600"
               >
                 {isDeleting ? (
                   <Icon
@@ -485,12 +476,15 @@ const DefaultCard = ({
         </div>
       </div>
 
-      {/* Delete Confirm Toast */}
-      {showDeleteConfirm && (
-        <div className="absolute bottom-4 right-4 px-3 py-2 bg-red-500 text-white text-xs font-medium rounded-lg shadow-lg">
-          Click again to delete
-        </div>
-      )}
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteConfirm}
+        itemName={tool.name}
+        itemType="Tool"
+        isDeleting={isDeleting}
+        onConfirm={() => onDelete?.(tool)}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 };
