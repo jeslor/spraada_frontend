@@ -99,6 +99,94 @@ export const getToolsByOwner = async (ownerId: number) => {
   }
 };
 
+export const getRandomTools = async (count: number) => {
+  try {
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/random?count=${count}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(response.statusText || "Failed to fetch random tools");
+    }
+
+    const data = await response.json();
+
+    return data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export interface SearchToolsParams {
+  searchTerm?: string;
+  category?: string;
+  sortBy?: string;
+  availability?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface SearchToolsResponse {
+  data: Tool[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+export const searchTools = async (
+  params: SearchToolsParams
+): Promise<SearchToolsResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params.searchTerm) queryParams.set("searchTerm", params.searchTerm);
+    if (params.category) queryParams.set("category", params.category);
+    if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+    if (params.availability)
+      queryParams.set("availability", params.availability);
+    if (params.page) queryParams.set("page", params.page.toString());
+    if (params.limit) queryParams.set("limit", params.limit.toString());
+
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/search?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to search tools"
+      );
+    }
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getAllTools = async (limit?: number) => {
   try {
     const response = await customFetch(
