@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import {
@@ -22,6 +22,8 @@ import ToolContent from "@/components/Tools/ToolContnet";
 export default function BrowsePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const searchTermInputRef = useRef<HTMLInputElement>(null);
 
   // Get initial values from URL params
   const initialSearchTerm = searchParams.get("searchTerm") || "";
@@ -45,7 +47,7 @@ export default function BrowsePage() {
     hasMore: false,
   });
 
-  // Update URL when filters change
+  // Update URL when filters change, think of the optimization here
   const updateURL = useCallback(
     (
       newSearchTerm: string,
@@ -123,8 +125,12 @@ export default function BrowsePage() {
   }, [searchParams]);
 
   const handleSearch = () => {
+    preventEmptySearch();
     setSearchTerm(inputValue);
-    updateURL(inputValue, category, sortBy, availability);
+    // Reset filters when performing a new search
+    setSortBy("newest");
+    setAvailability("all");
+    updateURL(inputValue, category, "newest", "all");
   };
 
   const handleCategorySelect = (categoryId: string) => {
@@ -149,8 +155,22 @@ export default function BrowsePage() {
     }
   };
 
+  const preventEmptySearch = () => {
+    if (searchTermInputRef.current?.value === "") {
+      searchTermInputRef.current.focus();
+      searchTermInputRef.current.value = "Type something...";
+      setTimeout(() => {
+        if (searchTermInputRef.current) {
+          searchTermInputRef.current.value = "";
+        }
+      }, 500);
+      return;
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      preventEmptySearch();
       handleSearch();
     }
   };
@@ -183,6 +203,7 @@ export default function BrowsePage() {
                   className="text-primary-500 shrink-0 w-4 h-4 sm:w-5 sm:h-5"
                 />
                 <input
+                  ref={searchTermInputRef}
                   type="text"
                   placeholder="Search for tools..."
                   className="w-full bg-transparent text-xs sm:text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
@@ -341,7 +362,7 @@ export default function BrowsePage() {
       </div>
 
       {/* Results Section */}
-      <div className="max-[1500px] mx-auto px-4 lg:px-8 py-6">
+      <div className="w-full max-w-[1400px] mx-auto px-4 lg:px-8 py-6">
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
