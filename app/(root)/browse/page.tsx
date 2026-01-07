@@ -170,8 +170,8 @@ export default function BrowsePage() {
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
       {/* Search Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-gray-200 -mx-4 px-4 lg:-mx-8 lg:px-8">
-        <div className="max-w-7xl mx-auto py-4 px-4 bg-primary-700">
+      <div className="sticky bg-primary-700 top-0 z-40  backdrop-blur-lg border-b border-gray-200 -mx-4 px-4 lg:-mx-8 lg:px-8">
+        <div className="max-w-7xl mx-auto py-4 px-4 ">
           {/* Search Bar */}
           <div className="bg-white rounded-xl sm:rounded-4xl border border-gray-200 shadow-sm p-1.5 sm:p-2 md:mt-5">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5 sm:gap-2 md:gap-0">

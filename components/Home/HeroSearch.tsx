@@ -20,6 +20,7 @@ interface SearchState {
 
 export const HeroSearch = () => {
   const router = useRouter();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeField, setActiveField] = useState<string | null>(null);
   const [searchState, setSearchState] = useState<SearchState>({
@@ -48,6 +49,18 @@ export const HeroSearch = () => {
   };
 
   const handleSearch = () => {
+    if (!searchState.searchTerm) {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+        searchInputRef.current.value = "Type something...";
+        setTimeout(() => {
+          if (searchInputRef.current) {
+            searchInputRef.current.value = "";
+          }
+        }, 500);
+      }
+      return;
+    }
     const params = new URLSearchParams();
     if (searchState.searchTerm)
       params.set("searchTerm", searchState.searchTerm);
@@ -109,6 +122,7 @@ export const HeroSearch = () => {
                     className="text-primary-500 shrink-0 w-4 h-4 sm:w-5 sm:h-5"
                   />
                   <input
+                    ref={searchInputRef}
                     type="text"
                     placeholder="Find a tool now!!"
                     className="w-full bg-transparent text-xs sm:text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
