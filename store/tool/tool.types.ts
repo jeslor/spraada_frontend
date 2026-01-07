@@ -39,8 +39,11 @@ export interface Tool {
     firstName: string;
     lastName: string;
     avatarUrl?: string;
+    coverUrl?: string;
+    bio?: string;
     city?: string;
     country?: string;
+    createdAt?: string;
   };
 }
 

@@ -68,6 +68,12 @@ export const HeroSearch = () => {
     router.push(`/browse?${params.toString()}`);
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="w-full max-w-full overflow-hidden">
       {/* Hero Section */}
@@ -123,6 +129,7 @@ export const HeroSearch = () => {
                   />
                   <input
                     ref={searchInputRef}
+                    onKeyUp={handleKeyPress}
                     type="text"
                     placeholder="Find a tool now!!"
                     className="w-full bg-transparent text-xs sm:text-sm text-gray-700 placeholder-gray-400 focus:outline-none"

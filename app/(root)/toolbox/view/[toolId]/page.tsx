@@ -494,7 +494,11 @@ export default function ViewToolPage() {
                   </p>
                   {tool.profile ? (
                     <Link
-                      href={`/profile/${tool.profile.id}`}
+                      href={
+                        isOwner
+                          ? `/profile/${profile?.id}`
+                          : `/toolbox/view/${toolId}/owner`
+                      }
                       className="flex items-center gap-2.5 p-2 -mx-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
                     >
                       <div className="relative w-10 h-10 rounded-full overflow-hidden bg-linear-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800">
