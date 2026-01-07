@@ -72,6 +72,28 @@ export interface ToolState {
   _hasHydrated: boolean;
 }
 
+//search params for tools
+export interface SearchToolsParams {
+  searchTerm?: string;
+  category?: string;
+  sortBy?: string;
+  availability?: string;
+  page?: number;
+  limit?: number;
+}
+
+//response type for searching tools
+export interface SearchToolsResponse {
+  data: Tool[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
 export interface ToolActions {
   // Core actions
   setMyTools: (tools: Tool[]) => void;

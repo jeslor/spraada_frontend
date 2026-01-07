@@ -15,8 +15,8 @@ import {
   sortOptions,
   toolCategories,
 } from "@/lib/constants/tools";
-import { Tool } from "@/store";
-import { searchTools, SearchToolsResponse } from "@/lib/actions/tools.actions";
+import { SearchToolsResponse, Tool } from "@/store";
+import { searchTools } from "@/lib/actions/tools.actions";
 import ToolContent from "@/components/Tools/ToolContnet";
 
 export default function BrowsePage() {
@@ -190,8 +190,8 @@ export default function BrowsePage() {
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
       {/* Search Header */}
-      <div className="sticky bg-primary-700 top-0 z-40  backdrop-blur-lg border-b border-gray-200 -mx-4 px-4 lg:-mx-8 lg:px-8">
-        <div className="max-w-7xl mx-auto py-4 px-4 ">
+      <div className="sticky top-0 z-40 bg-primary-700 backdrop-blur-lg border-b border-gray-200 -mx-4 px-4 lg:-mx-8 lg:px-8 xl:-mx-10 xl:px-10">
+        <div className="max-w-7xl mx-auto py-4 px-4">
           {/* Search Bar */}
           <div className="bg-white rounded-xl sm:rounded-4xl border border-gray-200 shadow-sm p-1.5 sm:p-2 md:mt-5">
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-1.5 sm:gap-2 md:gap-0">
@@ -209,7 +209,7 @@ export default function BrowsePage() {
                   className="w-full bg-transparent text-xs sm:text-sm text-gray-700 placeholder-gray-400 focus:outline-none"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyUp={handleKeyPress}
                 />
                 {inputValue && (
                   <button

@@ -2,8 +2,13 @@
 
 import { deleteResource, uploadResources } from "./resources.actions";
 import customFetch from "../customFetch";
-import { Tool, ToolInfo, ToolPhoto } from "@/store";
-import { success } from "zod";
+import {
+  SearchToolsParams,
+  SearchToolsResponse,
+  Tool,
+  ToolInfo,
+  ToolPhoto,
+} from "@/store";
 
 const RESOURCE_FOLDER = "tool-images";
 
@@ -126,26 +131,6 @@ export const getRandomTools = async (count: number) => {
   }
 };
 
-export interface SearchToolsParams {
-  searchTerm?: string;
-  category?: string;
-  sortBy?: string;
-  availability?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface SearchToolsResponse {
-  data: Tool[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasMore: boolean;
-  };
-}
-
 export const searchTools = async (
   params: SearchToolsParams
 ): Promise<SearchToolsResponse> => {
@@ -159,7 +144,7 @@ export const searchTools = async (
     if (params.page) queryParams.set("page", params.page.toString());
     if (params.limit) queryParams.set("limit", params.limit.toString());
 
-    const response = await customFetch(
+    const response = await fetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
       }/tools/search?${queryParams.toString()}`,
@@ -173,15 +158,10 @@ export const searchTools = async (
     );
 
     if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to search tools"
-      );
+      throw new Error(response.statusText || "Failed to search tools");
     }
 
-    return response.data;
+    return response.json();
   } catch (error) {
     throw error;
   }
