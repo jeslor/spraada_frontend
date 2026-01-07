@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import { Icon } from "@iconify/react";
 
-const NoTools = ({ type }: { type: "owned" | "rented" | "borrowed" }) => {
+const NoTools = ({
+  type,
+}: {
+  type: "owned" | "rented" | "borrowed" | "all";
+}) => {
   const Router = useRouter();
 
   const emptyMessages = {
@@ -25,6 +29,12 @@ const NoTools = ({ type }: { type: "owned" | "rented" | "borrowed" }) => {
       icon: "solar:delivery-bold-duotone",
       title: "No borrowed tools",
       description: "Tools you borrow from others will appear here.",
+      action: "Browse Tools",
+    },
+    all: {
+      icon: "solar:box-bold-duotone",
+      title: "No tools available",
+      description: "There are currently no tools listed. Check back later!",
       action: "Browse Tools",
     },
   };

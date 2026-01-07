@@ -22,10 +22,22 @@ import { deleteTool } from "@/lib/actions/tools.actions";
 import toast from "react-hot-toast";
 
 interface ToolContentProps {
-  type: "owned" | "rented" | "borrowed";
+  type?: "owned" | "rented" | "borrowed" | "all" | "search";
+  tools?: Tool[];
+  variant?: "default" | "compact";
+  isLoading?: boolean;
+  emptyState?: React.ReactNode;
+  gridClassName?: string;
 }
 
-const ToolContent = ({ type }: ToolContentProps) => {
+const ToolContent = ({
+  type = "owned",
+  tools: propTools,
+  variant = "default",
+  isLoading: externalLoading,
+  emptyState,
+  gridClassName,
+}: ToolContentProps) => {
   const router = useRouter();
   const profile = useProfile();
   const myTools = useMyTools();
@@ -34,7 +46,7 @@ const ToolContent = ({ type }: ToolContentProps) => {
   const setRentedTools = useSetRentedTools();
   const rentedTools = useRentedTools();
   const borrowedTools = useBorrowedTools();
-  const isLoading = useToolsLoading();
+  const storeLoading = useToolsLoading();
   const hasHydrated = useToolsHasHydrated();
   const fetchMyTools = useFetchMyTools();
   const [hasFetched, setHasFetched] = useState(false);
@@ -42,8 +54,14 @@ const ToolContent = ({ type }: ToolContentProps) => {
   // Memoize profileId to prevent unnecessary effect runs
   const profileId = profile?.id;
 
-  // Fetch tools based on type (only if not already loaded)
+  // Determine if using external tools (search/browse mode)
+  const isExternalMode =
+    type === "search" || type === "all" || propTools !== undefined;
+
+  // Fetch tools based on type (only if not already loaded and not in external mode)
   useEffect(() => {
+    if (isExternalMode) return; // Skip fetching if tools are provided externally
+
     if (profileId && hasHydrated && !hasFetched) {
       if (type === "owned" && myTools.length === 0) {
         setHasFetched(true);
@@ -53,7 +71,15 @@ const ToolContent = ({ type }: ToolContentProps) => {
         setHasFetched(true);
       }
     }
-  }, [type, profileId, hasHydrated, myTools.length, hasFetched, fetchMyTools]);
+  }, [
+    type,
+    profileId,
+    hasHydrated,
+    myTools.length,
+    hasFetched,
+    fetchMyTools,
+    isExternalMode,
+  ]);
 
   // Handle delete tool
   const handleDelete = async (tool: Tool) => {
@@ -85,53 +111,81 @@ const ToolContent = ({ type }: ToolContentProps) => {
   };
 
   // Get the appropriate tools based on type
-  const tools =
-    type === "owned"
-      ? myTools
-      : type === "rented"
-      ? rentedTools
-      : borrowedTools;
+  const tools = isExternalMode
+    ? propTools || []
+    : type === "owned"
+    ? myTools
+    : type === "rented"
+    ? rentedTools
+    : borrowedTools;
 
-  // Show skeleton while:
-  // 1. Store hasn't hydrated yet
-  // 2. Still loading from API
-  // 3. Waiting for initial fetch (profile exists, no tools, hasn't fetched yet)
-  const shouldShowSkeleton =
-    !hasHydrated ||
-    isLoading ||
-    (profile?.id && tools.length === 0 && !hasFetched);
+  // Determine loading state
+  const isLoading =
+    externalLoading !== undefined
+      ? externalLoading
+      : !hasHydrated ||
+        storeLoading ||
+        (profile?.id && tools.length === 0 && !hasFetched);
 
-  if (shouldShowSkeleton) {
+  // Show skeleton while loading
+  if (isLoading) {
     return (
       <div className="mt-8">
-        <ToolsSkeletonGrid count={6} variant="default" />
+        <ToolsSkeletonGrid
+          count={variant === "compact" ? 12 : 6}
+          variant={variant}
+        />
       </div>
     );
   }
 
   // Empty state
-  if (tools.length === 0 && !isLoading) {
-    return <NoTools type={type} />;
+  if (tools.length === 0) {
+    // Use custom empty state if provided
+    if (emptyState) {
+      return <>{emptyState}</>;
+    }
+    // Use NoTools only for owned/rented/borrowed types
+    if (type !== "search" && type !== "all") {
+      return <NoTools type={type} />;
+    }
+    return null;
   }
+
+  // Determine grid class
+  const gridClass =
+    gridClassName ||
+    (variant === "compact"
+      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+      : "grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6");
+
+  // Determine card variant based on type
+  const getCardVariant = () => {
+    if (variant === "compact") return "compact";
+    if (type === "owned") return "default";
+    if (type === "rented") return "rental";
+    if (type === "borrowed") return "borrowed";
+    return "compact"; // For search/all, use compact
+  };
 
   // Tools grid
   return (
-    <div className="mt-8 ">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6">
+    <div className={type !== "search" && type !== "all" ? "mt-8" : ""}>
+      <div className={gridClass}>
         {tools.map((tool) => (
           <ToolCard
             key={tool.id}
             tool={tool}
-            variant={
-              type === "owned"
-                ? "default"
-                : type === "rented"
-                ? "rental"
-                : "borrowed"
-            }
+            variant={getCardVariant()}
             onDelete={type === "owned" ? handleDelete : undefined}
-            onRent={type !== "owned" ? handleRent : undefined}
-            showOwner={type === "borrowed"}
+            onRent={
+              type !== "owned" && type !== "search" && type !== "all"
+                ? handleRent
+                : undefined
+            }
+            showOwner={
+              type === "borrowed" || type === "search" || type === "all"
+            }
           />
         ))}
       </div>

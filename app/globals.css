@@ -397,6 +397,9 @@
   .spraada-btn-spinner {
     @apply animate-spin;
   }
+  .refHovered\:bg-primary-100:hover {
+    background-color: var(--color-primary-100);
+  }
 }
 
 /* Shimmer animation for skeleton loaders */

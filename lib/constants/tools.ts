@@ -134,6 +134,31 @@ export const benefits = [
   },
 ];
 
+export const sortOptions = [
+  {
+    id: "newest",
+    label: "Newest First",
+    icon: "solar:clock-circle-bold-duotone",
+  },
+  {
+    id: "price-low",
+    label: "Price: Low to High",
+    icon: "solar:sort-from-bottom-to-top-linear",
+  },
+  {
+    id: "price-high",
+    label: "Price: High to Low",
+    icon: "solar:sort-from-top-to-bottom-linear",
+  },
+  { id: "popular", label: "Most Popular", icon: "solar:star-bold-duotone" },
+];
+
+export const availabilityOptions = [
+  { id: "all", label: "All Tools" },
+  { id: "available", label: "Available Now" },
+  { id: "unavailable", label: "Currently Rented" },
+];
+
 // Get categories without "All" option (for forms)
 export const toolCategoriesForForms = toolCategories.filter(
   (cat) => cat.id !== "all"

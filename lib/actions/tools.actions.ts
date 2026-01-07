@@ -2,8 +2,13 @@
 
 import { deleteResource, uploadResources } from "./resources.actions";
 import customFetch from "../customFetch";
-import { Tool, ToolInfo, ToolPhoto } from "@/store";
-import { success } from "zod";
+import {
+  SearchToolsParams,
+  SearchToolsResponse,
+  Tool,
+  ToolInfo,
+  ToolPhoto,
+} from "@/store";
 
 const RESOURCE_FOLDER = "tool-images";
 
@@ -94,6 +99,69 @@ export const getToolsByOwner = async (ownerId: number) => {
     }
 
     return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getRandomTools = async (count: number) => {
+  try {
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/random?count=${count}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(response.statusText || "Failed to fetch random tools");
+    }
+
+    const data = await response.json();
+
+    return data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchTools = async (
+  params: SearchToolsParams
+): Promise<SearchToolsResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params.searchTerm) queryParams.set("searchTerm", params.searchTerm);
+    if (params.category) queryParams.set("category", params.category);
+    if (params.sortBy) queryParams.set("sortBy", params.sortBy);
+    if (params.availability)
+      queryParams.set("availability", params.availability);
+    if (params.page) queryParams.set("page", params.page.toString());
+    if (params.limit) queryParams.set("limit", params.limit.toString());
+
+    const response = await fetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/search?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(response.statusText || "Failed to search tools");
+    }
+
+    return response.json();
   } catch (error) {
     throw error;
   }

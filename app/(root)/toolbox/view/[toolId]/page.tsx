@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/store";
@@ -31,6 +31,7 @@ const formatDate = (dateString: string) => {
 
 export default function ViewToolPage() {
   const params = useParams();
+  const router = useRouter();
   const profile = useProfile();
   const toolId = params.toolId as string;
   const toolFromStore = useToolById(toolId);
@@ -95,13 +96,13 @@ export default function ViewToolPage() {
       {/* Header - Back button & Actions */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 -mx-4 px-4 lg:-mx-8 lg:px-8 py-3 mb-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link
-            href="/toolbox"
+          <button
+            onClick={() => router.back()}
             className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
           >
             <Icon icon="solar:arrow-left-linear" width={20} />
             <span className="font-medium">Back</span>
-          </Link>
+          </button>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsFavorited(!isFavorited)}
