@@ -182,12 +182,10 @@ export default function ToolOwnerPage() {
           {/* Cover Photo */}
           <div className="h-48 md:h-56 bg-linear-to-br from-primary-600/20 via-primary-500/10 to-primary-400/5 w-full relative">
             {profile.coverUrl ? (
-              <Image
+              <img
                 src={profile.coverUrl}
                 alt="Cover"
-                fill
                 className="object-cover"
-                priority
               />
             ) : (
               <div className="absolute inset-0 bg-linear-to-br from-primary-600/30 via-primary-500/20 to-transparent" />
@@ -201,11 +199,10 @@ export default function ToolOwnerPage() {
             <div className="relative -mt-16 md:-mt-20 mb-6">
               <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-white shadow-lg bg-linear-to-br from-primary-100 to-primary-200">
                 {profile.avatarUrl ? (
-                  <Image
+                  <img
                     src={profile.avatarUrl}
                     alt={`${profile.firstName} ${profile.lastName}`}
-                    fill
-                    className="object-cover"
+                    className="object-cover object-center w-full h-full"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
