@@ -10,6 +10,7 @@ import { useProfile, useToolById } from "@/store";
 import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
 import ViewToolError from "@/components/Tools/ViewToolError";
+import { SpraadaButton } from "@/components/ui/SpraadaButton";
 
 // Format cents to currency
 const formatPrice = (cents: number) => {
@@ -96,20 +97,22 @@ export default function ViewToolPage() {
       {/* Header - Back button & Actions */}
       <div className="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-800/50 -mx-4 px-4 lg:-mx-8 lg:px-8 py-3 mb-6">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <button
+          <SpraadaButton
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
+            variant="ghost"
+            className="inline-flex items-center gap-2"
           >
             <Icon icon="solar:arrow-left-linear" width={20} />
             <span className="font-medium">Back</span>
-          </button>
+          </SpraadaButton>
           <div className="flex items-center gap-2">
-            <button
+            <SpraadaButton
               onClick={() => setIsFavorited(!isFavorited)}
-              className={`p-2.5 rounded-full transition-all ${
+              variant="ghost"
+              className={`p-2.5 rounded-full ${
                 isFavorited
                   ? "bg-red-50 dark:bg-red-900/30 text-red-500"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
               }`}
               aria-label={
                 isFavorited ? "Remove from favorites" : "Add to favorites"
@@ -119,13 +122,14 @@ export default function ViewToolPage() {
                 icon={isFavorited ? "solar:heart-bold" : "solar:heart-linear"}
                 width={20}
               />
-            </button>
-            <button
-              className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            </SpraadaButton>
+            <SpraadaButton
+              variant="ghost"
+              className="p-2.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
               aria-label="Share tool"
             >
               <Icon icon="solar:share-linear" width={20} />
-            </button>
+            </SpraadaButton>
           </div>
         </div>
       </div>
@@ -199,11 +203,12 @@ export default function ViewToolPage() {
                     {!showFullDescription && (
                       <div className="absolute bottom-0 left-0 right-0 h-16 bg-linear-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
                     )}
-                    <button
+                    <SpraadaButton
                       onClick={() =>
                         setShowFullDescription(!showFullDescription)
                       }
-                      className="relative mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-lg transition-colors"
+                      variant="ghost"
+                      className="relative mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30"
                     >
                       {showFullDescription ? (
                         <>
@@ -222,7 +227,7 @@ export default function ViewToolPage() {
                           Read more
                         </>
                       )}
-                    </button>
+                    </SpraadaButton>
                   </>
                 )}
               </div>
@@ -408,11 +413,12 @@ export default function ViewToolPage() {
                         <Icon icon="solar:pen-bold" width={16} />
                         Edit Tool Listing
                       </Link>
-                      <button
-                        className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold rounded-lg transition-all border-2 ${
+                      <SpraadaButton
+                        variant="outline"
+                        className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold border-2 ${
                           tool.available
-                            ? "border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
-                            : "border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/40"
+                            ? "border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
+                            : "border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
                         }`}
                       >
                         <Icon
@@ -426,39 +432,44 @@ export default function ViewToolPage() {
                         {tool.available
                           ? "Mark as Unavailable"
                           : "Mark as Available"}
-                      </button>
-                      <button className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-300 font-medium rounded-lg transition-all">
+                      </SpraadaButton>
+                      <SpraadaButton
+                        variant="outline"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-medium"
+                      >
                         <Icon icon="solar:chart-2-linear" width={16} />
                         View Analytics
-                      </button>
+                      </SpraadaButton>
                     </>
                   ) : (
                     <>
                       {/* Non-Owner Actions */}
-                      <button
+                      <SpraadaButton
                         disabled={!tool.available}
-                        className={`flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold rounded-lg transition-all ${
+                        className={`flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold ${
                           tool.available
-                            ? "bg-primary-600 hover:bg-primary-700 text-white hover:shadow-lg hover:shadow-primary-500/25"
+                            ? "bg-primary-600 hover:bg-primary-700 text-white"
                             : "bg-gray-100 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                         }`}
                       >
                         <Icon icon="solar:hand-shake-bold" width={18} />
-                        {tool.available
-                          ? "Request to Borrow"
-                          : "Currently Unavailable"}
-                      </button>
-                      <button className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 hover:border-primary-400 dark:hover:border-primary-500 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold rounded-lg transition-all">
+                        {tool.available ? "Book tool" : "Currently Unavailable"}
+                      </SpraadaButton>
+                      <SpraadaButton
+                        variant="outline"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold hover:bg-primary-100 hover:dark:bg-primary-800/30 transition-colors"
+                      >
                         <Icon icon="solar:chat-round-dots-bold" width={16} />
                         Message Owner
-                      </button>
+                      </SpraadaButton>
                       <div className="flex gap-2">
-                        <button
+                        <SpraadaButton
                           onClick={() => setIsFavorited(!isFavorited)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border ${
+                          variant="outline"
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border ${
                             isFavorited
                               ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
-                              : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                              : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           <Icon
@@ -470,15 +481,21 @@ export default function ViewToolPage() {
                             width={14}
                           />
                           {isFavorited ? "Saved" : "Save"}
-                        </button>
-                        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        </SpraadaButton>
+                        <SpraadaButton
+                          variant="outline"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+                        >
                           <Icon icon="solar:share-linear" width={14} />
                           Share
-                        </button>
-                        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium rounded-lg transition-all border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        </SpraadaButton>
+                        <SpraadaButton
+                          variant="outline"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+                        >
                           <Icon icon="solar:flag-linear" width={14} />
                           Report
-                        </button>
+                        </SpraadaButton>
                       </div>
                     </>
                   )}
@@ -585,8 +602,9 @@ export default function ViewToolPage() {
           </div>
           {isOwner ? (
             <div className="flex gap-2">
-              <button
-                className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+              <SpraadaButton
+                variant="ghost"
+                className={`px-3 py-2.5 text-sm font-medium ${
                   tool.available
                     ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300"
                     : "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
@@ -600,7 +618,7 @@ export default function ViewToolPage() {
                   }
                   width={18}
                 />
-              </button>
+              </SpraadaButton>
               <Link
                 href={`/toolbox/edit/${tool.id}`}
                 className="px-5 py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
@@ -610,9 +628,10 @@ export default function ViewToolPage() {
             </div>
           ) : (
             <div className="flex gap-2">
-              <button
+              <SpraadaButton
                 onClick={() => setIsFavorited(!isFavorited)}
-                className={`p-2.5 rounded-lg transition-colors ${
+                variant="ghost"
+                className={`p-2.5 ${
                   isFavorited
                     ? "bg-red-50 dark:bg-red-900/20 text-red-500"
                     : "bg-gray-100 dark:bg-gray-800 text-gray-500"
@@ -622,17 +641,17 @@ export default function ViewToolPage() {
                   icon={isFavorited ? "solar:heart-bold" : "solar:heart-linear"}
                   width={20}
                 />
-              </button>
-              <button
+              </SpraadaButton>
+              <SpraadaButton
                 disabled={!tool.available}
-                className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
+                className={`px-5 py-2.5 text-sm font-semibold ${
                   tool.available
                     ? "bg-primary-600 hover:bg-primary-700 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {tool.available ? "Borrow" : "Unavailable"}
-              </button>
+                {tool.available ? "Book tool" : "Currently Unavailable"}
+              </SpraadaButton>
             </div>
           )}
         </div>
