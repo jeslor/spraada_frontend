@@ -20,7 +20,7 @@ export default async function BorrowedToolsPage() {
             Tools you&apos;ve borrowed from other users
           </p>
         </div>
-        <ToolContent type="borrowed" />
+        <ToolContent type="borrowed" gridClassName="grid grid-cols-1 gap-6" />
       </div>
     </div>
   );

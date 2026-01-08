@@ -20,7 +20,7 @@ export default async function RentalsPage() {
             Tools you&apos;ve rented out to other users
           </p>
         </div>
-        <ToolContent type="rented" />
+        <ToolContent type="rented" gridClassName="grid grid-cols-1 gap-6" />
       </div>
     </div>
   );
