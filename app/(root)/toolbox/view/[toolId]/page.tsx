@@ -700,6 +700,7 @@ export default function ViewToolPage() {
           dailyPriceCents={tool.dailyPriceCents}
           depositCents={tool.depositCents}
           toolId={tool.id}
+          toolOwnerId={tool.profileId}
         />
       )}
     </div>

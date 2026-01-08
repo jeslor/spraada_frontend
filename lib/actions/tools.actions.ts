@@ -9,7 +9,6 @@ import {
   ToolInfo,
   ToolPhoto,
 } from "@/store";
-import { success } from "zod";
 
 const RESOURCE_FOLDER = "tool-images";
 

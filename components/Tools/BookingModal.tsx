@@ -4,6 +4,8 @@ import React, { useState, useMemo } from "react";
 import { Icon } from "@iconify/react";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { formatPrice, generateCalendarDays } from "@/lib/helpers/dateHelpers";
+import { createBooking } from "@/lib/actions/book.actions";
+import { useProfile } from "@/store";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -12,6 +14,7 @@ interface BookingModalProps {
   dailyPriceCents: number;
   depositCents: number;
   toolId: string;
+  toolOwnerId: number;
 }
 
 export default function BookingModal({
@@ -21,10 +24,15 @@ export default function BookingModal({
   dailyPriceCents,
   depositCents,
   toolId,
+  toolOwnerId,
 }: BookingModalProps) {
   const [pickUpDate, setPickUpDate] = useState<Date | null>(null);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
+  const [toolBooked, setToolBooked] = useState<boolean>(false);
+  const [bookingLoading, setBookingLoading] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const profile = useProfile();
 
   // Calculate number of days
   const numberOfDays = useMemo(() => {
@@ -83,10 +91,23 @@ export default function BookingModal({
     );
   };
 
-  const handleBook = () => {
+  const handleBook = async () => {
     if (!pickUpDate || !returnDate) return;
     // TODO: Implement booking logic
-    console.log("Booking:", { pickUpDate, returnDate, totalPrice, toolId });
+    try {
+      setBookingLoading(true);
+      const bookingResponse = await createBooking({
+        toolId,
+        borrowerId: Number(profile?.id!),
+        toolOwnerId: Number(toolOwnerId),
+        pickUpDate,
+        returnDate,
+        totalPrice,
+      });
+
+      console.log(bookingResponse);
+    } catch (error) {}
+
     onClose();
   };
 

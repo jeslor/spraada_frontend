@@ -49,10 +49,10 @@ export interface Tool {
 
 // Props for rental context
 export interface RentalInfo {
-  startDate: string;
-  endDate: string;
-  totalCents: number;
-  status: "pending" | "confirmed" | "active" | "completed" | "cancelled";
+  pickUpDate: string;
+  returnDate: string;
+  totalPrice: number;
+  status: "pending" | "confirmed" | "cancelled" | "completed";
 }
 
 // Store state types
