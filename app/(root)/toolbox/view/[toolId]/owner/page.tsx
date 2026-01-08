@@ -227,12 +227,29 @@ export default function ToolOwnerPage() {
                   Verified Member
                 </span>
               </div>
-              {profile.bio && (
-                <pre className="text-gray-500 text-lg max-w-2xl leading-relaxed ">
-                  {profile.bio}
-                </pre>
-              )}
             </div>
+
+            {/* Bio Section */}
+            {profile.bio && (
+              <div className="mt-6 bg-linear-to-br from-primary-50/50 to-white rounded-2xl border border-primary-100 p-6 md:p-8">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-white rounded-xl shadow-sm">
+                    <Icon
+                      icon="solar:user-circle-bold"
+                      className="text-xl text-primary-600"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                      About {profile.firstName}
+                    </h4>
+                    <pre className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                      {profile.bio}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Tool Listed By This Owner */}
             <div className="mt-8 p-4 bg-linear-to-br from-primary-50 to-white rounded-xl border border-primary-100">
