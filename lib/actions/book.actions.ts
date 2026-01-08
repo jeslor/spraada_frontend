@@ -33,8 +33,8 @@ export const createBooking = async ({
         },
         body: JSON.stringify({
           toolId,
-          renterId: toolOwnerId, // Owner is the renter
-          borrowerId: borrowerId, // User borrowing
+          rentedById: toolOwnerId, // Owner is the renter
+          borrowedById: borrowerId, // User borrowing
           pickUpDate,
           returnDate,
           totalPrice,
@@ -48,6 +48,49 @@ export const createBooking = async ({
           response.data?.error ||
           response.error ||
           "Failed to create booking"
+      );
+    }
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: (error as Error).message,
+    };
+  }
+};
+
+export const approveBooking = async (
+  bookingId: string
+): Promise<{
+  success: boolean;
+  data: any;
+}> => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/${bookingId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: "CONFIRMED",
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to approve booking"
       );
     }
 

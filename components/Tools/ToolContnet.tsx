@@ -10,6 +10,8 @@ import {
   useBorrowedTools,
   useToolsLoading,
   useFetchMyTools,
+  useFetchRentedTools,
+  useFetchBorrowedTools,
   useToolsHasHydrated,
   Tool,
   useSetMyTools,
@@ -19,6 +21,7 @@ import {
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard";
 import { deleteTool } from "@/lib/actions/tools.actions";
+import { approveBooking } from "@/lib/actions/book.actions";
 import toast from "react-hot-toast";
 
 interface ToolContentProps {
@@ -49,6 +52,8 @@ const ToolContent = ({
   const storeLoading = useToolsLoading();
   const hasHydrated = useToolsHasHydrated();
   const fetchMyTools = useFetchMyTools();
+  const fetchRentedTools = useFetchRentedTools();
+  const fetchBorrowedTools = useFetchBorrowedTools();
   const [hasFetched, setHasFetched] = useState(false);
 
   // Memoize profileId to prevent unnecessary effect runs
@@ -66,9 +71,12 @@ const ToolContent = ({
       if (type === "owned" && myTools.length === 0) {
         setHasFetched(true);
         fetchMyTools(profileId);
-      } else if (type === "rented" || type === "borrowed") {
-        // TODO: Add fetch actions for rented/borrowed tools when backend supports it
+      } else if (type === "rented" && rentedTools.length === 0) {
         setHasFetched(true);
+        fetchRentedTools(profileId);
+      } else if (type === "borrowed" && borrowedTools.length === 0) {
+        setHasFetched(true);
+        fetchBorrowedTools(profileId);
       }
     }
   }, [
@@ -76,8 +84,12 @@ const ToolContent = ({
     profileId,
     hasHydrated,
     myTools.length,
+    rentedTools.length,
+    borrowedTools.length,
     hasFetched,
     fetchMyTools,
+    fetchRentedTools,
+    fetchBorrowedTools,
     isExternalMode,
   ]);
 
@@ -108,6 +120,25 @@ const ToolContent = ({
   const handleRent = (tool: Tool) => {
     console.log("Rent tool:", tool.id);
     // TODO: Open rental modal
+  };
+
+  // Handle approve booking
+  const handleApproveBooking = async (bookingId: string) => {
+    try {
+      const result = await approveBooking(bookingId);
+      if (result.success) {
+        toast.success("Booking approved successfully!");
+        // Refresh the rented tools list
+        if (profileId) {
+          await fetchRentedTools(profileId);
+        }
+      } else {
+        toast.error(result.data || "Failed to approve booking");
+      }
+    } catch (error) {
+      console.error("Error approving booking:", error);
+      toast.error("Failed to approve booking");
+    }
   };
 
   // Get the appropriate tools based on type
@@ -157,7 +188,9 @@ const ToolContent = ({
     gridClassName ||
     (variant === "compact"
       ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-      : "grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6");
+      : variant === "default"
+      ? "grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6"
+      : "");
 
   // Determine card variant based on type
   const getCardVariant = () => {
@@ -182,6 +215,9 @@ const ToolContent = ({
               type !== "owned" && type !== "search" && type !== "all"
                 ? handleRent
                 : undefined
+            }
+            onApproveBooking={
+              type === "rented" ? handleApproveBooking : undefined
             }
             showOwner={
               type === "borrowed" || type === "search" || type === "all"

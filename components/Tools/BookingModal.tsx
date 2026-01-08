@@ -6,6 +6,8 @@ import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { formatPrice, generateCalendarDays } from "@/lib/helpers/dateHelpers";
 import { createBooking } from "@/lib/actions/book.actions";
 import { useProfile } from "@/store";
+import { useFetchBorrowedTools } from "@/store/tool/tool.selectors";
+import { useRouter } from "next/navigation";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -26,13 +28,14 @@ export default function BookingModal({
   toolId,
   toolOwnerId,
 }: BookingModalProps) {
+  const Router = useRouter();
   const [pickUpDate, setPickUpDate] = useState<Date | null>(null);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
-  const [toolBooked, setToolBooked] = useState<boolean>(false);
   const [bookingLoading, setBookingLoading] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const profile = useProfile();
+  const fetchBorrowedTools = useFetchBorrowedTools();
 
   // Calculate number of days
   const numberOfDays = useMemo(() => {
@@ -93,7 +96,7 @@ export default function BookingModal({
 
   const handleBook = async () => {
     if (!pickUpDate || !returnDate) return;
-    // TODO: Implement booking logic
+
     try {
       setBookingLoading(true);
       const bookingResponse = await createBooking({
@@ -105,8 +108,16 @@ export default function BookingModal({
         totalPrice,
       });
 
-      console.log(bookingResponse);
-    } catch (error) {}
+      // Refresh borrowed tools list after successful booking
+      if (bookingResponse.success && profile?.id) {
+        await fetchBorrowedTools(Number(profile.id));
+      }
+      Router.push("/borrowed");
+    } catch (error) {
+      console.error("Booking failed:", error);
+    } finally {
+      setBookingLoading(false);
+    }
 
     onClose();
   };

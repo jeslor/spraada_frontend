@@ -45,6 +45,25 @@ export interface Tool {
     country?: string;
     createdAt?: string;
   };
+  latestBooking?: {
+    id: string;
+    pickUpDate: string;
+    returnDate: string;
+    totalPrice: number;
+    status: string;
+    borrower?: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string;
+    };
+    owner?: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      avatarUrl?: string;
+    };
+  };
 }
 
 // Props for rental context
@@ -114,6 +133,8 @@ export interface ToolActions {
 
   // Async actions
   fetchMyTools: (profileId: number) => Promise<void>;
+  fetchRentedTools: (profileId: number) => Promise<void>;
+  fetchBorrowedTools: (profileId: number) => Promise<void>;
 
   // Loading state setters
   setLoading: (isLoading: boolean) => void;

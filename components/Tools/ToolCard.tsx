@@ -6,26 +6,23 @@ import { Icon } from "@iconify/react";
 import { isFavorite, isToolOwnedByUser } from "@/store/tool/tool.selectors";
 import { Tool } from "@/store";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
+import {
+  calculateDaysRemaining,
+  calculateDaysBorrowed,
+  formatDate,
+  formatDateWithDay,
+  formatPrice,
+} from "@/lib/helpers/dateHelpers";
 
 interface ToolCardProps {
   tool: Tool;
   variant?: "default" | "compact" | "rental" | "borrowed";
   onDelete?: (toolId: Tool) => void;
   onRent?: (toolId: Tool) => void;
+  onApproveBooking?: (bookingId: string) => void;
   showOwner?: boolean;
   isDeleting?: boolean;
 }
-
-// Format cents to dollars
-//Move this to a utils file later if reused elsewhere
-const formatPrice = (cents: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-};
 
 // Compact variant - Airbnb-style grid listing
 const CompactCard = ({ tool }: { tool: Tool }) => {
@@ -205,65 +202,333 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
   );
 };
 
-// Rental/Borrowed variant - horizontal card
+// Get status color
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "bg-amber-100 text-amber-700 border-amber-200";
+    case "confirmed":
+      return "bg-primary-100 text-primary-700 border-primary-200";
+    case "completed":
+      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    case "cancelled":
+      return "bg-red-100 text-red-700 border-red-200";
+    default:
+      return "bg-gray-100 text-gray-700 border-gray-200";
+  }
+};
+
+// Rental/Borrowed variant - Full width horizontal card
 const RentalCard = ({
   tool,
   variant,
+  onApproveBooking,
 }: {
   tool: Tool;
   variant: "rental" | "borrowed";
+  onApproveBooking?: (bookingId: string) => void;
 }) => {
+  const [isApproving, setIsApproving] = useState(false);
   const isRental = variant === "rental";
   const photo = tool.toolPhotos?.[0];
+  const booking = tool.latestBooking;
+  const otherPerson = isRental ? booking?.borrower : booking?.owner;
+  const daysRemaining = booking
+    ? calculateDaysRemaining(booking.returnDate)
+    : 0;
+  const daysBorrowed = booking ? calculateDaysBorrowed(booking.pickUpDate) : 0;
+
+  // Calculate total rental days
+  const totalDays = booking
+    ? Math.ceil(
+        (new Date(booking.returnDate).getTime() -
+          new Date(booking.pickUpDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      )
+    : 0;
+
+  const handleApprove = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!booking || !onApproveBooking) return;
+    setIsApproving(true);
+    try {
+      await onApproveBooking(booking.id);
+    } catch (error) {
+      console.error("Failed to approve booking:", error);
+    } finally {
+      setIsApproving(false);
+    }
+  };
 
   return (
     <Link
       href={`/toolbox/view/${tool.id}`}
-      className="group flex gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
+      className="group block w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300"
     >
-      {/* Image */}
-      <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100">
-        {photo ? (
-          <img src={photo.photoUrl} alt={tool.name} className="object-cover" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Icon
-              icon="solar:box-linear"
-              className="text-gray-300"
-              width={32}
+      <div className="flex flex-wrap  gap-5 p-5">
+        {/* Image Section */}
+        <div className="relative w-full sm:w-48 h-48 shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+          {photo ? (
+            <img
+              src={photo.photoUrl}
+              alt={tool.name}
+              className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
             />
-          </div>
-        )}
-      </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Icon
+                icon="solar:box-bold-duotone"
+                className="text-gray-300 dark:text-gray-600"
+                width={48}
+              />
+            </div>
+          )}
 
-      {/* Content */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+          {/* Status Badge */}
+          {booking && (
+            <div className="absolute top-2 left-2">
+              <span
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold ${getStatusColor(
+                  booking.status
+                )}`}
+              >
+                {booking.status.charAt(0).toUpperCase() +
+                  booking.status.slice(1)}
+              </span>
+            </div>
+          )}
+
+          {/* Type Badge */}
+          <div className="absolute bottom-2 left-2">
             <span
-              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+              className={`px-2 py-1 rounded-md text-[10px] font-semibold ${
                 isRental
-                  ? "bg-primary-100 text-primary-700"
-                  : "bg-amber-100 text-amber-700"
+                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                  : "bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300"
               }`}
             >
               {isRental ? "Renting Out" : "Borrowed"}
             </span>
           </div>
-          <h3 className="font-medium text-gray-900 truncate">{tool.name}</h3>
-          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-            <Icon icon="solar:user-linear" width={14} />
-            {isRental ? "Rented to: John D." : "From: Sarah M."}
-          </p>
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-gray-500 flex items-center gap-1">
-            <Icon icon="solar:calendar-linear" width={14} />
-            Ends in 3 days
-          </span>
-          <span className="font-semibold text-gray-900">
-            {formatPrice(tool.dailyPriceCents)}/day
-          </span>
+
+        {/* Content Section */}
+        <div className="flex-1 flex flex-col justify-between min-w-0">
+          {/* Top Section */}
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              {/* Category */}
+              <span className="inline-block text-[10px] font-semibold text-primary-600 dark:text-primary-400 uppercase tracking-wide">
+                {tool.category || "Uncategorized"}
+              </span>
+
+              {/* Tool Name */}
+              <h3 className="font-bold text-xl text-gray-900 dark:text-white line-clamp-2 group-hover:text-primary-600 transition-colors">
+                {tool.name}
+              </h3>
+
+              {/* Person Info */}
+              {otherPerson && (
+                <div className="flex items-center gap-3">
+                  {otherPerson.avatarUrl ? (
+                    <img
+                      src={otherPerson.avatarUrl}
+                      alt={`${otherPerson.firstName} ${otherPerson.lastName}`}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+                      <span className="text-white font-semibold text-xs">
+                        {otherPerson.firstName[0]}
+                        {otherPerson.lastName[0]}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {isRental ? "Borrowed by" : "Owner"}
+                    </p>
+                    <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                      {otherPerson.firstName} {otherPerson.lastName}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div>
+              {/* Approve Button - Only for rentals with pending status */}
+              {isRental &&
+                booking?.status === "PENDING" &&
+                onApproveBooking && (
+                  <button
+                    onClick={handleApprove}
+                    disabled={isApproving}
+                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
+                  >
+                    {isApproving ? (
+                      <>
+                        <Icon
+                          icon="solar:spinner-linear"
+                          className="animate-spin"
+                          width={18}
+                        />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <Icon
+                          icon="solar:check-circle-bold-duotone"
+                          width={18}
+                        />
+                        Approve Booking
+                      </>
+                    )}
+                  </button>
+                )}
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="flex flex-col gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Duration Stats */}
+            {booking && (
+              <div className="grid grid-cols-2 gap-3">
+                {/* Days Borrowed */}
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50">
+                  <Icon
+                    icon="solar:calendar-bold-duotone"
+                    className="text-primary-600 dark:text-primary-400"
+                    width={20}
+                  />
+                  <div className="flex-1">
+                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+                      Borrowed
+                    </p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                      {daysBorrowed === 0
+                        ? "Today"
+                        : daysBorrowed === 1
+                        ? "1 day"
+                        : `${daysBorrowed} days`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Days Remaining */}
+                <div
+                  className={`flex items-center gap-2 p-3 rounded-lg border ${
+                    daysRemaining === 0
+                      ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50"
+                      : daysRemaining <= 2
+                      ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50"
+                      : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50"
+                  }`}
+                >
+                  <Icon
+                    icon="solar:clock-circle-bold-duotone"
+                    className={`${
+                      daysRemaining === 0
+                        ? "text-red-600 dark:text-red-400"
+                        : daysRemaining <= 2
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-emerald-600 dark:text-emerald-400"
+                    }`}
+                    width={20}
+                  />
+                  <div className="flex-1">
+                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+                      Remaining
+                    </p>
+                    <p
+                      className={`text-sm font-bold ${
+                        daysRemaining === 0
+                          ? "text-red-600 dark:text-red-400"
+                          : daysRemaining <= 2
+                          ? "text-amber-600 dark:text-amber-400"
+                          : "text-emerald-600 dark:text-emerald-400"
+                      }`}
+                    >
+                      {daysRemaining === 0
+                        ? "Due today!"
+                        : daysRemaining === 1
+                        ? "1 day"
+                        : `${daysRemaining} days`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Dates with Day of Week */}
+            {booking && (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                  {/* Pick-up Date */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/50">
+                      <Icon
+                        icon="solar:calendar-mark-bold-duotone"
+                        className="text-primary-600 dark:text-primary-400"
+                        width={16}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase">
+                        Pick-up
+                      </p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {formatDateWithDay(booking.pickUpDate)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Icon
+                    icon="solar:arrow-right-linear"
+                    className="hidden sm:block text-gray-400"
+                    width={16}
+                  />
+
+                  {/* Return Date */}
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50">
+                      <Icon
+                        icon="solar:calendar-bold-duotone"
+                        className="text-teal-600 dark:text-teal-400"
+                        width={16}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase">
+                        Return
+                      </p>
+                      <p className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {formatDateWithDay(booking.returnDate)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price and Actions */}
+                <div className="flex flex-col sm:flex-row items-end gap-3">
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                      {formatPrice(tool.dailyPriceCents)} × {totalDays}{" "}
+                      {totalDays === 1 ? "day" : "days"}
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {booking
+                        ? formatPrice(booking.totalPrice)
+                        : formatPrice(tool.dailyPriceCents)}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      Total amount
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Link>
@@ -535,6 +800,7 @@ export const ToolCard = ({
   tool,
   variant = "default",
   onDelete,
+  onApproveBooking,
   isDeleting,
 }: ToolCardProps) => {
   switch (variant) {
@@ -542,7 +808,13 @@ export const ToolCard = ({
       return <CompactCard tool={tool} />;
     case "rental":
     case "borrowed":
-      return <RentalCard tool={tool} variant={variant} />;
+      return (
+        <RentalCard
+          tool={tool}
+          variant={variant}
+          onApproveBooking={onApproveBooking}
+        />
+      );
     default:
       return (
         <DefaultCard tool={tool} onDelete={onDelete} isDeleting={isDeleting} />

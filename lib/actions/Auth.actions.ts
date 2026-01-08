@@ -243,8 +243,6 @@ export const resetPasswordRequest = async (
       }
     );
 
-    console.log(response);
-
     if (!response.ok) {
       throw new Error("Failed to send password reset request");
     }

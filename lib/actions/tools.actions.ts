@@ -67,8 +67,6 @@ export const saveTool = async ({
           "Failed to save tool"
       );
     }
-
-    console.log(savedToolResponse);
   } catch (error) {
     throw error;
   }
@@ -87,7 +85,6 @@ export const getToolsByOwner = async (ownerId: number) => {
         },
       }
     );
-    console.log(response);
 
     if (!response.ok) {
       throw new Error(
@@ -313,8 +310,6 @@ export const updateTool = async ({
     );
 
     if (!response.ok) {
-      console.log(response);
-
       throw new Error(
         response.data?.message ||
           response.data?.error ||
@@ -405,5 +400,67 @@ export const updateToolAvailabilityStatus = async (
     };
   } catch (error) {
     throw error;
+  }
+};
+
+// Get tools that a user has rented out to others
+export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/rented/profile/${profileId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch rented tools"
+      );
+    }
+
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching rented tools:", error);
+    return [];
+  }
+};
+
+// Get tools that a user has borrowed from others
+export const getBorrowedTools = async (profileId: number): Promise<Tool[]> => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/borrowed/profile/${profileId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch borrowed tools"
+      );
+    }
+
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching borrowed tools:", error);
+    return [];
   }
 };

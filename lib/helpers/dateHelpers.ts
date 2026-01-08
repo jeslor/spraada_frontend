@@ -40,3 +40,42 @@ export const generateCalendarDays = (date: Date) => {
 
   return days;
 };
+
+// Calculate days remaining
+export const calculateDaysRemaining = (returnDate: string): number => {
+  const today = new Date();
+  const returnDay = new Date(returnDate);
+  const diffTime = returnDay.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays);
+};
+
+// Calculate days borrowed (from pickUpDate to now)
+export const calculateDaysBorrowed = (pickUpDate: string): number => {
+  const today = new Date();
+  const pickUp = new Date(pickUpDate);
+  const diffTime = today.getTime() - pickUp.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, diffDays);
+};
+
+// Format date nicely
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
+
+// Format date with day of week
+export const formatDateWithDay = (dateString: string): string => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
