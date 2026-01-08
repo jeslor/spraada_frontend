@@ -4,13 +4,17 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/store";
-import { getToolById } from "@/lib/actions/tools.actions";
+import { Tool, useToolActions } from "@/store";
+import {
+  getToolById,
+  updateToolAvailabilityStatus,
+} from "@/lib/actions/tools.actions";
 import { useProfile, useToolById } from "@/store";
 import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
 import ViewToolError from "@/components/Tools/ViewToolError";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
+import toast from "react-hot-toast";
 
 // Format cents to currency
 const formatPrice = (cents: number) => {
@@ -34,6 +38,7 @@ export default function ViewToolPage() {
   const params = useParams();
   const router = useRouter();
   const profile = useProfile();
+  const { updateTool } = useToolActions();
   const toolId = params.toolId as string;
   const toolFromStore = useToolById(toolId);
 
@@ -68,6 +73,36 @@ export default function ViewToolPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const changeAvailabiltyStatus = async () => {
+    if (!tool) return;
+    try {
+      const statusUpdated = await updateToolAvailabilityStatus(
+        tool.id,
+        !tool.available,
+        Number(profile?.id)
+      );
+      if (!statusUpdated.success) {
+        throw new Error("Failed to update availability status");
+      }
+
+      // Update both store and local state
+      updateTool(tool.id, { available: statusUpdated.data });
+      setTool({ ...tool, available: statusUpdated.data });
+
+      toast.success(
+        statusUpdated.data
+          ? "Tool marked as available"
+          : "Tool marked as unavailable"
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update availability status"
+      );
     }
   };
 
@@ -414,6 +449,7 @@ export default function ViewToolPage() {
                         Edit Tool Listing
                       </Link>
                       <SpraadaButton
+                        onClick={changeAvailabiltyStatus}
                         variant="outline"
                         className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold border-2 ${
                           tool.available

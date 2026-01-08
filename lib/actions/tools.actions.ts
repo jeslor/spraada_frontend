@@ -9,6 +9,7 @@ import {
   ToolInfo,
   ToolPhoto,
 } from "@/store";
+import { success } from "zod";
 
 const RESOURCE_FOLDER = "tool-images";
 
@@ -365,5 +366,45 @@ export const deleteTool = async (
       success: false,
       data: error instanceof Error ? error.message : "Failed to delete tool",
     };
+  }
+};
+
+export const updateToolAvailabilityStatus = async (
+  toolId: string,
+  availabilityStatus: boolean,
+  profileId: number
+): Promise<{ success: boolean; data: boolean }> => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/tools/${toolId}/availability`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          available: availabilityStatus,
+          profileId: profileId,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to update tool availability status"
+      );
+    }
+
+    return {
+      success: true,
+      data: response.data.available,
+    };
+  } catch (error) {
+    throw error;
   }
 };
