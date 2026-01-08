@@ -4,13 +4,18 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/store";
-import { getToolById } from "@/lib/actions/tools.actions";
+import { Tool, useToolActions } from "@/store";
+import {
+  getToolById,
+  updateToolAvailabilityStatus,
+} from "@/lib/actions/tools.actions";
 import { useProfile, useToolById } from "@/store";
 import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
 import ViewToolError from "@/components/Tools/ViewToolError";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
+import BookingModal from "@/components/Tools/BookingModal";
+import toast from "react-hot-toast";
 
 // Format cents to currency
 const formatPrice = (cents: number) => {
@@ -34,6 +39,7 @@ export default function ViewToolPage() {
   const params = useParams();
   const router = useRouter();
   const profile = useProfile();
+  const { updateTool } = useToolActions();
   const toolId = params.toolId as string;
   const toolFromStore = useToolById(toolId);
 
@@ -42,6 +48,7 @@ export default function ViewToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const isOwner = profile && tool && tool.profileId === profile.id;
 
@@ -68,6 +75,36 @@ export default function ViewToolPage() {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const changeAvailabiltyStatus = async () => {
+    if (!tool) return;
+    try {
+      const statusUpdated = await updateToolAvailabilityStatus(
+        tool.id,
+        !tool.available,
+        Number(profile?.id)
+      );
+      if (!statusUpdated.success) {
+        throw new Error("Failed to update availability status");
+      }
+
+      // Update both store and local state
+      updateTool(tool.id, { available: statusUpdated.data });
+      setTool({ ...tool, available: statusUpdated.data });
+
+      toast.success(
+        statusUpdated.data
+          ? "Tool marked as available"
+          : "Tool marked as unavailable"
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update availability status"
+      );
     }
   };
 
@@ -414,6 +451,7 @@ export default function ViewToolPage() {
                         Edit Tool Listing
                       </Link>
                       <SpraadaButton
+                        onClick={changeAvailabiltyStatus}
                         variant="outline"
                         className={`flex items-center justify-center gap-2 w-full py-2.5 text-sm font-semibold border-2 ${
                           tool.available
@@ -445,6 +483,7 @@ export default function ViewToolPage() {
                     <>
                       {/* Non-Owner Actions */}
                       <SpraadaButton
+                        onClick={() => setIsBookingModalOpen(true)}
                         disabled={!tool.available}
                         className={`flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold ${
                           tool.available
@@ -603,6 +642,7 @@ export default function ViewToolPage() {
           {isOwner ? (
             <div className="flex gap-2">
               <SpraadaButton
+                onClick={changeAvailabiltyStatus}
                 variant="ghost"
                 className={`px-3 py-2.5 text-sm font-medium ${
                   tool.available
@@ -629,33 +669,39 @@ export default function ViewToolPage() {
           ) : (
             <div className="flex gap-2">
               <SpraadaButton
-                onClick={() => setIsFavorited(!isFavorited)}
-                variant="ghost"
-                className={`p-2.5 ${
-                  isFavorited
-                    ? "bg-red-50 dark:bg-red-900/20 text-red-500"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-500"
-                }`}
+                variant="outline"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-medium"
               >
-                <Icon
-                  icon={isFavorited ? "solar:heart-bold" : "solar:heart-linear"}
-                  width={20}
-                />
+                <Icon icon="solar:chat-round-dots-bold" width={20} />
+                <span className="hidden sm:inline">Message</span>
               </SpraadaButton>
               <SpraadaButton
+                onClick={() => setIsBookingModalOpen(true)}
                 disabled={!tool.available}
-                className={`px-5 py-2.5 text-sm font-semibold ${
+                className={`flex-1 px-5 py-2.5 text-sm font-semibold ${
                   tool.available
                     ? "bg-primary-600 hover:bg-primary-700 text-white"
                     : "bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed"
                 }`}
               >
-                {tool.available ? "Book tool" : "Currently Unavailable"}
+                {tool.available ? "Book" : "Currently Unavailable"}
               </SpraadaButton>
             </div>
           )}
         </div>
       </div>
+
+      {/* Booking Modal */}
+      {tool && (
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          toolName={tool.name}
+          dailyPriceCents={tool.dailyPriceCents}
+          depositCents={tool.depositCents}
+          toolId={tool.id}
+        />
+      )}
     </div>
   );
 }
