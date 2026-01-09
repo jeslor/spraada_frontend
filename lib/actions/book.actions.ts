@@ -10,6 +10,15 @@ interface CreateBookingProps {
   totalPrice: number;
 }
 
+export type BookStatus = "pending" | "confirmed" | "cancelled" | "completed";
+
+enum BookingStatus {
+  pending = "PENDING",
+  confirmed = "CONFIRMED",
+  completed = "COMPLETED",
+  cancelled = "CANCELLED",
+}
+
 export const createBooking = async ({
   toolId,
   borrowerId,
@@ -63,8 +72,39 @@ export const createBooking = async ({
   }
 };
 
-export const approveBooking = async (
-  bookingId: string
+export const getBookingsByProfile = async (profileId: number) => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/profile/${profileId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch bookings"
+      );
+    }
+
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching bookings:", error);
+    return [];
+  }
+};
+
+export const updateBookingStatus = async (
+  bookingId: string,
+  currentStatus: BookStatus
 ): Promise<{
   success: boolean;
   data: any;
@@ -80,7 +120,10 @@ export const approveBooking = async (
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "CONFIRMED",
+          status:
+            BookingStatus[
+              currentStatus.toLowerCase() as keyof typeof BookingStatus
+            ],
         }),
       }
     );
