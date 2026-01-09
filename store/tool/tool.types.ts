@@ -19,6 +19,7 @@ export interface ToolInfo {
 
 // Full tool type from API/database
 export interface Tool {
+  specialId: string;
   id: string;
   name: string;
   description: string;
@@ -45,7 +46,7 @@ export interface Tool {
     country?: string;
     createdAt?: string;
   };
-  latestBooking?: {
+  bookingDetails?: {
     id: string;
     pickUpDate: string;
     returnDate: string;
@@ -133,8 +134,6 @@ export interface ToolActions {
 
   // Async actions
   fetchMyTools: (profileId: number) => Promise<void>;
-  fetchRentedTools: (profileId: number) => Promise<void>;
-  fetchBorrowedTools: (profileId: number) => Promise<void>;
 
   // Loading state setters
   setLoading: (isLoading: boolean) => void;

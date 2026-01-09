@@ -90,12 +90,6 @@ export const useRemoveTool = () => useToolStore((state) => state.removeTool);
 export const useFetchMyTools = () =>
   useToolStore((state) => state.fetchMyTools);
 
-export const useFetchRentedTools = () =>
-  useToolStore((state) => state.fetchRentedTools);
-
-export const useFetchBorrowedTools = () =>
-  useToolStore((state) => state.fetchBorrowedTools);
-
 export const useGetToolById = () => useToolStore((state) => state.getToolById);
 
 // Combined actions hook (use individual hooks above when possible for better performance)
@@ -109,8 +103,6 @@ export const useToolActions = () => {
     updateTool: useUpdateToolAction(),
     removeTool: useRemoveTool(),
     fetchMyTools: useFetchMyTools(),
-    fetchRentedTools: useFetchRentedTools(),
-    fetchBorrowedTools: useFetchBorrowedTools(),
     getToolById: useGetToolById(),
   };
 };

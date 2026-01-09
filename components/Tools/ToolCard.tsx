@@ -240,7 +240,8 @@ const RentalCard = ({
   const isRental = variant === "rental";
   const isBorrowed = variant === "borrowed";
   const photo = tool.toolPhotos?.[0];
-  const booking = tool.latestBooking;
+  // Use bookingDetails for derived tools from bookings
+  const booking = (tool as any).bookingDetails;
   const otherPerson = isRental ? booking?.borrower : booking?.owner;
   const daysRemaining = booking
     ? calculateDaysRemaining(booking.returnDate)

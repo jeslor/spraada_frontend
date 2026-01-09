@@ -8,6 +8,10 @@ import {
   getRentedTools,
   getBorrowedTools,
 } from "@/lib/actions/tools.actions";
+import {
+  useBorrowedToolsFromBookings,
+  useRentedToolsFromBookings,
+} from "../booking/booking.selectors";
 
 // Initial state
 const initialState: ToolState = {
@@ -34,16 +38,16 @@ export const useToolStore = create<ToolStore>()(
         });
       },
 
-      setRentedTools: (tools: Tool[]) => {
+      setRentedTools: () => {
         set((state) => {
-          state.rentedTools = tools;
+          state.rentedTools = useBorrowedToolsFromBookings();
           state.error = null;
         });
       },
 
-      setBorrowedTools: (tools: Tool[]) => {
+      setBorrowedTools: () => {
         set((state) => {
-          state.borrowedTools = tools;
+          state.borrowedTools = useRentedToolsFromBookings();
           state.error = null;
         });
       },
@@ -118,54 +122,6 @@ export const useToolStore = create<ToolStore>()(
           set((state) => {
             state.error =
               error instanceof Error ? error.message : "Failed to fetch tools";
-            state.isLoading = false;
-          });
-        }
-      },
-
-      fetchRentedTools: async (profileId: number) => {
-        set((state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
-
-        try {
-          const tools = await getRentedTools(profileId);
-
-          set((state) => {
-            state.rentedTools = tools || [];
-            state.isLoading = false;
-          });
-        } catch (error) {
-          set((state) => {
-            state.error =
-              error instanceof Error
-                ? error.message
-                : "Failed to fetch rented tools";
-            state.isLoading = false;
-          });
-        }
-      },
-
-      fetchBorrowedTools: async (profileId: number) => {
-        set((state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
-
-        try {
-          const tools = await getBorrowedTools(profileId);
-
-          set((state) => {
-            state.borrowedTools = tools || [];
-            state.isLoading = false;
-          });
-        } catch (error) {
-          set((state) => {
-            state.error =
-              error instanceof Error
-                ? error.message
-                : "Failed to fetch borrowed tools";
             state.isLoading = false;
           });
         }

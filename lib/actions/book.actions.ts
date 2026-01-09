@@ -148,3 +148,33 @@ export const updateBookingStatus = async (
     };
   }
 };
+
+export const getBookingsByTool = async (toolId: string) => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/tool/${toolId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch bookings for tool"
+      );
+    }
+
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching bookings for tool:", error);
+    return [];
+  }
+};
