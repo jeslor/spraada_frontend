@@ -30,8 +30,6 @@ const page = async ({
   try {
     const response = await tokenExpiryCheck(token, email);
 
-    console.log(response);
-
     if (!response.valid) {
       message = "The reset token is invalid or has expired.";
       tokenValid = false;

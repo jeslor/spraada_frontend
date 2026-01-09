@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { formatPrice, generateCalendarDays } from "@/lib/helpers/dateHelpers";
-import { createBooking } from "@/lib/actions/book.actions";
+import { createBooking, getBookingsByTool } from "@/lib/actions/book.actions";
 import { useProfile, useFetchBookings } from "@/store";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -32,9 +33,43 @@ export default function BookingModal({
   const [returnDate, setReturnDate] = useState<Date | null>(null);
   const [bookingLoading, setBookingLoading] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [bookedDates, setBookedDates] = useState<{ start: Date; end: Date }[]>(
+    []
+  );
+  const [loadingBookedDates, setLoadingBookedDates] = useState(false);
 
   const profile = useProfile();
   const fetchBookings = useFetchBookings();
+
+  // Fetch booked dates for this tool when modal opens
+  useEffect(() => {
+    if (isOpen && toolId) {
+      const fetchBookedDates = async () => {
+        setLoadingBookedDates(true);
+        try {
+          const bookings = await getBookingsByTool(toolId);
+          // Filter only confirmed or pending bookings
+          const activeBookings = bookings.filter(
+            (booking: any) =>
+              booking.status === "CONFIRMED" || booking.status === "PENDING"
+          );
+
+          const bookedRanges = activeBookings.map((booking: any) => ({
+            start: new Date(booking.pickUpDate),
+            end: new Date(booking.returnDate),
+          }));
+
+          setBookedDates(bookedRanges);
+        } catch (error) {
+          console.error("Error fetching booked dates:", error);
+        } finally {
+          setLoadingBookedDates(false);
+        }
+      };
+
+      fetchBookedDates();
+    }
+  }, [isOpen, toolId]);
 
   // Calculate number of days
   const numberOfDays = useMemo(() => {
@@ -52,16 +87,51 @@ export default function BookingModal({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Check if a date is already booked
+  const isDateBooked = (date: Date) => {
+    return bookedDates.some((range) => {
+      const checkDate = new Date(date);
+      const rangeStart = new Date(range.start);
+      const rangeEnd = new Date(range.end);
+
+      checkDate.setHours(0, 0, 0, 0);
+      rangeStart.setHours(0, 0, 0, 0);
+      rangeEnd.setHours(0, 0, 0, 0);
+
+      return checkDate >= rangeStart && checkDate <= rangeEnd;
+    });
+  };
+
   const handleDateClick = (date: Date) => {
-    if (date < today) return; // Can't select past dates
+    if (date < today || isDateBooked(date)) return; // Can't select past dates or booked dates
 
     if (!pickUpDate || (pickUpDate && returnDate)) {
       // Start new selection
       setPickUpDate(date);
       setReturnDate(null);
     } else if (date > pickUpDate) {
-      // Set return date
-      setReturnDate(date);
+      // Check if there are any booked dates in the range
+      const hasBookedDatesInRange = bookedDates.some((range) => {
+        const rangeStart = new Date(range.start);
+        const rangeEnd = new Date(range.end);
+        rangeStart.setHours(0, 0, 0, 0);
+        rangeEnd.setHours(0, 0, 0, 0);
+
+        return (
+          (rangeStart > pickUpDate && rangeStart < date) ||
+          (rangeEnd > pickUpDate && rangeEnd < date) ||
+          (rangeStart <= pickUpDate && rangeEnd >= date)
+        );
+      });
+
+      if (hasBookedDatesInRange) {
+        // Reset selection if there are booked dates in range
+        setPickUpDate(date);
+        setReturnDate(null);
+      } else {
+        // Set return date if range is clear
+        setReturnDate(date);
+      }
     } else {
       // Reset if selected date is before pick-up
       setPickUpDate(date);
@@ -107,18 +177,28 @@ export default function BookingModal({
         totalPrice,
       });
 
-      // Refresh borrowed tools list after successful booking
-      if (bookingResponse.success && profile?.id) {
-        await fetchBookings(Number(profile.id));
+      if (bookingResponse.success) {
+        toast.success("Booking request sent successfully!");
+        // Refresh borrowed tools list after successful booking
+        if (profile?.id) {
+          await fetchBookings(Number(profile.id));
+        }
+        onClose();
+        Router.push("/borrowed");
+      } else {
+        toast.error(
+          bookingResponse.data ||
+            "Failed to create booking. Please try different dates."
+        );
       }
-      Router.push("/borrowed");
     } catch (error) {
       console.error("Booking failed:", error);
+      toast.error(
+        "Failed to create booking. The selected dates may no longer be available."
+      );
     } finally {
       setBookingLoading(false);
     }
-
-    onClose();
   };
 
   if (!isOpen) return null;
@@ -195,6 +275,16 @@ export default function BookingModal({
 
                 {/* Calendar */}
                 <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+                  {loadingBookedDates && (
+                    <div className="flex items-center gap-2 mb-3 text-sm text-gray-500 dark:text-gray-400">
+                      <Icon
+                        icon="solar:refresh-linear"
+                        className="animate-spin"
+                        width={16}
+                      />
+                      Loading availability...
+                    </div>
+                  )}
                   {/* Calendar Header */}
                   <div className="flex items-center justify-between mb-4">
                     <SpraadaButton
@@ -239,14 +329,16 @@ export default function BookingModal({
                       const isCurrentMonth =
                         date.getMonth() === currentMonth.getMonth();
                       const isPast = date < today;
+                      const isBooked = isDateBooked(date);
                       const isSelected = isDateSelected(date);
                       const isInRange = isDateInRange(date);
+                      const isDisabled = isPast || isBooked;
 
                       return (
                         <button
                           key={index}
-                          onClick={() => !isPast && handleDateClick(date)}
-                          disabled={isPast}
+                          onClick={() => !isDisabled && handleDateClick(date)}
+                          disabled={isDisabled}
                           className={`
                             aspect-square flex items-center justify-center text-sm rounded-lg
                             transition-all duration-200 relative
@@ -256,9 +348,14 @@ export default function BookingModal({
                                 : "text-gray-900 dark:text-gray-100"
                             }
                             ${
-                              isPast
+                              isDisabled
                                 ? "cursor-not-allowed opacity-40"
                                 : "hover:bg-primary-50 dark:hover:bg-primary-900/20 cursor-pointer"
+                            }
+                            ${
+                              isBooked && isCurrentMonth
+                                ? "bg-red-100 dark:bg-red-900/30 line-through text-red-600 dark:text-red-400"
+                                : ""
                             }
                             ${
                               isSelected
@@ -266,11 +363,12 @@ export default function BookingModal({
                                 : ""
                             }
                             ${
-                              isInRange
+                              isInRange && !isBooked
                                 ? "bg-primary-100 dark:bg-primary-900/30"
                                 : ""
                             }
                           `}
+                          title={isBooked ? "Already booked" : ""}
                         >
                           {date.getDate()}
                         </button>
@@ -278,6 +376,38 @@ export default function BookingModal({
                     })}
                   </div>
                 </div>
+
+                {/* Calendar Legend */}
+                <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700"></div>
+                    <span>Booked</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-4 h-4 rounded bg-primary-600"></div>
+                    <span>Selected</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-4 h-4 rounded bg-primary-100 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800"></div>
+                    <span>Your dates</span>
+                  </div>
+                </div>
+
+                {/* Info message */}
+                {bookedDates.length > 0 && (
+                  <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <Icon
+                      icon="solar:info-circle-bold"
+                      className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5"
+                      width={18}
+                    />
+                    <p className="text-xs text-blue-800 dark:text-blue-300">
+                      This tool has {bookedDates.length} active{" "}
+                      {bookedDates.length === 1 ? "booking" : "bookings"}. You
+                      can book any available dates.
+                    </p>
+                  </div>
+                )}
 
                 {/* Clear Dates */}
                 {(pickUpDate || returnDate) && (

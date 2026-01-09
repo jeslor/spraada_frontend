@@ -31,26 +31,23 @@ export const useRentedToolsFromBookings = (): Tool[] => {
     (booking) => booking.rentedById === profile.id
   );
 
-  // Convert bookings to tools with latestBooking info
-  const toolsMap = new Map<string, Tool>();
+  //  // Convert bookings to tools with bookingDetails info
+  const derivedTools = rentedBookings
+    .filter((booking) => booking.tool && booking.tool.id)
+    .map((booking) => ({
+      ...booking.tool!,
+      specialId: booking.id + booking.tool!.id,
+      bookingDetails: {
+        id: booking.id,
+        pickUpDate: booking.pickUpDate,
+        returnDate: booking.returnDate,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+        borrower: booking.toolBorrower,
+      },
+    }));
 
-  rentedBookings.forEach((booking) => {
-    if (booking.tool && !toolsMap.has(booking.tool.id)) {
-      toolsMap.set(booking.tool.id, {
-        ...booking.tool,
-        latestBooking: {
-          id: booking.id,
-          pickUpDate: booking.pickUpDate,
-          returnDate: booking.returnDate,
-          totalPrice: booking.totalPrice,
-          status: booking.status,
-          borrower: booking.toolBorrower,
-        },
-      });
-    }
-  });
-
-  return Array.from(toolsMap.values());
+  return derivedTools;
 };
 
 // Get tools that the user has borrowed FROM others (user is the borrower)
@@ -65,26 +62,23 @@ export const useBorrowedToolsFromBookings = (): Tool[] => {
     (booking) => booking.borrowedById === profile.id
   );
 
-  // Convert bookings to tools with latestBooking info
-  const toolsMap = new Map<string, Tool>();
+  // Convert bookings to tools with bookingDetails info
+  const derivedTools = borrowedBookings
+    .filter((booking) => booking.tool && booking.tool.id)
+    .map((booking) => ({
+      ...booking.tool!,
+      specialId: booking.id + booking.tool!.id,
+      bookingDetails: {
+        id: booking.id,
+        pickUpDate: booking.pickUpDate,
+        returnDate: booking.returnDate,
+        totalPrice: booking.totalPrice,
+        status: booking.status,
+        borrower: booking.toolBorrower,
+      },
+    }));
 
-  borrowedBookings.forEach((booking) => {
-    if (booking.tool && !toolsMap.has(booking.tool.id)) {
-      toolsMap.set(booking.tool.id, {
-        ...booking.tool,
-        latestBooking: {
-          id: booking.id,
-          pickUpDate: booking.pickUpDate,
-          returnDate: booking.returnDate,
-          totalPrice: booking.totalPrice,
-          status: booking.status,
-          owner: booking.toolOwner,
-        },
-      });
-    }
-  });
-
-  return Array.from(toolsMap.values());
+  return derivedTools;
 };
 
 // Get count of rented tools
@@ -97,6 +91,13 @@ export const useRentedToolsCount = (): number => {
 export const useBorrowedToolsCount = (): number => {
   const borrowedTools = useBorrowedToolsFromBookings();
   return borrowedTools.length;
+};
+
+//get booking tool borrower by booking id
+export const useBookingToolBorrowerById = (bookingId: string) => {
+  const bookings = useBookings();
+  const booking = bookings.find((b) => b.id === bookingId);
+  return booking ? booking.toolBorrower : null;
 };
 
 // ==================== Action Hooks ====================

@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Icon } from "@iconify/react";
-import Image from "next/image";
 import Link from "next/link";
 import { Tool, useProfile } from "@/store";
 import { getToolById } from "@/lib/actions/tools.actions";
 import LoadingUI from "@/components/ui/Loading";
 import { cn } from "@/lib/utils";
+import { useBookingToolBorrowerById } from "@/store/booking/booking.selectors";
 
 // Use the profile type from Tool
 type ToolOwnerProfile = NonNullable<Tool["profile"]>;
@@ -41,6 +41,8 @@ export default function ToolOwnerPage() {
   const params = useParams();
   const router = useRouter();
   const currentUser = useProfile();
+  const bookingId = useSearchParams().get("bookingId") as string | "";
+  const borrower = useBookingToolBorrowerById(bookingId as string);
   const toolId = params.toolId as string;
 
   const [tool, setTool] = useState<Tool | null>(null);
@@ -61,7 +63,11 @@ export default function ToolOwnerPage() {
         }
 
         // If viewing own profile, redirect to profile page
-        if (currentUser && fetchedTool.profileId === currentUser.id) {
+        if (
+          currentUser &&
+          fetchedTool.profileId === currentUser.id &&
+          !bookingId
+        ) {
           router.replace(`/profile/${currentUser.id}`);
           return;
         }
@@ -117,7 +123,9 @@ export default function ToolOwnerPage() {
     );
   }
 
-  const profile = tool.profile as ToolOwnerProfile | undefined;
+  const profile = bookingId
+    ? (borrower as ToolOwnerProfile)
+    : (tool.profile as ToolOwnerProfile);
 
   if (!profile) {
     return (
@@ -167,7 +175,7 @@ export default function ToolOwnerPage() {
 
           {/* View Tool Link */}
           <Link
-            href={`/toolbox/view/${toolId}`}
+            href={`/toolbox/view/${toolId}/owner`}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
           >
             <Icon icon="solar:box-bold-duotone" width={18} />
