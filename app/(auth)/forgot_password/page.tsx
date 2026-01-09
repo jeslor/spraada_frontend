@@ -83,8 +83,6 @@ const ForgotPassword = () => {
   };
 
   const openEmailProvider = () => {
-    console.log(emailProviderUrl);
-
     if (emailProviderUrl) {
       window.open(emailProviderUrl, "_blank");
     }

@@ -93,6 +93,13 @@ export const useBorrowedToolsCount = (): number => {
   return borrowedTools.length;
 };
 
+//get booking tool borrower by booking id
+export const useBookingToolBorrowerById = (bookingId: string) => {
+  const bookings = useBookings();
+  const booking = bookings.find((b) => b.id === bookingId);
+  return booking ? booking.toolBorrower : null;
+};
+
 // ==================== Action Hooks ====================
 
 export const useSetBookings = () =>

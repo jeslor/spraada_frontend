@@ -18,6 +18,7 @@ import {
 } from "@/lib/helpers/dateHelpers";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
+import { useRouter } from "next/navigation";
 
 interface ToolCardProps {
   tool: Tool;
@@ -236,6 +237,7 @@ const RentalCard = ({
   onApproveBooking?: (bookingId: string, status: BookStatus) => void;
   onCancelBooking?: (bookingId: string, status: BookStatus) => void;
 }) => {
+  const Router = useRouter();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const isRental = variant === "rental";
   const isBorrowed = variant === "borrowed";
@@ -366,7 +368,7 @@ const RentalCard = ({
 
               {/* Person Info */}
               {otherPerson && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 pt-2">
                   {otherPerson.avatarUrl ? (
                     <img
                       src={otherPerson.avatarUrl}
@@ -385,9 +387,18 @@ const RentalCard = ({
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {isRental ? "Borrowed by" : "Owner"}
                     </p>
-                    <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                    <div
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        Router.push(
+                          `/toolbox/view/${tool.id}/owner?bookingId=${booking?.id}`
+                        );
+                      }}
+                      className="font-semibold text-sm text-gray-900 dark:text-white truncate hover:underline cursor-pointer"
+                    >
                       {otherPerson.firstName} {otherPerson.lastName}
-                    </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -483,47 +494,49 @@ const RentalCard = ({
                 </div>
 
                 {/* Days Remaining */}
-                <div
-                  className={`flex items-center gap-2 p-3 rounded-lg border w-full max-w-[300px] ${
-                    daysRemaining === 0
-                      ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50"
-                      : daysRemaining <= 2
-                      ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50"
-                      : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50"
-                  }`}
-                >
-                  <Icon
-                    icon="solar:clock-circle-bold-duotone"
-                    className={`${
+                {!(tool.bookingDetails?.status === "CANCELLED") && (
+                  <div
+                    className={`flex items-center gap-2 p-3 rounded-lg border w-full max-w-[300px] ${
                       daysRemaining === 0
-                        ? "text-red-600 dark:text-red-400"
+                        ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50"
                         : daysRemaining <= 2
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-emerald-600 dark:text-emerald-400"
+                        ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/50"
+                        : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50"
                     }`}
-                    width={20}
-                  />
-                  <div className="flex-1">
-                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
-                      Remaining
-                    </p>
-                    <p
-                      className={`text-sm font-bold ${
+                  >
+                    <Icon
+                      icon="solar:clock-circle-bold-duotone"
+                      className={`${
                         daysRemaining === 0
                           ? "text-red-600 dark:text-red-400"
                           : daysRemaining <= 2
                           ? "text-amber-600 dark:text-amber-400"
                           : "text-emerald-600 dark:text-emerald-400"
                       }`}
-                    >
-                      {daysRemaining === 0
-                        ? "Due today!"
-                        : daysRemaining === 1
-                        ? "1 day"
-                        : `${daysRemaining} days`}
-                    </p>
+                      width={20}
+                    />
+                    <div className="flex-1">
+                      <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+                        Remaining
+                      </p>
+                      <p
+                        className={`text-sm font-bold ${
+                          daysRemaining === 0
+                            ? "text-red-600 dark:text-red-400"
+                            : daysRemaining <= 2
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-emerald-600 dark:text-emerald-400"
+                        }`}
+                      >
+                        {daysRemaining === 0
+                          ? "Due today!"
+                          : daysRemaining === 1
+                          ? "1 day"
+                          : `${daysRemaining} days`}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
