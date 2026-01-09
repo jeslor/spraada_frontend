@@ -16,6 +16,7 @@ import {
   useBorrowedToolsFromBookings,
   useBookingsLoading,
   useBookingsHasHydrated,
+  useUpdateBookingStatus,
 } from "@/store";
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard";
@@ -51,6 +52,7 @@ const ToolContent = ({
   const bookingsHydrated = useBookingsHasHydrated();
   const fetchMyTools = useFetchMyTools();
   const fetchBookings = useFetchBookings();
+  const updateBookingStatusInStore = useUpdateBookingStatus();
   const [hasFetchedTools, setHasFetchedTools] = useState(false);
   const [hasFetchedBookings, setHasFetchedBookings] = useState(false);
 
@@ -135,19 +137,30 @@ const ToolContent = ({
   ) => {
     alert(`Change booking ${bookingId} to status: ${status}`);
     try {
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(bookingId, status);
+      // Then update backend
       const result = await updateBookingStatus(bookingId, status);
       if (result.success) {
         toast.success("Booking status updated successfully!");
-        // Refresh bookings to update rented/borrowed tools list
+        // Refresh bookings to ensure sync with backend
         if (profileId) {
           await fetchBookings(profileId);
         }
       } else {
         toast.error(result.data || "Failed to update booking");
+        // Refresh to revert to actual state on failure
+        if (profileId) {
+          await fetchBookings(profileId);
+        }
       }
     } catch (error) {
       console.error("Error updating booking:", error);
       toast.error("Failed to update booking");
+      // Refresh to revert to actual state on error
+      if (profileId) {
+        await fetchBookings(profileId);
+      }
     }
   };
 

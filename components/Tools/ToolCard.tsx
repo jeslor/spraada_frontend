@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { isFavorite, isToolOwnedByUser, Tool } from "@/store";
+import {
+  isFavorite,
+  isToolOwnedByUser,
+  Tool,
+  useUpdateBookingStatus,
+} from "@/store";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 import {
   calculateDaysRemaining,
@@ -251,15 +256,22 @@ const RentalCard = ({
       )
     : 0;
 
+  const updateBookingStatusInStore = useUpdateBookingStatus();
+
   const handleApprove = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!booking || !onApproveBooking) return;
     setIsUpdatingStatus(true);
     try {
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(booking.id, "confirmed");
+      // Then update backend
       await updateBookingStatus(booking.id, "confirmed");
     } catch (error) {
       console.error("Error approving booking:", error);
+      // Revert on error by fetching fresh data
+      updateBookingStatusInStore(booking.id, booking.status);
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -270,8 +282,18 @@ const RentalCard = ({
     e.stopPropagation();
     if (!booking || !onCancelBooking) return;
     setIsUpdatingStatus(true);
-    await updateBookingStatus(booking.id, "cancelled");
-    setIsUpdatingStatus(false);
+    try {
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(booking.id, "cancelled");
+      // Then update backend
+      await updateBookingStatus(booking.id, "cancelled");
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      // Revert on error
+      updateBookingStatusInStore(booking.id, booking.status);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   return (
