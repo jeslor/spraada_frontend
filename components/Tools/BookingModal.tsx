@@ -5,8 +5,7 @@ import { Icon } from "@iconify/react";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import { formatPrice, generateCalendarDays } from "@/lib/helpers/dateHelpers";
 import { createBooking } from "@/lib/actions/book.actions";
-import { useProfile } from "@/store";
-import { useFetchBorrowedTools } from "@/store/tool/tool.selectors";
+import { useProfile, useFetchBookings } from "@/store";
 import { useRouter } from "next/navigation";
 
 interface BookingModalProps {
@@ -35,7 +34,7 @@ export default function BookingModal({
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const profile = useProfile();
-  const fetchBorrowedTools = useFetchBorrowedTools();
+  const fetchBookings = useFetchBookings();
 
   // Calculate number of days
   const numberOfDays = useMemo(() => {
@@ -110,7 +109,7 @@ export default function BookingModal({
 
       // Refresh borrowed tools list after successful booking
       if (bookingResponse.success && profile?.id) {
-        await fetchBorrowedTools(Number(profile.id));
+        await fetchBookings(Number(profile.id));
       }
       Router.push("/borrowed");
     } catch (error) {

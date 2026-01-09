@@ -3,23 +3,29 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
-import { isFavorite, isToolOwnedByUser } from "@/store/tool/tool.selectors";
-import { Tool } from "@/store";
+import {
+  isFavorite,
+  isToolOwnedByUser,
+  Tool,
+  useUpdateBookingStatus,
+} from "@/store";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 import {
   calculateDaysRemaining,
   calculateDaysBorrowed,
-  formatDate,
   formatDateWithDay,
   formatPrice,
 } from "@/lib/helpers/dateHelpers";
+import { SpraadaButton } from "../ui/SpraadaButton";
+import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
 
 interface ToolCardProps {
   tool: Tool;
   variant?: "default" | "compact" | "rental" | "borrowed";
   onDelete?: (toolId: Tool) => void;
   onRent?: (toolId: Tool) => void;
-  onApproveBooking?: (bookingId: string) => void;
+  onApproveBooking?: (bookingId: string, status: BookStatus) => void;
+  onCancelBooking?: (bookingId: string, status: BookStatus) => void;
   showOwner?: boolean;
   isDeleting?: boolean;
 }
@@ -223,13 +229,16 @@ const RentalCard = ({
   tool,
   variant,
   onApproveBooking,
+  onCancelBooking,
 }: {
   tool: Tool;
   variant: "rental" | "borrowed";
-  onApproveBooking?: (bookingId: string) => void;
+  onApproveBooking?: (bookingId: string, status: BookStatus) => void;
+  onCancelBooking?: (bookingId: string, status: BookStatus) => void;
 }) => {
-  const [isApproving, setIsApproving] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const isRental = variant === "rental";
+  const isBorrowed = variant === "borrowed";
   const photo = tool.toolPhotos?.[0];
   const booking = tool.latestBooking;
   const otherPerson = isRental ? booking?.borrower : booking?.owner;
@@ -247,24 +256,50 @@ const RentalCard = ({
       )
     : 0;
 
+  const updateBookingStatusInStore = useUpdateBookingStatus();
+
   const handleApprove = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!booking || !onApproveBooking) return;
-    setIsApproving(true);
+    setIsUpdatingStatus(true);
     try {
-      await onApproveBooking(booking.id);
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(booking.id, "confirmed");
+      // Then update backend
+      await updateBookingStatus(booking.id, "confirmed");
     } catch (error) {
-      console.error("Failed to approve booking:", error);
+      console.error("Error approving booking:", error);
+      // Revert on error by fetching fresh data
+      updateBookingStatusInStore(booking.id, booking.status);
     } finally {
-      setIsApproving(false);
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleCancel = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!booking || !onCancelBooking) return;
+    setIsUpdatingStatus(true);
+    try {
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(booking.id, "cancelled");
+      // Then update backend
+      await updateBookingStatus(booking.id, "cancelled");
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      // Revert on error
+      updateBookingStatusInStore(booking.id, booking.status);
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
   return (
     <Link
       href={`/toolbox/view/${tool.id}`}
-      className="group block w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300"
+      className="group shadow block w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300"
     >
       <div className="flex flex-wrap  gap-5 p-5">
         {/* Image Section */}
@@ -356,36 +391,67 @@ const RentalCard = ({
                 </div>
               )}
             </div>
-            <div>
-              {/* Approve Button - Only for rentals with pending status */}
-              {isRental &&
-                booking?.status === "PENDING" &&
-                onApproveBooking && (
-                  <button
-                    onClick={handleApprove}
-                    disabled={isApproving}
-                    className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-2 whitespace-nowrap"
-                  >
-                    {isApproving ? (
-                      <>
-                        <Icon
-                          icon="solar:spinner-linear"
-                          className="animate-spin"
-                          width={18}
-                        />
-                        Approving...
-                      </>
-                    ) : (
-                      <>
-                        <Icon
-                          icon="solar:check-circle-bold-duotone"
-                          width={18}
-                        />
-                        Approve Booking
-                      </>
-                    )}
-                  </button>
-                )}
+            <div className="flex gap-x-2 gap-y-3">
+              <>
+                {/* Approve Button - Only for rentals with pending status */}
+                {booking?.status === "PENDING" &&
+                  onApproveBooking &&
+                  isRental && (
+                    <SpraadaButton
+                      onClick={handleApprove}
+                      disabled={isUpdatingStatus}
+                    >
+                      {isUpdatingStatus ? (
+                        <>
+                          <Icon
+                            icon="solar:spinner-linear"
+                            className="animate-spin"
+                            width={18}
+                          />
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <Icon
+                            icon="solar:check-circle-bold-duotone"
+                            width={18}
+                          />
+                          Approve Booking
+                        </>
+                      )}
+                    </SpraadaButton>
+                  )}
+
+                {/* Cancel Button */}
+                {((isBorrowed && isBorrowed && booking?.status === "PENDING") ||
+                  booking?.status === "CONFIRMED") &&
+                  onCancelBooking && (
+                    <SpraadaButton
+                      onClick={handleCancel}
+                      disabled={isUpdatingStatus}
+                      className="spraada-btn-secondary"
+                    >
+                      {isUpdatingStatus ? (
+                        <>
+                          <Icon
+                            icon="solar:spinner-linear"
+                            className="animate-spin"
+                            width={18}
+                          />
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <Icon
+                            icon="solar:check-circle-bold-duotone"
+                            width={18}
+                          />
+                          Cancel Booking
+                        </>
+                      )}
+                    </SpraadaButton>
+                  )}
+              </>
             </div>
           </div>
 
@@ -393,9 +459,9 @@ const RentalCard = ({
           <div className="flex flex-col gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
             {/* Duration Stats */}
             {booking && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex gap-3">
                 {/* Days Borrowed */}
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50">
+                <div className="flex w-full max-w-[300px] items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50">
                   <Icon
                     icon="solar:calendar-bold-duotone"
                     className="text-primary-600 dark:text-primary-400"
@@ -417,7 +483,7 @@ const RentalCard = ({
 
                 {/* Days Remaining */}
                 <div
-                  className={`flex items-center gap-2 p-3 rounded-lg border ${
+                  className={`flex items-center gap-2 p-3 rounded-lg border w-full max-w-[300px] ${
                     daysRemaining === 0
                       ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50"
                       : daysRemaining <= 2
@@ -535,7 +601,6 @@ const RentalCard = ({
   );
 };
 
-// Default variant - Full featured toolbox card
 const DefaultCard = ({
   tool,
   onDelete,
@@ -801,6 +866,7 @@ export const ToolCard = ({
   variant = "default",
   onDelete,
   onApproveBooking,
+  onCancelBooking,
   isDeleting,
 }: ToolCardProps) => {
   switch (variant) {
@@ -813,6 +879,7 @@ export const ToolCard = ({
           tool={tool}
           variant={variant}
           onApproveBooking={onApproveBooking}
+          onCancelBooking={onCancelBooking}
         />
       );
     default:

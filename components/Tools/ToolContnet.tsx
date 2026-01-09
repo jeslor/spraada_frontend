@@ -6,22 +6,22 @@ import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import {
   useProfile,
   useMyTools,
-  useRentedTools,
-  useBorrowedTools,
   useToolsLoading,
   useFetchMyTools,
-  useFetchRentedTools,
-  useFetchBorrowedTools,
   useToolsHasHydrated,
   Tool,
   useSetMyTools,
-  useSetBorrowedTools,
-  useSetRentedTools,
+  useFetchBookings,
+  useRentedToolsFromBookings,
+  useBorrowedToolsFromBookings,
+  useBookingsLoading,
+  useBookingsHasHydrated,
+  useUpdateBookingStatus,
 } from "@/store";
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard";
 import { deleteTool } from "@/lib/actions/tools.actions";
-import { approveBooking } from "@/lib/actions/book.actions";
+import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
 import toast from "react-hot-toast";
 
 interface ToolContentProps {
@@ -41,20 +41,20 @@ const ToolContent = ({
   emptyState,
   gridClassName,
 }: ToolContentProps) => {
-  const router = useRouter();
   const profile = useProfile();
   const myTools = useMyTools();
   const setMyTools = useSetMyTools();
-  const setBorrowedTools = useSetBorrowedTools();
-  const setRentedTools = useSetRentedTools();
-  const rentedTools = useRentedTools();
-  const borrowedTools = useBorrowedTools();
-  const storeLoading = useToolsLoading();
-  const hasHydrated = useToolsHasHydrated();
+  const rentedTools = useRentedToolsFromBookings();
+  const borrowedTools = useBorrowedToolsFromBookings();
+  const toolsLoading = useToolsLoading();
+  const bookingsLoading = useBookingsLoading();
+  const toolsHydrated = useToolsHasHydrated();
+  const bookingsHydrated = useBookingsHasHydrated();
   const fetchMyTools = useFetchMyTools();
-  const fetchRentedTools = useFetchRentedTools();
-  const fetchBorrowedTools = useFetchBorrowedTools();
-  const [hasFetched, setHasFetched] = useState(false);
+  const fetchBookings = useFetchBookings();
+  const updateBookingStatusInStore = useUpdateBookingStatus();
+  const [hasFetchedTools, setHasFetchedTools] = useState(false);
+  const [hasFetchedBookings, setHasFetchedBookings] = useState(false);
 
   // Memoize profileId to prevent unnecessary effect runs
   const profileId = profile?.id;
@@ -67,29 +67,38 @@ const ToolContent = ({
   useEffect(() => {
     if (isExternalMode) return; // Skip fetching if tools are provided externally
 
-    if (profileId && hasHydrated && !hasFetched) {
+    if (profileId && toolsHydrated && !hasFetchedTools) {
       if (type === "owned" && myTools.length === 0) {
-        setHasFetched(true);
+        setHasFetchedTools(true);
         fetchMyTools(profileId);
-      } else if (type === "rented" && rentedTools.length === 0) {
-        setHasFetched(true);
-        fetchRentedTools(profileId);
-      } else if (type === "borrowed" && borrowedTools.length === 0) {
-        setHasFetched(true);
-        fetchBorrowedTools(profileId);
       }
     }
   }, [
     type,
     profileId,
-    hasHydrated,
+    toolsHydrated,
     myTools.length,
-    rentedTools.length,
-    borrowedTools.length,
-    hasFetched,
+    hasFetchedTools,
     fetchMyTools,
-    fetchRentedTools,
-    fetchBorrowedTools,
+    isExternalMode,
+  ]);
+
+  // Fetch bookings for rented/borrowed types
+  useEffect(() => {
+    if (isExternalMode) return;
+
+    if (profileId && bookingsHydrated && !hasFetchedBookings) {
+      if (type === "rented" || type === "borrowed") {
+        setHasFetchedBookings(true);
+        fetchBookings(profileId);
+      }
+    }
+  }, [
+    type,
+    profileId,
+    bookingsHydrated,
+    hasFetchedBookings,
+    fetchBookings,
     isExternalMode,
   ]);
 
@@ -99,13 +108,12 @@ const ToolContent = ({
       const deleteToolResult = await deleteTool(tool, profileId!);
       if (deleteToolResult.success) {
         // Refresh tools list
-
         if (type === "owned") {
           setMyTools(myTools.filter((t) => t.id !== tool.id));
-        } else if (type === "rented") {
-          setRentedTools(rentedTools.filter((t) => t.id !== tool.id));
-        } else if (type === "borrowed") {
-          setBorrowedTools(borrowedTools.filter((t) => t.id !== tool.id));
+        }
+        // For rented/borrowed, refetch bookings to update derived tools
+        if ((type === "rented" || type === "borrowed") && profileId) {
+          fetchBookings(profileId);
         }
         toast.success(deleteToolResult.data);
       } else {
@@ -123,21 +131,36 @@ const ToolContent = ({
   };
 
   // Handle approve booking
-  const handleApproveBooking = async (bookingId: string) => {
+  const handleUpdateBookingStatus = async (
+    bookingId: string,
+    status: BookStatus
+  ) => {
+    alert(`Change booking ${bookingId} to status: ${status}`);
     try {
-      const result = await approveBooking(bookingId);
+      // Update store immediately for instant UI feedback
+      updateBookingStatusInStore(bookingId, status);
+      // Then update backend
+      const result = await updateBookingStatus(bookingId, status);
       if (result.success) {
-        toast.success("Booking approved successfully!");
-        // Refresh the rented tools list
+        toast.success("Booking status updated successfully!");
+        // Refresh bookings to ensure sync with backend
         if (profileId) {
-          await fetchRentedTools(profileId);
+          await fetchBookings(profileId);
         }
       } else {
-        toast.error(result.data || "Failed to approve booking");
+        toast.error(result.data || "Failed to update booking");
+        // Refresh to revert to actual state on failure
+        if (profileId) {
+          await fetchBookings(profileId);
+        }
       }
     } catch (error) {
-      console.error("Error approving booking:", error);
-      toast.error("Failed to approve booking");
+      console.error("Error updating booking:", error);
+      toast.error("Failed to update booking");
+      // Refresh to revert to actual state on error
+      if (profileId) {
+        await fetchBookings(profileId);
+      }
     }
   };
 
@@ -154,9 +177,13 @@ const ToolContent = ({
   const isLoading =
     externalLoading !== undefined
       ? externalLoading
-      : !hasHydrated ||
-        storeLoading ||
-        (profile?.id && tools.length === 0 && !hasFetched);
+      : type === "owned"
+      ? !toolsHydrated ||
+        toolsLoading ||
+        (profile?.id && tools.length === 0 && !hasFetchedTools)
+      : !bookingsHydrated ||
+        bookingsLoading ||
+        (profile?.id && tools.length === 0 && !hasFetchedBookings);
 
   // Show skeleton while loading
   if (isLoading) {
@@ -205,7 +232,7 @@ const ToolContent = ({
   return (
     <div className={type !== "search" && type !== "all" ? "mt-8" : ""}>
       <div className={gridClass}>
-        {tools.map((tool) => (
+        {tools.map((tool: Tool) => (
           <ToolCard
             key={tool.id}
             tool={tool}
@@ -216,8 +243,13 @@ const ToolContent = ({
                 ? handleRent
                 : undefined
             }
+            onCancelBooking={
+              type === "rented" || type === "borrowed"
+                ? handleUpdateBookingStatus
+                : undefined
+            }
             onApproveBooking={
-              type === "rented" ? handleApproveBooking : undefined
+              type === "rented" ? handleUpdateBookingStatus : undefined
             }
             showOwner={
               type === "borrowed" || type === "search" || type === "all"
