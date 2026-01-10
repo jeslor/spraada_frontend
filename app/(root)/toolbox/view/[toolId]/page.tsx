@@ -14,7 +14,7 @@ import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
 import ViewToolError from "@/components/Tools/ViewToolError";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
-import BookingModal from "@/components/Tools/BookingModal";
+import BookingModal from "@/components/Booking/BookingModal";
 import toast from "react-hot-toast";
 
 // Format cents to currency

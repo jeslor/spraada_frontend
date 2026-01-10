@@ -238,10 +238,14 @@ const RentalCard = ({
   onCancelBooking?: (bookingId: string, status: BookStatus) => void;
 }) => {
   const Router = useRouter();
+
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const isRental = variant === "rental";
   const isBorrowed = variant === "borrowed";
   const photo = tool.toolPhotos?.[0];
+
   // Use bookingDetails for derived tools from bookings
   const booking = (tool as any).bookingDetails;
   const otherPerson = isRental ? booking?.borrower : booking?.owner;
@@ -294,6 +298,23 @@ const RentalCard = ({
       console.error("Error cancelling booking:", error);
       // Revert on error
       updateBookingStatusInStore(booking.id, booking.status);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowDeleteConfirm(false);
+    // Use 'cancelled' as the status for deletion (no 'deleted' in BookStatus)
+    if (booking.status !== "PENDING") return;
+    try {
+    } catch (error) {
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -404,72 +425,95 @@ const RentalCard = ({
               )}
             </div>
             <div className="flex gap-x-2 gap-y-3">
-              <>
-                {/* Approve Button - Only for rentals with pending status */}
-                {booking?.status === "PENDING" &&
-                  onApproveBooking &&
-                  isRental && (
-                    <SpraadaButton
-                      onClick={handleApprove}
-                      disabled={isUpdatingStatus}
-                    >
-                      {isUpdatingStatus ? (
-                        <>
-                          <Icon
-                            icon="solar:spinner-linear"
-                            className="animate-spin"
-                            width={18}
-                          />
-                          Approving...
-                        </>
-                      ) : (
-                        <>
-                          <Icon
-                            icon="solar:check-circle-bold-duotone"
-                            width={18}
-                          />
-                          Approve Booking
-                        </>
-                      )}
-                    </SpraadaButton>
-                  )}
-
-                {/* Cancel Button */}
-                {((isBorrowed && isBorrowed && booking?.status === "PENDING") ||
-                  booking?.status === "CONFIRMED") &&
-                  onCancelBooking && (
-                    <SpraadaButton
-                      onClick={handleCancel}
-                      disabled={isUpdatingStatus}
-                      className="spraada-btn-secondary"
-                    >
-                      {isUpdatingStatus ? (
-                        <>
-                          <Icon
-                            icon="solar:spinner-linear"
-                            className="animate-spin"
-                            width={18}
-                          />
-                          Approving...
-                        </>
-                      ) : (
-                        <>
-                          <Icon
-                            icon="solar:check-circle-bold-duotone"
-                            width={18}
-                          />
-                          Cancel Booking
-                        </>
-                      )}
-                    </SpraadaButton>
-                  )}
-              </>
+              {/* Approve Button - Only for rentals with pending status */}
+              {booking?.status === "PENDING" &&
+                onApproveBooking &&
+                isRental && (
+                  <SpraadaButton
+                    onClick={handleApprove}
+                    disabled={isUpdatingStatus}
+                  >
+                    {isUpdatingStatus ? (
+                      <>
+                        <Icon
+                          icon="solar:spinner-linear"
+                          className="animate-spin"
+                          width={18}
+                        />
+                        Approving...
+                      </>
+                    ) : (
+                      <>
+                        <Icon
+                          icon="solar:check-circle-bold-duotone"
+                          width={18}
+                        />
+                        Approve Booking
+                      </>
+                    )}
+                  </SpraadaButton>
+                )}
             </div>
           </div>
 
-          {/* Bottom Section */}
+          {/* Bottom Section: Cancel and Delete Booking Actions */}
           <div className="flex flex-col gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Cancel and Delete Booking Buttons */}
+            <div className="flex gap-3">
+              {/* Cancel Booking: visible for confirmed or pending bookings */}
+              {((isBorrowed && booking?.status === "PENDING") ||
+                booking?.status === "CONFIRMED") &&
+                onCancelBooking && (
+                  <SpraadaButton
+                    onClick={handleCancel}
+                    disabled={isUpdatingStatus}
+                    className="spraada-btn-secondary"
+                  >
+                    {isUpdatingStatus ? (
+                      <>
+                        <Icon
+                          icon="solar:spinner-linear"
+                          className="animate-spin"
+                          width={18}
+                        />
+                        Cancelling...
+                      </>
+                    ) : (
+                      <>
+                        <Icon
+                          icon="solar:close-circle-bold-duotone"
+                          width={18}
+                        />
+                        Cancel Booking
+                      </>
+                    )}
+                  </SpraadaButton>
+                )}
+              {/* Delete Booking: only for pending bookings */}
+              {booking?.status === "PENDING" && (
+                <SpraadaButton
+                  onClick={handleDelete}
+                  className="spraada-btn-danger"
+                  type="button"
+                >
+                  <Icon icon="solar:trash-bin-2-linear" width={18} /> Delete
+                  Booking
+                </SpraadaButton>
+              )}
+            </div>
+
             {/* Duration Stats */}
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+              <DeleteConfirmModal
+                isOpen={showDeleteConfirm}
+                itemName={tool.name}
+                itemType="Booking"
+                isDeleting={isUpdatingStatus}
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+              />
+            )}
             {booking && (
               <div className="flex gap-3">
                 {/* Days Borrowed */}
@@ -571,10 +615,10 @@ const RentalCard = ({
 
                   {/* Return Date */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/50">
                       <Icon
                         icon="solar:calendar-bold-duotone"
-                        className="text-teal-600 dark:text-teal-400"
+                        className="text-primary-600 dark:text-primary-400"
                         width={16}
                       />
                     </div>
