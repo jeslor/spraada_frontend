@@ -234,7 +234,7 @@ const ToolContent = ({
       <div className={gridClass}>
         {tools.map((tool: Tool) => (
           <ToolCard
-            key={tool.id}
+            key={tool.specialId || tool.id}
             tool={tool}
             variant={getCardVariant()}
             onDelete={type === "owned" ? handleDelete : undefined}

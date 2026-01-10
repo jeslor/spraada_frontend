@@ -571,10 +571,10 @@ const RentalCard = ({
 
                   {/* Return Date */}
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/50">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/50">
                       <Icon
                         icon="solar:calendar-bold-duotone"
-                        className="text-teal-600 dark:text-teal-400"
+                        className="text-primary-600 dark:text-primary-400"
                         width={16}
                       />
                     </div>
