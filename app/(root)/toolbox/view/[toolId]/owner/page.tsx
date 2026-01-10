@@ -262,7 +262,7 @@ export default function ToolOwnerPage() {
             {/* Tool Listed By This Owner */}
             <div className="mt-8 p-4 bg-linear-to-br from-primary-50 to-white rounded-xl border border-primary-100">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                Tool Listed
+                {bookingId ? "Tool Borrowed" : "Tool Listed"}
               </p>
               <Link
                 href={`/toolbox/view/${toolId}`}
