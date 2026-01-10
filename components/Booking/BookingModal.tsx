@@ -2,8 +2,14 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
-import { formatPrice, generateCalendarDays } from "@/lib/helpers/dateHelpers";
+import {
+  formatPrice,
+  generateCalendarDays,
+  isDateBooked,
+} from "@/lib/helpers/dateHelpers";
 import { createBooking, getBookingsByTool } from "@/lib/actions/book.actions";
 import { useProfile, useFetchBookings } from "@/store";
 import { useRouter } from "next/navigation";
@@ -37,6 +43,7 @@ export default function BookingModal({
     []
   );
   const [loadingBookedDates, setLoadingBookedDates] = useState(false);
+  const [sameDay, setSameDay] = useState(false);
 
   const profile = useProfile();
   const fetchBookings = useFetchBookings();
@@ -71,15 +78,27 @@ export default function BookingModal({
     }
   }, [isOpen, toolId]);
 
+  // Update returnDate when sameDay is checked or unchecked
+  useEffect(() => {
+    if (sameDay && pickUpDate) {
+      setReturnDate(pickUpDate);
+    } else if (!sameDay) {
+      setReturnDate(null);
+    }
+  }, [sameDay, pickUpDate]);
+
   // Calculate number of days
   const numberOfDays = useMemo(() => {
-    if (!pickUpDate || !returnDate) return 0;
-    const diff = returnDate.getTime() - pickUpDate.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }, [pickUpDate, returnDate]);
+    if (!pickUpDate || (!returnDate && !sameDay)) return 0;
+    if (sameDay) return 1;
+    // Always count at least 1 day if pickUpDate and returnDate are the same
+    const diff = returnDate!.getTime() - pickUpDate.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return days <= 0 ? 1 : days;
+  }, [pickUpDate, returnDate, sameDay]);
 
   // Calculate total price
-  const rentalTotal = numberOfDays * dailyPriceCents;
+  const rentalTotal = (numberOfDays || 0) * dailyPriceCents;
   const serviceFee = Math.round(rentalTotal * 0.1); // 10% service fee
   const totalPrice = rentalTotal + serviceFee + depositCents;
 
@@ -87,23 +106,8 @@ export default function BookingModal({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Check if a date is already booked
-  const isDateBooked = (date: Date) => {
-    return bookedDates.some((range) => {
-      const checkDate = new Date(date);
-      const rangeStart = new Date(range.start);
-      const rangeEnd = new Date(range.end);
-
-      checkDate.setHours(0, 0, 0, 0);
-      rangeStart.setHours(0, 0, 0, 0);
-      rangeEnd.setHours(0, 0, 0, 0);
-
-      return checkDate >= rangeStart && checkDate <= rangeEnd;
-    });
-  };
-
   const handleDateClick = (date: Date) => {
-    if (date < today || isDateBooked(date)) return; // Can't select past dates or booked dates
+    if (date < today || isDateBooked(date, bookedDates)) return; // Can't select past dates or booked dates
 
     if (!pickUpDate || (pickUpDate && returnDate)) {
       // Start new selection
@@ -164,7 +168,8 @@ export default function BookingModal({
   };
 
   const handleBook = async () => {
-    if (!pickUpDate || !returnDate) return;
+    if (!pickUpDate || (!returnDate && !sameDay)) return;
+    const finalReturnDate = sameDay ? pickUpDate : returnDate;
 
     try {
       setBookingLoading(true);
@@ -173,7 +178,7 @@ export default function BookingModal({
         borrowerId: Number(profile?.id!),
         toolOwnerId: Number(toolOwnerId),
         pickUpDate,
-        returnDate,
+        returnDate: finalReturnDate!,
         totalPrice,
       });
 
@@ -216,7 +221,7 @@ export default function BookingModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <h2 className=" text-sm md:text-xl font-bold text-gray-900 dark:text-gray-100">
               Book {toolName}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
@@ -241,35 +246,62 @@ export default function BookingModal({
             {/* Calendar Section */}
             <div className="lg:col-span-2">
               <div className="space-y-6">
+                {/* Same Day Checkbox */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Checkbox
+                    checked={sameDay}
+                    className="
+                          data-[state=checked]:bg-primary-600
+                          data-[state=checked]:border-primary-400
+                          data-[state=checked]:text-primary-foreground
+                        "
+                    onCheckedChange={() => setSameDay(!sameDay)}
+                    id="same-day-checkbox"
+                  />
+                  <Label htmlFor="same-day-checkbox" className="text-sm">
+                    Same Day Booking
+                  </Label>
+                </div>
+
                 {/* Date Selection Display */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:border-primary-500 dark:hover:border-primary-400 transition-colors">
-                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Check-in
-                    </label>
-                    <p className="text-base font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {pickUpDate
-                        ? pickUpDate.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "Add date"}
-                    </p>
-                  </div>
-                  <div className="p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:border-primary-500 dark:hover:border-primary-400 transition-colors">
-                    <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Check-out
-                    </label>
-                    <p className="text-base font-medium text-gray-900 dark:text-gray-100 mt-1">
-                      {returnDate
-                        ? returnDate.toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
-                        : "Add date"}
-                    </p>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:border-primary-500 dark:hover:border-primary-400 transition-colors">
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Check-in
+                      </label>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100 mt-1">
+                        {pickUpDate
+                          ? pickUpDate.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "Add date"}
+                      </p>
+                    </div>
+                    <div className="p-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:border-primary-500 dark:hover:border-primary-400 transition-colors">
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                        Check-out
+                      </label>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100 mt-1">
+                        {sameDay
+                          ? pickUpDate
+                            ? pickUpDate.toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : "Add date"
+                          : returnDate
+                          ? returnDate.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })
+                          : "Add date"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -329,7 +361,7 @@ export default function BookingModal({
                       const isCurrentMonth =
                         date.getMonth() === currentMonth.getMonth();
                       const isPast = date < today;
-                      const isBooked = isDateBooked(date);
+                      const isBooked = isDateBooked(date, bookedDates);
                       const isSelected = isDateSelected(date);
                       const isInRange = isDateInRange(date);
                       const isDisabled = isPast || isBooked;
@@ -437,7 +469,9 @@ export default function BookingModal({
                     <div className="space-y-3 py-4 border-b border-gray-200 dark:border-gray-700">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600 dark:text-gray-400">
-                          {formatPrice(dailyPriceCents)} × {numberOfDays} days
+                          {formatPrice(dailyPriceCents)} ×{" "}
+                          {sameDay ? 1 : numberOfDays} day
+                          {sameDay || numberOfDays === 1 ? "" : "s"}
                         </span>
                         <span className="font-medium text-gray-900 dark:text-gray-100">
                           {formatPrice(rentalTotal)}
@@ -497,7 +531,8 @@ export default function BookingModal({
             {numberOfDays > 0 && (
               <p className="text-[16px] font-bold text-gray-600 dark:text-gray-400">
                 <span className=" text-gray-900 dark:text-gray-100">
-                  {numberOfDays} {numberOfDays === 1 ? "day" : "days"}
+                  {sameDay ? 1 : numberOfDays} {"day"}
+                  {sameDay || numberOfDays === 1 ? "" : "s"}
                 </span>{" "}
                 • {formatPrice(totalPrice)} total
               </p>

@@ -79,3 +79,21 @@ export const formatDateWithDay = (dateString: string): string => {
     year: "numeric",
   }).format(date);
 };
+
+// Check if a date is already booked
+export const isDateBooked = (
+  date: Date,
+  bookedDates: { start: Date; end: Date }[]
+) => {
+  return bookedDates.some((range) => {
+    const checkDate = new Date(date);
+    const rangeStart = new Date(range.start);
+    const rangeEnd = new Date(range.end);
+
+    checkDate.setHours(0, 0, 0, 0);
+    rangeStart.setHours(0, 0, 0, 0);
+    rangeEnd.setHours(0, 0, 0, 0);
+
+    return checkDate >= rangeStart && checkDate <= rangeEnd;
+  });
+};
