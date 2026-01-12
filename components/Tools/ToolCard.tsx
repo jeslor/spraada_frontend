@@ -7,6 +7,7 @@ import {
   isFavorite,
   isToolOwnedByUser,
   Tool,
+  useProfile,
   useUpdateBookingStatus,
 } from "@/store";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
@@ -242,6 +243,8 @@ const RentalCard = ({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const profile = useProfile();
+
   const isRental = variant === "rental";
   const isBorrowed = variant === "borrowed";
   const photo = tool.toolPhotos?.[0];
@@ -301,6 +304,11 @@ const RentalCard = ({
     } finally {
       setIsUpdatingStatus(false);
     }
+  };
+
+  const handleRebook = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -461,36 +469,33 @@ const RentalCard = ({
             {/* Cancel and Delete Booking Buttons */}
             <div className="flex gap-3">
               {/* Cancel Booking: visible for confirmed or pending bookings */}
-              {((isBorrowed && booking?.status === "PENDING") ||
-                booking?.status === "CONFIRMED") &&
-                onCancelBooking && (
-                  <SpraadaButton
-                    onClick={handleCancel}
-                    disabled={isUpdatingStatus}
-                    className="spraada-btn-secondary"
-                  >
-                    {isUpdatingStatus ? (
-                      <>
-                        <Icon
-                          icon="solar:spinner-linear"
-                          className="animate-spin"
-                          width={18}
-                        />
-                        Cancelling...
-                      </>
-                    ) : (
-                      <>
-                        <Icon
-                          icon="solar:close-circle-bold-duotone"
-                          width={18}
-                        />
-                        Cancel Booking
-                      </>
-                    )}
-                  </SpraadaButton>
-                )}
+              {isBorrowed && booking.status !== "CANCELLED" && (
+                <SpraadaButton
+                  onClick={
+                    booking.status === "CANCELLED" ? handleRebook : handleCancel
+                  }
+                  disabled={isUpdatingStatus}
+                  className="spraada-btn-secondary"
+                >
+                  {isUpdatingStatus ? (
+                    <>
+                      <Icon
+                        icon="solar:spinner-linear"
+                        className="animate-spin"
+                        width={18}
+                      />
+                      Cancelling...
+                    </>
+                  ) : (
+                    <>
+                      <Icon icon="solar:close-circle-bold-duotone" width={18} />
+                      Cancel Booking
+                    </>
+                  )}
+                </SpraadaButton>
+              )}
               {/* Delete Booking: only for pending bookings */}
-              {booking?.status === "PENDING" && (
+              {booking?.status === "CANCELLED" && (
                 <SpraadaButton
                   onClick={handleDelete}
                   className="spraada-btn-danger"

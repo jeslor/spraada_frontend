@@ -187,11 +187,14 @@ const ToolContent = ({
 
   // Show skeleton while loading
   if (isLoading) {
+    // Use fullWidth skeletons for rentals and borrowed
+    const isFullWidth = type === "rented" || type === "borrowed";
     return (
       <div className="mt-8">
         <ToolsSkeletonGrid
           count={variant === "compact" ? 12 : 6}
           variant={variant}
+          fullWidth={isFullWidth}
         />
       </div>
     );
