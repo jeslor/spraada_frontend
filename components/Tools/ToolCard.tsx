@@ -18,8 +18,13 @@ import {
   formatPrice,
 } from "@/lib/helpers/dateHelpers";
 import { SpraadaButton } from "../ui/SpraadaButton";
-import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
+import {
+  BookStatus,
+  updateBookingAsDeleted,
+  updateBookingStatus,
+} from "@/lib/actions/book.actions";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface ToolCardProps {
   tool: Tool;
@@ -316,7 +321,17 @@ const RentalCard = ({
     // Use 'cancelled' as the status for deletion (no 'deleted' in BookStatus)
     if (booking.status !== "PENDING") return;
     try {
+      setIsUpdatingStatus(true);
+      const result = await updateBookingAsDeleted(
+        booking.id,
+        profile?.id === tool.profile?.id ? { owner: true } : { borrower: true }
+      );
+      if (!result.success) {
+        throw new Error(result.data || "Failed to mark booking as deleted");
+      }
     } catch (error) {
+      console.error("Error marking booking as deleted:", error);
+      toast.error("Failed to delete booking");
     } finally {
       setIsUpdatingStatus(false);
     }

@@ -178,3 +178,48 @@ export const getBookingsByTool = async (toolId: string) => {
     return [];
   }
 };
+
+export const updateBookingAsDeleted = async (
+  bookingId: string,
+  deleteBy: { owner?: boolean; borrower?: boolean }
+): Promise<{
+  success: boolean;
+  data: any;
+}> => {
+  try {
+    const response = await customFetch(
+      `${
+        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
+      }/bookings/${bookingId}/delete`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          deletedByOwner: deleteBy.owner || false,
+          deletedByBorrower: deleteBy.borrower || false,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to update booking as deleted"
+      );
+    }
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: (error as Error).message,
+    };
+  }
+};
