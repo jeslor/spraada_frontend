@@ -19,7 +19,7 @@ import {
   useUpdateBookingStatus,
 } from "@/store";
 import NoTools from "./NoTools";
-import ToolCard from "./ToolCard";
+import ToolCard from "./ToolCard/ToolCard";
 import { deleteTool } from "@/lib/actions/tools.actions";
 import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
 import toast from "react-hot-toast";

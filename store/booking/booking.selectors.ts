@@ -96,6 +96,9 @@ export const useSetBookings = () =>
 export const removeBooking = () =>
   useBookingStore((state) => state.removeBooking);
 
+export const updateBookingStatusInStore = () =>
+  useBookingStore((state) => state.updateBookingStatus);
+
 export const useFetchBookings = () =>
   useBookingStore((state) => state.fetchBookings);
 
@@ -113,5 +116,4 @@ export const useBookingActions = () => ({
   borrowedToolsFromBookings: useBorrowedToolsFromBookings,
   rentedToolsFromBookings: useRentedToolsFromBookings,
   fetchBookings: useFetchBookings,
-  updateBookingStatus: useUpdateBookingStatus,
 });

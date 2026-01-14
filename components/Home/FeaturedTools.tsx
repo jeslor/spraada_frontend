@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/store";
 import { getRandomTools } from "@/lib/actions/tools.actions";
-import ToolCard from "@/components/Tools/ToolCard";
+import ToolCard from "@/components/Tools/ToolCard/ToolCard";
 import ToolsSkeletonGrid from "@/components/Tools/ToolsSkeletonGrid";
 
 interface FeaturedToolsProps {
