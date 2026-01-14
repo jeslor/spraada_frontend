@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export const HowItWorks = () => {
   return (
-    <section className="py-12">
+    <section className="py-12 w-full max-w-[1400px] mx-auto px-4 ">
       {/* Section Header */}
       <div className="text-center mb-12">
         <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-100 text-primary-700 rounded-full text-sm font-medium mb-4">
