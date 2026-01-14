@@ -81,18 +81,6 @@ export const useBorrowedToolsFromBookings = (): Tool[] => {
   return derivedTools;
 };
 
-// Get count of rented tools
-export const useRentedToolsCount = (): number => {
-  const rentedTools = useRentedToolsFromBookings();
-  return rentedTools.length;
-};
-
-// Get count of borrowed tools
-export const useBorrowedToolsCount = (): number => {
-  const borrowedTools = useBorrowedToolsFromBookings();
-  return borrowedTools.length;
-};
-
 //get booking tool borrower by booking id
 export const useBookingToolBorrowerById = (bookingId: string) => {
   const bookings = useBookings();
@@ -105,6 +93,12 @@ export const useBookingToolBorrowerById = (bookingId: string) => {
 export const useSetBookings = () =>
   useBookingStore((state) => state.setBookings);
 
+export const removeBooking = () =>
+  useBookingStore((state) => state.removeBooking);
+
+export const updateBookingStatusInStore = () =>
+  useBookingStore((state) => state.updateBookingStatus);
+
 export const useFetchBookings = () =>
   useBookingStore((state) => state.fetchBookings);
 
@@ -113,3 +107,13 @@ export const useUpdateBookingStatus = () =>
 
 export const useClearBookings = () =>
   useBookingStore((state) => state.clearBookings);
+
+//main export
+
+export const useBookingActions = () => ({
+  useBookingsHasHydrated,
+  bookingsLoading: useBookingsLoading,
+  borrowedToolsFromBookings: useBorrowedToolsFromBookings,
+  rentedToolsFromBookings: useRentedToolsFromBookings,
+  fetchBookings: useFetchBookings,
+});

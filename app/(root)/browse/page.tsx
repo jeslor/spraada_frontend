@@ -267,7 +267,7 @@ export default function BrowsePage() {
               {/* Search Button */}
               <button
                 onClick={handleSearch}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto"
+                className="flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto cursor-pointer"
               >
                 <Icon
                   icon="ic:baseline-search"
@@ -362,7 +362,7 @@ export default function BrowsePage() {
       </div>
 
       {/* Results Section */}
-      <div className="w-full max-w-[1400px] mx-auto px-4 lg:px-8 py-6">
+      <div className="w-full mx-auto px-4 lg:px-8 xl:px-10 pt-8 ">
         {/* Results Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

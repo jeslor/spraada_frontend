@@ -68,7 +68,7 @@ export const DeleteConfirmModal = ({
           Delete {itemType}
         </h3>
         <p className="text-[13px] text-gray-500 text-center mb-6">
-          Are you sure you want to delete{" "}
+          Are you sure you want to delete your booking of{" "}
           <span className="font-bold text-primary-800">"{itemName}"</span>? This
           action cannot be undone.
         </p>

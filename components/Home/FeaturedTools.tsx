@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/store";
 import { getRandomTools } from "@/lib/actions/tools.actions";
-import ToolCard from "@/components/Tools/ToolCard";
+import ToolCard from "@/components/Tools/ToolCard/ToolCard";
 import ToolsSkeletonGrid from "@/components/Tools/ToolsSkeletonGrid";
 
 interface FeaturedToolsProps {
@@ -81,7 +81,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
 
       {/* Tools Grid */}
       {!isLoading && !error && tools.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6">
           {tools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} variant="compact" />
           ))}

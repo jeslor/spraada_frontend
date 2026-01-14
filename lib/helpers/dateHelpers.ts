@@ -42,12 +42,15 @@ export const generateCalendarDays = (date: Date) => {
 };
 
 // Calculate days remaining
-export const calculateDaysRemaining = (returnDate: string): number => {
+export const calculateDaysRemaining = (
+  returnDate: string,
+  returnLess: boolean = false
+): number => {
   const today = new Date();
   const returnDay = new Date(returnDate);
   const diffTime = returnDay.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(0, diffDays);
+  return returnLess ? diffDays : Math.max(0, diffDays);
 };
 
 // Calculate days borrowed (from pickUpDate to now)
@@ -55,7 +58,7 @@ export const calculateDaysBorrowed = (pickUpDate: string): number => {
   const today = new Date();
   const pickUp = new Date(pickUpDate);
   const diffTime = today.getTime() - pickUp.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(0, diffDays);
 };
 

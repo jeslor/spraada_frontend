@@ -19,7 +19,7 @@ import {
   useUpdateBookingStatus,
 } from "@/store";
 import NoTools from "./NoTools";
-import ToolCard from "./ToolCard";
+import ToolCard from "./ToolCard/ToolCard";
 import { deleteTool } from "@/lib/actions/tools.actions";
 import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
 import toast from "react-hot-toast";
@@ -217,9 +217,9 @@ const ToolContent = ({
   const gridClass =
     gridClassName ||
     (variant === "compact"
-      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+      ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6"
       : variant === "default"
-      ? "grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-x-3 gap-y-6"
+      ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-3 gap-y-6"
       : "");
 
   // Determine card variant based on type

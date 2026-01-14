@@ -38,6 +38,7 @@ export interface BookingState {
 export interface BookingActions {
   setBookings: (bookings: Booking[]) => void;
   fetchBookings: (profileId: number) => Promise<void>;
+  removeBooking: (bookingId: string) => void;
   updateBookingStatus: (bookingId: string, status: string) => void;
   clearBookings: () => void;
   setLoading: (isLoading: boolean) => void;
