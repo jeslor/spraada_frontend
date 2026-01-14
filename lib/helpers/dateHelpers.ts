@@ -58,7 +58,7 @@ export const calculateDaysBorrowed = (pickUpDate: string): number => {
   const today = new Date();
   const pickUp = new Date(pickUpDate);
   const diffTime = today.getTime() - pickUp.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(0, diffDays);
 };
 

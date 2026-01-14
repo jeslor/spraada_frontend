@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import {
   isFavorite,
   isToolOwnedByUser,
+  removeBooking,
   Tool,
   useProfile,
   useUpdateBookingStatus,
@@ -236,7 +237,6 @@ const RentalCard = ({
   tool,
   variant,
   onApproveBooking,
-  onCancelBooking,
 }: {
   tool: Tool;
   variant: "rental" | "borrowed";
@@ -249,6 +249,7 @@ const RentalCard = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const profile = useProfile();
+  const removeBookingById = removeBooking();
 
   const isRental = variant === "rental";
   const isBorrowed = variant === "borrowed";
@@ -260,8 +261,6 @@ const RentalCard = ({
   const bookingExpired = booking
     ? calculateDaysRemaining(booking.pickUpDate, true) < 0
     : false;
-
-  console.log(booking.pickUpDate);
 
   const daysRemaining = booking
     ? calculateDaysRemaining(booking.returnDate)
@@ -325,7 +324,7 @@ const RentalCard = ({
   const confirmDelete = async () => {
     setShowDeleteConfirm(false);
     // Use 'cancelled' as the status for deletion (no 'deleted' in BookStatus)
-    if (booking.status !== "PENDING") return;
+    if (booking.status !== "CANCELLED") return;
     try {
       setIsUpdatingStatus(true);
       const result = await updateBookingAsDeleted(
@@ -335,6 +334,8 @@ const RentalCard = ({
       if (!result.success) {
         throw new Error(result.data || "Failed to mark booking as deleted");
       }
+      // Refresh bookings after deletion
+      removeBookingById(booking.id);
     } catch (error) {
       console.error("Error marking booking as deleted:", error);
       toast.error("Failed to delete booking");
@@ -544,9 +545,9 @@ const RentalCard = ({
                       Borrowed
                     </p>
                     <p className="text-sm sm:text-xs xs:text-[11px] font-bold text-gray-900 dark:text-white">
-                      {daysBorrowed === 0
+                      {daysBorrowed === 1
                         ? "Today"
-                        : daysBorrowed === 1
+                        : daysBorrowed === 2
                         ? "1 day ago"
                         : `${daysBorrowed} days ago`}
                     </p>

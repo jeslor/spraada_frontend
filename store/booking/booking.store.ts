@@ -34,6 +34,14 @@ export const useBookingStore = create<BookingStore>()(
         });
       },
 
+      removeBooking: (bookingId: string) => {
+        set((state) => {
+          state.bookings = state.bookings.filter(
+            (booking) => booking.id !== bookingId
+          );
+        });
+      },
+
       updateBookingStatus: (bookingId: string, status: string) => {
         set((state) => {
           const booking = state.bookings.find((b) => b.id === bookingId);
