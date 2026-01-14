@@ -18,8 +18,13 @@ import {
   formatPrice,
 } from "@/lib/helpers/dateHelpers";
 import { SpraadaButton } from "../ui/SpraadaButton";
-import { BookStatus, updateBookingStatus } from "@/lib/actions/book.actions";
+import {
+  BookStatus,
+  updateBookingAsDeleted,
+  updateBookingStatus,
+} from "@/lib/actions/book.actions";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface ToolCardProps {
   tool: Tool;
@@ -267,48 +272,42 @@ const RentalCard = ({
     : 0;
 
   const updateBookingStatusInStore = useUpdateBookingStatus();
+  const fetchBookings =
+    (window as any)?.__NEXT_DATA__?.props?.pageProps?.fetchBookings ||
+    (() => {});
+  // fallback: you may want to pass fetchBookings as a prop or use a context
 
-  const handleApprove = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!booking || !onApproveBooking) return;
+  const handleStatusChange = async (status: BookStatus) => {
+    if (!booking) return;
     setIsUpdatingStatus(true);
     try {
-      // Update store immediately for instant UI feedback
-      updateBookingStatusInStore(booking.id, "confirmed");
-      // Then update backend
-      await updateBookingStatus(booking.id, "confirmed");
+      updateBookingStatusInStore(booking.id, status);
+      const result = await updateBookingStatus(booking.id, status);
+      if (!result.success) {
+        throw new Error(result.data || "Failed to update booking");
+      }
+      // Always fetch latest bookings after status change
+      if (profile?.id && typeof fetchBookings === "function") {
+        await fetchBookings(profile.id);
+      }
     } catch (error) {
-      console.error("Error approving booking:", error);
-      // Revert on error by fetching fresh data
-      updateBookingStatusInStore(booking.id, booking.status);
+      console.error(`Error updating booking status to ${status}:`, error);
+      updateBookingStatusInStore(booking.id, booking.status); // revert
     } finally {
       setIsUpdatingStatus(false);
     }
   };
 
-  const handleCancel = async (e: React.MouseEvent) => {
+  const handleApprove = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!booking || !onCancelBooking) return;
-    setIsUpdatingStatus(true);
-    try {
-      // Update store immediately for instant UI feedback
-      updateBookingStatusInStore(booking.id, "cancelled");
-      // Then update backend
-      await updateBookingStatus(booking.id, "cancelled");
-    } catch (error) {
-      console.error("Error cancelling booking:", error);
-      // Revert on error
-      updateBookingStatusInStore(booking.id, booking.status);
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    handleStatusChange("confirmed");
   };
 
-  const handleRebook = async (e: React.MouseEvent) => {
+  const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    handleStatusChange("cancelled");
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -322,7 +321,17 @@ const RentalCard = ({
     // Use 'cancelled' as the status for deletion (no 'deleted' in BookStatus)
     if (booking.status !== "PENDING") return;
     try {
+      setIsUpdatingStatus(true);
+      const result = await updateBookingAsDeleted(
+        booking.id,
+        profile?.id === tool.profile?.id ? { owner: true } : { borrower: true }
+      );
+      if (!result.success) {
+        throw new Error(result.data || "Failed to mark booking as deleted");
+      }
     } catch (error) {
+      console.error("Error marking booking as deleted:", error);
+      toast.error("Failed to delete booking");
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -432,7 +441,12 @@ const RentalCard = ({
                 </div>
               )}
             </div>
-            <div className="flex gap-x-2 gap-y-3">
+          </div>
+
+          {/* Bottom Section: Cancel and Delete Booking Actions */}
+          <div className="flex flex-col gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Cancel and Delete Booking Buttons */}
+            <div className="flex gap-3">
               {/* Approve Button - Only for rentals with pending status */}
               {booking?.status === "PENDING" &&
                 onApproveBooking &&
@@ -461,19 +475,10 @@ const RentalCard = ({
                     )}
                   </SpraadaButton>
                 )}
-            </div>
-          </div>
-
-          {/* Bottom Section: Cancel and Delete Booking Actions */}
-          <div className="flex flex-col gap-4 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-            {/* Cancel and Delete Booking Buttons */}
-            <div className="flex gap-3">
               {/* Cancel Booking: visible for confirmed or pending bookings */}
-              {isBorrowed && booking.status !== "CANCELLED" && (
+              {(isBorrowed || isRental) && booking.status === "PENDING" && (
                 <SpraadaButton
-                  onClick={
-                    booking.status === "CANCELLED" ? handleRebook : handleCancel
-                  }
+                  onClick={handleCancel}
                   disabled={isUpdatingStatus}
                   className="spraada-btn-secondary"
                 >
