@@ -257,6 +257,12 @@ const RentalCard = ({
   // Use bookingDetails for derived tools from bookings
   const booking = (tool as any).bookingDetails;
   const otherPerson = isRental ? booking?.borrower : booking?.owner;
+  const bookingExpired = booking
+    ? calculateDaysRemaining(booking.pickUpDate, true) < 0
+    : false;
+
+  console.log(booking.pickUpDate);
+
   const daysRemaining = booking
     ? calculateDaysRemaining(booking.returnDate)
     : 0;
@@ -525,24 +531,24 @@ const RentalCard = ({
               />
             )}
             {booking && (
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 {/* Days Borrowed */}
-                <div className="flex w-full max-w-[300px] items-center gap-2 p-3 rounded-lg bg-primary-50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50">
+                <div className="flex w-full max-w-[300px] sm:max-w-[260px] xs:max-w-[180px] items-center gap-2 px-2 md:px-3 py-1 md:py-2 rounded-lg bg-primary-50 dark:bg-primary-950/30 border border-primary-100 dark:border-primary-900/50">
                   <Icon
                     icon="solar:calendar-bold-duotone"
                     className="text-primary-600 dark:text-primary-400"
                     width={20}
                   />
                   <div className="flex-1">
-                    <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+                    <p className="text-[10px] sm:text-[9px] xs:text-[8px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
                       Borrowed
                     </p>
-                    <p className="text-sm font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm sm:text-xs xs:text-[11px] font-bold text-gray-900 dark:text-white">
                       {daysBorrowed === 0
                         ? "Today"
                         : daysBorrowed === 1
-                        ? "1 day"
-                        : `${daysBorrowed} days`}
+                        ? "1 day ago"
+                        : `${daysBorrowed} days ago`}
                     </p>
                   </div>
                 </div>
@@ -550,7 +556,7 @@ const RentalCard = ({
                 {/* Days Remaining */}
                 {!(tool.bookingDetails?.status === "CANCELLED") && (
                   <div
-                    className={`flex items-center gap-2 p-3 rounded-lg border w-full max-w-[300px] ${
+                    className={`flex items-center  gap-2 px-2 md:px-3 py-1  md:py-2 rounded-lg border w-full max-w-[300px] sm:max-w-[260px] xs:max-w-[180px] ${
                       daysRemaining === 0
                         ? "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-900/50"
                         : daysRemaining <= 2
@@ -570,19 +576,21 @@ const RentalCard = ({
                       width={20}
                     />
                     <div className="flex-1">
-                      <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
+                      <p className="text-[10px] sm:text-[9px] xs:text-[8px] text-gray-600 dark:text-gray-400 font-medium uppercase tracking-wide">
                         Remaining
                       </p>
                       <p
-                        className={`text-sm font-bold ${
-                          daysRemaining === 0
+                        className={`text-sm sm:text-xs xs:text-[11px] font-bold ${
+                          daysRemaining === 0 || bookingExpired
                             ? "text-red-600 dark:text-red-400"
                             : daysRemaining <= 2
                             ? "text-amber-600 dark:text-amber-400"
                             : "text-emerald-600 dark:text-emerald-400"
                         }`}
                       >
-                        {daysRemaining === 0
+                        {bookingExpired
+                          ? "Booking expired"
+                          : daysRemaining === 0
                           ? "Due today!"
                           : daysRemaining === 1
                           ? "1 day"
@@ -597,7 +605,7 @@ const RentalCard = ({
             {/* Dates with Day of Week */}
             {booking && (
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 ">
                   {/* Pick-up Date */}
                   <div className="flex items-center gap-2">
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/50">
