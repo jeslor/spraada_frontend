@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
 
-export default function Chat({ id }: { id?: string }) {
-  const userId = Number(id) || 1;
+export default function Chat({ userId }: { userId?: number }) {
   const otherId = userId === 1 ? 2 : 1;
-  const socket = getSocket(userId);
+  const socket = getSocket(userId!);
   const [messages, setMessages] = useState<{ text: string; from: string }[]>(
     []
   );
@@ -27,7 +26,7 @@ export default function Chat({ id }: { id?: string }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
     socket.emit("chats", { userId: otherId, text: input });
@@ -37,7 +36,7 @@ export default function Chat({ id }: { id?: string }) {
 
   return (
     <div className="flex flex-col h-80 w-full">
-      <div className="flex-1 overflow-y-auto bg-white border rounded-t-xl p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto bg-white border rounded-t-xl p-3 space-y-2 w-full">
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -46,7 +45,7 @@ export default function Chat({ id }: { id?: string }) {
             }`}
           >
             <div
-              className={`px-3 py-1 rounded-lg max-w-xs break-words text-sm shadow-sm ${
+              className={`px-3 py-1 rounded-lg max-w-xs wrap-break-word text-sm shadow-sm ${
                 msg.from === "me"
                   ? "bg-primary-100 text-primary-900"
                   : "bg-gray-100 text-gray-900"
@@ -60,7 +59,7 @@ export default function Chat({ id }: { id?: string }) {
       </div>
       <form
         onSubmit={sendMessage}
-        className="flex gap-2 p-2 border-t bg-gray-50 rounded-b-xl"
+        className="flex gap-2 p-2 border-t bg-gray-50 rounded-b-xl w-full"
       >
         <input
           className="flex-1 px-3 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-primary-200"
