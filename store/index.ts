@@ -12,3 +12,8 @@ export * from "./tool/tool.selectors";
 export { useBookingStore } from "./booking/booking.store";
 export * from "./booking/booking.type";
 export * from "./booking/booking.selectors";
+
+// Messages store exports
+export { useMessageStore } from "./messages/messages.store";
+export * from "./messages/messages.type";
+export * from "./messages/messages.selectors";
