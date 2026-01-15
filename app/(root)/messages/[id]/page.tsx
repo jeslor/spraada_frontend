@@ -1,6 +1,14 @@
+import Chat from "@/components/Messages/Chat";
 import { Icon } from "@iconify/react";
 
-export default function MessagesPage() {
+export default async function MessagesPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = await params;
+  console.log(id);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="flex flex-col items-center justify-center min-h-[70vh] gap-6">
@@ -19,7 +27,7 @@ export default function MessagesPage() {
         </p>
         <div className="mt-8 w-full max-w-md space-y-4">
           <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-center text-gray-500">
-            No messages yet. Start a conversation by renting a tool!
+            <Chat id={id} />
           </div>
         </div>
       </div>
