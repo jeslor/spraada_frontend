@@ -2,7 +2,7 @@ export interface Message {
   id: string;
   content: string;
   senderId: number;
-  toUserId: number;
+  receiverId: number;
   mediaFiles?: { mediaUrl: string }[];
   sender: {
     id: number;
