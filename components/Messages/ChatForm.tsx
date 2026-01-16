@@ -27,11 +27,26 @@ const ChatForm = ({
 }: ChatFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // allow textarea to grow with content
+  // Only grow textarea when Shift+Enter is pressed
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+
+      // Trigger sendMessage here if you want Enter to send
+      sendMessage(e as unknown as React.FormEvent<HTMLTextAreaElement>);
+    }
+  };
+
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      // Only grow if there are multiple lines (i.e., user pressed Shift+Enter)
+      const lines = input.split("\n").length;
+      if (lines > 1) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      } else {
+        textareaRef.current.style.height = "auto";
+      }
     }
   }, [input]);
 
@@ -69,6 +84,7 @@ const ChatForm = ({
         placeholder="Message..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
         disabled={sendingImage}
       />
       <div className="flex items-center justify-center">

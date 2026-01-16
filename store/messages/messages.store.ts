@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { MessageStore, Message, ProfileSummary } from "./messages.type";
 import { fetchMessagesApi } from "@/lib/actions/message.actions";
+import { getSocket } from "@/lib/socket/socket";
 
 const initialState = {
   messages: [],
@@ -43,6 +44,7 @@ export const useMessageStore = create<MessageStore>()(
         });
         try {
           const messages = await fetchMessagesApi(profileId);
+
           set((state) => {
             state.messages = messages || [];
             state.isLoading = false;
@@ -70,27 +72,38 @@ export const useMessageStore = create<MessageStore>()(
           }
         });
       },
-      setUserProfiles: (profileId: number) => {
+      /* ------------------ RECEIVE MESSAGE ------------------ */
+      addIncomingMessage: (message: Message) => {
         set((state) => {
-          const userProfiles = state.messages.reduce(
-            (profiles: ProfileSummary[], message: Message) => {
-              const otherProfile =
-                message.sender.id === profileId
-                  ? message.receiver
-                  : message.sender;
-              if (!profiles.find((profile) => profile.id === otherProfile.id)) {
-                profiles.push({
-                  id: otherProfile.id,
-                  firstName: otherProfile.firstName,
-                  lastName: otherProfile.lastName,
-                  avatarUrl: otherProfile.avatarUrl,
-                });
-              }
-              return profiles;
-            },
-            []
-          );
-          state.profiles = userProfiles;
+          const exists = state.messages.some((m) => m.id === message.id);
+          if (!exists) {
+            state.messages.push(message);
+          }
+        });
+      },
+
+      /* ------------------ SOCKET INIT ------------------ */
+      initSocketListeners: (profileId: number) => {
+        const socket = getSocket(profileId);
+
+        socket.off("chats"); // prevent duplicate listeners
+
+        socket.on("chats", (incomingMessage: Message) => {
+          get().addIncomingMessage(incomingMessage);
+        });
+      },
+
+      /* ------------------ SEND MESSAGE ------------------ */
+      sendMessage: (msg: Message, profileId: number) => {
+        set((state) => {
+          state.messages.push(msg);
+        });
+
+        const socket = getSocket(profileId);
+        socket.emit("chats", {
+          userId: msg.receiverId,
+          content: msg.content,
+          mediaUrl: msg.mediaFiles?.[0]?.mediaUrl,
         });
       },
     })),

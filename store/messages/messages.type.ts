@@ -35,11 +35,14 @@ export interface ProfileSummary {
 
 export interface MessageActions {
   setMessages: (messages: Message[]) => void;
+  addIncomingMessage: (message: Message) => void;
+  initSocketListeners: (profileId: number) => void;
+  sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;
   updateMessages: (updatedMessage: Message) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  setUserProfiles: (userId: number) => void;
+  setProfiles: (profiles: ProfileSummary[]) => void;
 }
 
 export interface MessageStore extends MessageState, MessageActions {}

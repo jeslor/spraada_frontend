@@ -1,12 +1,36 @@
 "use client";
 import Chat from "@/components/Messages/Chat";
+import { useChatSocket } from "@/components/Messages/InitializeMessageSocket";
 import SideUsers from "@/components/Messages/SideUsers";
-import { ProfileSummary } from "@/store";
+import { ProfileSummary, useFetchMessages, useProfile } from "@/store";
 
 import { useEffect, useState } from "react";
 
 export default function MessagesPage() {
+  const [hasFetchedMessages, setHasFetchedMessages] = useState(false);
+  const [profileId, setProfileId] = useState<number | undefined>(undefined);
   const [selectedUser, setSelectedUser] = useState<ProfileSummary | null>(null);
+
+  const fetchMessages = useFetchMessages();
+  const profile = useProfile();
+
+  //initialize chat socket
+  useChatSocket(profileId!);
+
+  //set the current User profileId
+  useEffect(() => {
+    if (profile?.id) {
+      setProfileId(profile.id);
+    }
+  }, [profile?.id]);
+
+  // Fetch messages on profileId change
+  useEffect(() => {
+    if (profile?.id && !hasFetchedMessages) {
+      fetchMessages(profile.id);
+      setHasFetchedMessages(true);
+    }
+  }, [profile?.id, hasFetchedMessages, fetchMessages]);
 
   useEffect(() => {
     //check if there is a selected user id in local storage
@@ -41,7 +65,13 @@ export default function MessagesPage() {
         />
       </div>
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">
-        {selectedUser && <Chat selectedUser={selectedUser} />}
+        {
+          <Chat
+            selectedUser={selectedUser!}
+            profileId={profileId!}
+            hasFetchedMessages={hasFetchedMessages}
+          />
+        }
       </div>
     </div>
   );
