@@ -119,7 +119,7 @@ const Sidebar = ({ session }: SidebarProps) => {
               key={item.name}
               href={
                 item.name.toLowerCase() === "messages"
-                  ? `/messages/${profile?.userId}`
+                  ? `/messages/${profile?.id}`
                   : href
               }
               className={cn(

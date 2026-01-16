@@ -36,13 +36,13 @@ export const useMessageStore = create<MessageStore>()(
           state.error = error;
         });
       },
-      fetchMessages: async (userId: number) => {
+      fetchMessages: async (profileId: number) => {
         set((state) => {
           state.isLoading = true;
           state.error = null;
         });
         try {
-          const messages = await fetchMessagesApi(userId);
+          const messages = await fetchMessagesApi(profileId);
           set((state) => {
             state.messages = messages || [];
             state.isLoading = false;
@@ -57,20 +57,20 @@ export const useMessageStore = create<MessageStore>()(
           });
         }
       },
-      setUserProfiles: (userId: number) => {
+      setUserProfiles: (profileId: number) => {
         set((state) => {
           const userProfiles = state.messages.reduce(
-            (profiles: ProfileSummary[], message) => {
-              const otherUserId =
-                message.fromUserId !== userId
-                  ? message.fromUserId
-                  : message.toUserId;
-              if (!profiles.find((profile) => profile.id === otherUserId)) {
+            (profiles: ProfileSummary[], message: Message) => {
+              const otherProfile =
+                message.sender.id === profileId
+                  ? message.receiver
+                  : message.sender;
+              if (!profiles.find((profile) => profile.id === otherProfile.id)) {
                 profiles.push({
-                  id: otherUserId,
-                  firstName: `User${otherUserId}`,
-                  lastName: "",
-                  avatarUrl: "",
+                  id: otherProfile.id,
+                  firstName: otherProfile.firstName,
+                  lastName: otherProfile.lastName,
+                  avatarUrl: otherProfile.avatarUrl,
                 });
               }
               return profiles;

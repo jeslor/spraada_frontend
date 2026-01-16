@@ -1,8 +1,21 @@
 export interface Message {
   id: string;
-  text: string;
-  fromUserId: number;
+  content: string;
+  senderId: number;
   toUserId: number;
+  mediaFiles?: { mediaUrl: string }[];
+  sender: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
+  receiver: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
   createdAt: string;
 }
 

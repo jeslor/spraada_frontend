@@ -1,6 +1,7 @@
 import { useMessageStore } from "./messages.store";
 import { Message, ProfileSummary } from "./messages.type";
 
+// ==================== Basic Selectors ====================
 export const useMessages = (): Message[] =>
   useMessageStore((state) => state.messages);
 
@@ -10,7 +11,7 @@ export const useMessagesLoading = (): boolean =>
 export const useMessagesError = (): string | null =>
   useMessageStore((state) => state.error);
 
-export const useProfiles = (): ProfileSummary[] =>
+export const useUserProfiles = (): ProfileSummary[] =>
   useMessageStore((state) => state.profiles);
 
 export const useFetchMessages = () =>
