@@ -1,6 +1,6 @@
 "use client";
 import { useMessages } from "@/store";
-import React from "react";
+import React, { useEffect } from "react";
 
 interface EachSideUserProps {
   profile: {
@@ -31,10 +31,11 @@ const EachSideUser = ({
 
   const [lastMessage, setLastMessage] = React.useState<string>("");
 
-  React.useEffect(() => {
+  useEffect(() => {
     const message = getLastMessage(profile.id);
     setLastMessage(message);
   }, [getLastMessage, profile.id, messages]);
+
   return (
     <div
       onClick={() => onSelectUser(profile)}

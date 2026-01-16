@@ -20,6 +20,7 @@ export default function Chat({
   selectedUser: ProfileSummary;
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -29,13 +30,32 @@ export default function Chat({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showCrop, setShowCrop] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [input, setInput] = useState("");
 
   const fetchMessages = useFetchMessages();
   const messages = useMessages();
   const updateMessages = useUpdateMessages();
   const profile = useProfile();
 
-  const [input, setInput] = useState("");
+  //   ==========================Effects==========================
+
+  // Scroll to bottom logic
+  useEffect(() => {
+    // Only scroll if content is taller than container
+    const container = messagesContainerRef.current;
+    if (container) {
+      if (hasMounted) {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      } else {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      }
+    }
+    if (!hasMounted) {
+      setHasMounted(true);
+      return; // Don't scroll on first mount
+    }
+  }, [currentMessages]); // Only when messages change
 
   //set the current User profileId
   useEffect(() => {
@@ -61,6 +81,29 @@ export default function Chat({
     }
   }, [selectedUser?.id, hasFetchedMessages, useMessageActions, messages]);
 
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (
+        !target.closest("#emoji-picker") &&
+        !target.closest("button[title='Add emoji']")
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, [showEmojiPicker === true]);
+
+  //   ==========================Actions==========================
   // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -121,33 +164,14 @@ export default function Chat({
     setShowEmojiPicker(false);
   };
 
-  // Close emoji picker when clicking outside
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-
-      if (
-        !target.closest("#emoji-picker") &&
-        !target.closest("button[title='Add emoji']")
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-
-    document.addEventListener("click", handleClick);
-
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  }, [showEmojiPicker === true]);
-
   return (
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide">
-        <div className="flex flex-col gap-4 scrollbar-hide ">
+        <div
+          ref={messagesContainerRef}
+          className="flex flex-col gap-4 scrollbar-hide "
+        >
           {currentMessages.map((msg, idx) => (
             <MessageBubble
               key={msg.id || idx}
