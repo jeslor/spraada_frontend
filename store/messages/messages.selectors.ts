@@ -23,6 +23,9 @@ export const useSetMessages = () =>
 export const useSetUserProfiles = () =>
   useMessageStore((state) => state.setUserProfiles);
 
+export const useUpdateMessages = () =>
+  useMessageStore((state) => state.updateMessages);
+
 // ==================== Derived Selectors ====================
 export const getLastMessagePreview = (profileId: number): string => {
   const messages = useMessageStore.getState().messages;
@@ -39,6 +42,15 @@ export const getLastMessagePreview = (profileId: number): string => {
     : "";
 };
 
+export const getSelectedUserMessages = (selectedUserId: number): Message[] => {
+  const messages = useMessageStore.getState().messages;
+  return messages.filter(
+    (msg) =>
+      msg.senderId === selectedUserId || msg.receiverId === selectedUserId
+  );
+};
+
 export const useMessageActions = () => ({
   getLastMessage: getLastMessagePreview,
+  selectedUserMessages: getSelectedUserMessages,
 });

@@ -49,6 +49,7 @@ export const useProfileStore = create<ProfileStore>()(
           state.isLoading = false;
           state.isUpdating = false;
         });
+        localStorage.removeItem("spraadaSelectedChatUserId");
       },
 
       // ==================== Async Actions ====================

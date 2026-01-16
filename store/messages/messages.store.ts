@@ -57,6 +57,19 @@ export const useMessageStore = create<MessageStore>()(
           });
         }
       },
+
+      updateMessages: (updatedMessage: Message) => {
+        set((state) => {
+          const index = state.messages.findIndex(
+            (msg) => msg.id === updatedMessage.id
+          );
+          if (index !== -1) {
+            state.messages[index] = updatedMessage;
+          } else {
+            state.messages.push(updatedMessage);
+          }
+        });
+      },
       setUserProfiles: (profileId: number) => {
         set((state) => {
           const userProfiles = state.messages.reduce(
