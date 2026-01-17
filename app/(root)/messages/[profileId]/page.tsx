@@ -1,6 +1,6 @@
 "use client";
 import Chat from "@/components/Messages/Chat";
-import { useChatSocket } from "@/components/Messages/InitializeMessageSocket";
+import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
 import SideUsers from "@/components/Messages/SideUsers";
 import { ProfileSummary, useFetchMessages, useProfile } from "@/store";
 
@@ -65,13 +65,13 @@ export default function MessagesPage() {
         />
       </div>
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">
-        {
+        {profileId && (
           <Chat
             selectedUser={selectedUser!}
             profileId={profileId!}
             hasFetchedMessages={hasFetchedMessages}
           />
-        }
+        )}
       </div>
     </div>
   );
