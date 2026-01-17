@@ -43,6 +43,7 @@ export interface MessageActions {
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setProfiles: (profiles: ProfileSummary[]) => void;
+  updateProfiles: (profile: ProfileSummary) => void;
 }
 
 export interface MessageStore extends MessageState, MessageActions {}

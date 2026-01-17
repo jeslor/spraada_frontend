@@ -31,12 +31,13 @@ export const useProfiles = (): ProfileSummary[] =>
 
 export const useSetProfiles = () =>
   useMessageStore((state) => state.setProfiles);
+export const useUpdateProfiles = () =>
+  useMessageStore((state) => state.updateProfiles);
 
 // ==================== Derived Selectors ====================
 
 export const useUserProfiles = (profileId: number) => {
   const messages = useMessageStore.getState().messages;
-  console.log("messages", messages);
 
   const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
     const otherProfile =
@@ -80,6 +81,7 @@ export const getSelectedUserMessages = (selectedUserId: number): Message[] => {
   );
 };
 
+// ==================== Combined Selectors ====================
 export const useMessageActions = () => ({
   getLastMessage: getLastMessagePreview,
   selectedUserMessages: getSelectedUserMessages,

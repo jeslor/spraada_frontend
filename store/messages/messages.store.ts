@@ -27,6 +27,16 @@ export const useMessageStore = create<MessageStore>()(
           state.profiles = profiles;
         });
       },
+      updateProfiles: (profile: ProfileSummary) => {
+        set((state) => {
+          const index = state.profiles.findIndex((p) => p.id === profile.id);
+          if (index !== -1) {
+            state.profiles[index] = profile;
+          } else {
+            state.profiles.push(profile);
+          }
+        });
+      },
       setLoading: (isLoading: boolean) => {
         set((state) => {
           state.isLoading = isLoading;
