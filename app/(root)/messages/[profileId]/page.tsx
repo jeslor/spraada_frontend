@@ -95,15 +95,12 @@ export default function MessagesPage() {
     <div className="flex h-dvh min-h-0 fixed w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)] ">
       <div className="bg-primary-50 w-[80vw] max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
         <SideUsers
-          selectedUser={selectedUserToMessage}
           onSelectUser={handleSelectedUser}
           hasFetchedProfiles={hasFetchedProfiles}
         />
       </div>
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">
-        {profileId && (
-          <Chat selectedUser={selectedUserToMessage!} profileId={profileId!} />
-        )}
+        {profileId && <Chat profileId={profileId!} />}
       </div>
     </div>
   );

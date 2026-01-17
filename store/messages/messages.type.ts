@@ -25,6 +25,7 @@ export interface MessageState {
   error: string | null;
   profiles: ProfileSummary[];
   selectedUserToMessage: ProfileSummary | null;
+  selectedUserMessages: Message[];
 }
 
 export interface ProfileSummary {
@@ -38,6 +39,7 @@ export interface MessageActions {
   setMessages: (messages: Message[]) => void;
   addIncomingMessage: (message: Message) => void;
   setSelectedUserToMessage: (profile: ProfileSummary | null) => void;
+  setSelectedUserMessages: (selectedUserId: number) => void;
   initSocketListeners: (profileId: number) => void;
   sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;

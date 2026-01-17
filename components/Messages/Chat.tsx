@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
 import {
   Message,
-  useFetchMessages,
-  useMessages,
   useProfile,
+  useSelectedUserMessages,
+  useSelectedUserToMessage,
   useSendMessage,
-  useUpdateMessages,
+  useSetSelectedUserMessages,
+  useSetSelectedUserToMessage,
 } from "@/store";
 import CropImage from "@/components/Onboarding/CropImage";
 import { useMessageActions, ProfileSummary } from "@/store";
@@ -16,17 +17,10 @@ import ChatForm from "./ChatForm";
 import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
 
-export default function Chat({
-  selectedUser,
-  profileId,
-}: {
-  selectedUser: ProfileSummary;
-  profileId: number;
-}) {
+export default function Chat({ profileId }: { profileId: number }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [sendingImage, setSendingImage] = useState(false);
@@ -36,10 +30,11 @@ export default function Chat({
   const [hasMounted, setHasMounted] = useState(false);
   const [input, setInput] = useState("");
 
-  const messages = useMessages();
   const sendMessage = useSendMessage();
+  const selectedUserToMessage = useSelectedUserToMessage();
+  const selectedUserMessages = useSelectedUserMessages();
+  const setSelectedUserMessages = useSetSelectedUserMessages();
   const profile = useProfile();
-  const { selectedUserMessages } = useMessageActions();
 
   //   ==========================Effects==========================
 
@@ -58,19 +53,12 @@ export default function Chat({
       setHasMounted(true);
       return; // Don't scroll on first mount
     }
-  }, [currentMessages]); // Only when messages change
+  }, [selectedUserMessages]); // Only when messages change
 
   //set current messages when selectedUserId or messages change
   useEffect(() => {
-    if (selectedUser?.id) {
-      console.log(selectedUser);
-
-      const userMessages = selectedUserMessages(selectedUser?.id!);
-      console.log(userMessages);
-      setCurrentMessages(userMessages);
-    }
-  }, [selectedUser?.id]);
-
+    setSelectedUserMessages(selectedUserToMessage?.id!);
+  }, [selectedUserToMessage?.id]);
   // Close emoji picker when clicking outside
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -126,7 +114,7 @@ export default function Chat({
     const newMsg = {
       id: new Date().toISOString(),
       senderId: Number(profileId),
-      receiverId: Number(selectedUser.id),
+      receiverId: Number(selectedUserToMessage?.id),
       sender: {
         id: profileId!,
         firstName: profile?.firstName || "",
@@ -134,10 +122,10 @@ export default function Chat({
         avatarUrl: profile?.avatarUrl,
       },
       receiver: {
-        id: selectedUser.id,
-        firstName: selectedUser.firstName,
-        lastName: selectedUser.lastName,
-        avatarUrl: selectedUser.avatarUrl,
+        id: Number(selectedUserToMessage?.id),
+        firstName: selectedUserToMessage?.firstName!,
+        lastName: selectedUserToMessage?.lastName!,
+        avatarUrl: selectedUserToMessage?.avatarUrl,
       },
       content: input,
       mediaFiles: mediaUrl ? [{ mediaUrl }] : [],
@@ -156,14 +144,14 @@ export default function Chat({
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide">
-        {!selectedUser ? (
+        {!selectedUserToMessage ? (
           <EmptyChat />
         ) : (
           <div
             ref={messagesContainerRef}
             className="flex flex-col gap-4 scrollbar-hide "
           >
-            {currentMessages.map((msg, idx) => (
+            {selectedUserMessages.map((msg: Message, idx: number) => (
               <MessageBubble
                 key={msg.id || idx}
                 msg={msg}

@@ -6,35 +6,34 @@ import { Message, ProfileSummary } from "./messages.type";
 
 export const useInitializeChatSocket = () =>
   useMessageStore((state) => state.initSocketListeners);
-export const useMessages = (): Message[] =>
-  useMessageStore((state) => state.messages);
 
 export const useSetSelectedUserToMessage = () =>
   useMessageStore((state) => state.setSelectedUserToMessage);
 export const useSelectedUserToMessage = (): ProfileSummary | null =>
   useMessageStore((state) => state.selectedUserToMessage);
 
-export const useSendMessage = () =>
-  useMessageStore((state) => state.sendMessage);
-
-export const useMessagesLoading = (): boolean =>
-  useMessageStore((state) => state.isLoading);
-
-export const useMessagesError = (): string | null =>
-  useMessageStore((state) => state.error);
-
-export const useFetchMessages = () =>
-  useMessageStore((state) => state.fetchMessages);
+export const useSetSelectedUserMessages = () =>
+  useMessageStore((state) => state.setSelectedUserMessages);
+export const useSelectedUserMessages = (): Message[] =>
+  useMessageStore((state) => state.selectedUserMessages);
 
 export const useSetMessages = () =>
   useMessageStore((state) => state.setMessages);
-
+export const useMessages = (): Message[] =>
+  useMessageStore((state) => state.messages);
+export const useSendMessage = () =>
+  useMessageStore((state) => state.sendMessage);
+export const useMessagesLoading = (): boolean =>
+  useMessageStore((state) => state.isLoading);
+export const useMessagesError = (): string | null =>
+  useMessageStore((state) => state.error);
+export const useFetchMessages = () =>
+  useMessageStore((state) => state.fetchMessages);
 export const useUpdateMessages = () =>
   useMessageStore((state) => state.updateMessages);
 
 export const useProfiles = (): ProfileSummary[] =>
   useMessageStore((state) => state.profiles);
-
 export const useSetProfiles = () =>
   useMessageStore((state) => state.setProfiles);
 export const useUpdateProfiles = () =>
@@ -82,18 +81,8 @@ export const getLastMessagePreview = (profileId: number): string => {
         .toLocaleUpperCase()}${lastMessage.content.slice(1, 100)}`
     : "";
 };
-
-export const getSelectedUserMessages = (selectedUserId: number): Message[] => {
-  const messages = useMessageStore.getState().messages;
-  return messages.filter(
-    (msg) =>
-      msg.senderId === selectedUserId || msg.receiverId === selectedUserId
-  );
-};
-
 // ==================== Combined Selectors ====================
 export const useMessageActions = () => ({
   getLastMessage: getLastMessagePreview,
-  selectedUserMessages: getSelectedUserMessages,
   userProfiles: useUserProfiles,
 });

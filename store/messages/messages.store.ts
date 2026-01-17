@@ -11,6 +11,7 @@ const initialState = {
   error: null,
   profiles: [],
   selectedUserToMessage: null,
+  selectedUserMessages: [],
 };
 
 export const useMessageStore = create<MessageStore>()(
@@ -23,6 +24,19 @@ export const useMessageStore = create<MessageStore>()(
           state.error = null;
         });
       },
+      setSelectedUserMessages: (selectedUserId: number) => {
+        const messages = useMessageStore.getState().messages;
+
+        const filteredMessages = messages.filter(
+          (msg) =>
+            msg.senderId === selectedUserId || msg.receiverId === selectedUserId
+        );
+
+        set((state) => {
+          state.selectedUserMessages = filteredMessages;
+        });
+      },
+
       setProfiles: (profiles: ProfileSummary[]) => {
         set((state) => {
           state.profiles = profiles;

@@ -4,18 +4,15 @@ import React, { useEffect, useState } from "react";
 import {
   ProfileSummary,
   useMessageActions,
-  useMessages,
-  useProfile,
   useProfiles,
+  useSelectedUserToMessage,
 } from "@/store";
 import EachSideUser from "./EachSideUser";
 
 const SideUsers = ({
-  selectedUser,
   onSelectUser,
   hasFetchedProfiles,
 }: {
-  selectedUser: ProfileSummary | null;
   onSelectUser: (user: ProfileSummary) => void;
   hasFetchedProfiles: boolean;
 }) => {
@@ -24,6 +21,7 @@ const SideUsers = ({
   >([]);
 
   const profiles = useProfiles();
+  const selectedUserToMessage = useSelectedUserToMessage();
   const { getLastMessage } = useMessageActions();
 
   //set current user chat profiles when they are fetched
@@ -39,7 +37,7 @@ const SideUsers = ({
         <EachSideUser
           key={profile.id}
           profile={profile}
-          selectedUser={selectedUser}
+          selectedUser={selectedUserToMessage}
           onSelectUser={onSelectUser}
           getLastMessage={getLastMessage}
         />
