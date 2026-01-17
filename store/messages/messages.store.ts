@@ -10,6 +10,7 @@ const initialState = {
   isLoading: false,
   error: null,
   profiles: [],
+  selectedUserToMessage: null,
 };
 
 export const useMessageStore = create<MessageStore>()(
@@ -35,6 +36,11 @@ export const useMessageStore = create<MessageStore>()(
           } else {
             state.profiles.push(profile);
           }
+        });
+      },
+      setSelectedUserToMessage: (profile: ProfileSummary | null) => {
+        set((state) => {
+          state.selectedUserToMessage = profile;
         });
       },
       setLoading: (isLoading: boolean) => {
@@ -116,7 +122,18 @@ export const useMessageStore = create<MessageStore>()(
           mediaUrl: msg.mediaFiles?.[0]?.mediaUrl,
         });
       },
+      // ==================== Additional Actions ====================
+      clearMessages: () => {
+        localStorage.removeItem("spraadaSelectedChatUserId");
+        set((state) => {
+          state.messages = [];
+          state.profiles = [];
+          state.isLoading = false;
+          state.error = null;
+        });
+      },
     })),
+
     {
       name: "messages-storage",
       storage: createJSONStorage(() => localStorage),

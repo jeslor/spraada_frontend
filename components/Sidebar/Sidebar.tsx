@@ -14,6 +14,8 @@ import {
   useClearProfile,
   useProfileInitials,
   useClearTools,
+  useClearBookings,
+  useClearMessages,
 } from "@/store";
 
 interface SidebarProps {
@@ -47,6 +49,8 @@ const Sidebar = ({ session }: SidebarProps) => {
   const user = useUser();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
+  const clearBookings = useClearBookings();
+  const clearMessages = useClearMessages();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
 
@@ -62,6 +66,8 @@ const Sidebar = ({ session }: SidebarProps) => {
       // Clear profile and tools from Zustand store
       clearProfile();
       clearTools();
+      clearBookings();
+      clearMessages();
       window.location.href = "/signin";
     }
   };

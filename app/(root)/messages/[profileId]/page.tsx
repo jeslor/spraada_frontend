@@ -5,7 +5,11 @@ import SideUsers from "@/components/Messages/SideUsers";
 import {
   ProfileSummary,
   useFetchMessages,
+  useMessageActions,
+  useMessages,
   useProfile,
+  useSelectedUserToMessage,
+  useSetSelectedUserToMessage,
   useUpdateProfiles,
 } from "@/store";
 
@@ -17,30 +21,33 @@ export default function MessagesPage() {
   const params = useParams();
 
   const [hasFetchedMessages, setHasFetchedMessages] = useState(false);
-  const [profileId, setProfileId] = useState<number | undefined>(undefined);
-  const [selectedUser, setSelectedUser] = useState<ProfileSummary | null>(null);
+  const [hasFetchedProfiles, setHasFetchedProfiles] = useState(false);
+  const [profileId, setProfileId] = useState<number | null>(null);
 
   const fetchMessages = useFetchMessages();
+  const messages = useMessages();
   const updateProfiles = useUpdateProfiles();
+  const setSelectedUserToMessage = useSetSelectedUserToMessage();
+  const { userProfiles } = useMessageActions();
+  const selectedUserToMessage = useSelectedUserToMessage();
   const profile = useProfile();
+  useChatSocket(profile?.id!);
 
-  //initialize chat socket
-  useChatSocket(profileId!);
-
-  //set the current User profileId
-  useEffect(() => {
-    if (profile?.id) {
-      setProfileId(profile.id);
-    }
-  }, [profile?.id]);
-
-  // Fetch messages on profileId change
+  // Fetch all messages connected to the current user profile
   useEffect(() => {
     if (profile?.id && !hasFetchedMessages) {
       fetchMessages(profile.id);
       setHasFetchedMessages(true);
     }
   }, [profile?.id, hasFetchedMessages, fetchMessages]);
+
+  // generate user profiles from messages once messages are fetched
+  useEffect(() => {
+    if (hasFetchedMessages && !hasFetchedProfiles && messages.length > 0) {
+      userProfiles();
+      setHasFetchedProfiles(true);
+    }
+  }, [hasFetchedMessages, hasFetchedProfiles, messages]);
 
   useEffect(() => {
     //check if there is a selected user id in local storage
@@ -54,50 +61,48 @@ export default function MessagesPage() {
         lastName,
         avatarUrl,
       };
-      setSelectedUser(newUser);
+      setSelectedUserToMessage(newUser);
       updateProfiles(newUser);
-      localStorage.setItem("spraadaSelectedChatUserId", newUser.id.toString());
+    }
 
-      return;
-    } else {
-      const storedUserId = localStorage.getItem("spraadaSelectedChatUserId");
-      if (storedUserId) {
-        setSelectedUser({ id: Number(storedUserId) } as ProfileSummary);
-      }
+    const localProfileId = localStorage.getItem("spraadaSelectedChatUserId");
+    if (localProfileId) {
+      setProfileId(Number(localProfileId));
     }
   }, []);
 
   const handleSelectedUser = (user: ProfileSummary) => {
-    setSelectedUser(user);
+    setSelectedUserToMessage(user);
   };
 
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedUserToMessage) {
       //update the url to include the selected user id
-      window.history.replaceState(null, "", `/messages/${selectedUser.id}`);
+      window.history.replaceState(
+        null,
+        "",
+        `/messages/${selectedUserToMessage.id}`
+      );
       //store the selected user id in local storage
       localStorage.setItem(
         "spraadaSelectedChatUserId",
-        selectedUser.id.toString()
+        selectedUserToMessage.id.toString()
       );
     }
-  }, [selectedUser]);
+  }, [selectedUserToMessage]);
 
   return (
     <div className="flex h-dvh min-h-0 fixed w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)] ">
       <div className="bg-primary-50 w-[80vw] max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
         <SideUsers
-          selectedUser={selectedUser}
+          selectedUser={selectedUserToMessage}
           onSelectUser={handleSelectedUser}
+          hasFetchedProfiles={hasFetchedProfiles}
         />
       </div>
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">
         {profileId && (
-          <Chat
-            selectedUser={selectedUser!}
-            profileId={profileId!}
-            hasFetchedMessages={hasFetchedMessages}
-          />
+          <Chat selectedUser={selectedUserToMessage!} profileId={profileId!} />
         )}
       </div>
     </div>

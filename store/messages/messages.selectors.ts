@@ -1,3 +1,4 @@
+import { useProfileStore } from "../profile/profile.store";
 import { useMessageStore } from "./messages.store";
 import { Message, ProfileSummary } from "./messages.type";
 
@@ -7,6 +8,11 @@ export const useInitializeChatSocket = () =>
   useMessageStore((state) => state.initSocketListeners);
 export const useMessages = (): Message[] =>
   useMessageStore((state) => state.messages);
+
+export const useSetSelectedUserToMessage = () =>
+  useMessageStore((state) => state.setSelectedUserToMessage);
+export const useSelectedUserToMessage = (): ProfileSummary | null =>
+  useMessageStore((state) => state.selectedUserToMessage);
 
 export const useSendMessage = () =>
   useMessageStore((state) => state.sendMessage);
@@ -34,10 +40,14 @@ export const useSetProfiles = () =>
 export const useUpdateProfiles = () =>
   useMessageStore((state) => state.updateProfiles);
 
+export const useClearMessages = () =>
+  useMessageStore((state) => state.clearMessages);
+
 // ==================== Derived Selectors ====================
 
-export const useUserProfiles = (profileId: number) => {
+export const useUserProfiles = () => {
   const messages = useMessageStore.getState().messages;
+  const profileId = useProfileStore.getState().profile?.id;
 
   const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
     const otherProfile =

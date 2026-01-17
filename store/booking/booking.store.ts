@@ -26,14 +26,6 @@ export const useBookingStore = create<BookingStore>()(
         });
       },
 
-      clearBookings: () => {
-        set((state) => {
-          state.bookings = [];
-          state.error = null;
-          state.isLoading = false;
-        });
-      },
-
       removeBooking: (bookingId: string) => {
         set((state) => {
           state.bookings = state.bookings.filter(
@@ -95,6 +87,14 @@ export const useBookingStore = create<BookingStore>()(
       setHasHydrated: (hydrated: boolean) => {
         set((state) => {
           state._hasHydrated = hydrated;
+        });
+      },
+      // ==================== clear bookings ====================
+      clearBookings: () => {
+        set((state) => {
+          state.bookings = [];
+          state.isLoading = false;
+          state.error = null;
         });
       },
     })),

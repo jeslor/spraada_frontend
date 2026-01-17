@@ -18,11 +18,9 @@ import EmptyChat from "./EmptyChat";
 
 export default function Chat({
   selectedUser,
-  hasFetchedMessages,
   profileId,
 }: {
   selectedUser: ProfileSummary;
-  hasFetchedMessages: boolean;
   profileId: number;
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,8 +38,8 @@ export default function Chat({
 
   const messages = useMessages();
   const sendMessage = useSendMessage();
-  const updateMessages = useUpdateMessages();
   const profile = useProfile();
+  const { selectedUserMessages } = useMessageActions();
 
   //   ==========================Effects==========================
 
@@ -64,12 +62,14 @@ export default function Chat({
 
   //set current messages when selectedUserId or messages change
   useEffect(() => {
-    if (selectedUser?.id !== null && hasFetchedMessages) {
-      const { selectedUserMessages } = useMessageActions();
+    if (selectedUser?.id) {
+      console.log(selectedUser);
+
       const userMessages = selectedUserMessages(selectedUser?.id!);
+      console.log(userMessages);
       setCurrentMessages(userMessages);
     }
-  }, [selectedUser?.id, hasFetchedMessages, useMessageActions, messages]);
+  }, [selectedUser?.id]);
 
   // Close emoji picker when clicking outside
   useEffect(() => {
