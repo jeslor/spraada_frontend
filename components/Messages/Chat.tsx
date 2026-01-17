@@ -7,25 +7,30 @@ import {
   useFetchMessages,
   useMessages,
   useProfile,
+  useSendMessage,
   useUpdateMessages,
 } from "@/store";
 import CropImage from "@/components/Onboarding/CropImage";
 import { useMessageActions, ProfileSummary } from "@/store";
 import ChatForm from "./ChatForm";
 import MessageBubble from "./MessageBubble";
+import EmptyChat from "./EmptyChat";
 
 export default function Chat({
   selectedUser,
+  hasFetchedMessages,
+  profileId,
 }: {
   selectedUser: ProfileSummary;
+  hasFetchedMessages: boolean;
+  profileId: number;
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [currentMessages, setCurrentMessages] = useState<Message[]>([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [hasFetchedMessages, setHasFetchedMessages] = useState(false);
-  const [profileId, setProfileId] = useState<number | undefined>(undefined);
+
   const [sendingImage, setSendingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -33,8 +38,8 @@ export default function Chat({
   const [hasMounted, setHasMounted] = useState(false);
   const [input, setInput] = useState("");
 
-  const fetchMessages = useFetchMessages();
   const messages = useMessages();
+  const sendMessage = useSendMessage();
   const updateMessages = useUpdateMessages();
   const profile = useProfile();
 
@@ -56,21 +61,6 @@ export default function Chat({
       return; // Don't scroll on first mount
     }
   }, [currentMessages]); // Only when messages change
-
-  //set the current User profileId
-  useEffect(() => {
-    if (profile?.id) {
-      setProfileId(profile.id);
-    }
-  }, [profile?.id]);
-
-  // Fetch messages on profileId change
-  useEffect(() => {
-    if (profile?.id && !hasFetchedMessages) {
-      fetchMessages(profile.id);
-      setHasFetchedMessages(true);
-    }
-  }, [profile?.id, hasFetchedMessages, fetchMessages]);
 
   //set current messages when selectedUserId or messages change
   useEffect(() => {
@@ -121,7 +111,7 @@ export default function Chat({
   };
 
   // Send message (text or image)
-  const sendMessage = async (e: React.FormEvent) => {
+  const submitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() && !imageFile) return;
     let mediaUrl = null;
@@ -153,9 +143,7 @@ export default function Chat({
       mediaFiles: mediaUrl ? [{ mediaUrl }] : [],
       createdAt: new Date().toISOString(),
     };
-    updateMessages(newMsg);
-    const socket = getSocket(profileId!);
-    socket.emit("chats", { userId: selectedUser.id, content: input, mediaUrl });
+    sendMessage(newMsg, Number(profileId));
     setInput("");
   };
 
@@ -168,24 +156,28 @@ export default function Chat({
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide">
-        <div
-          ref={messagesContainerRef}
-          className="flex flex-col gap-4 scrollbar-hide "
-        >
-          {currentMessages.map((msg, idx) => (
-            <MessageBubble
-              key={msg.id || idx}
-              msg={msg}
-              profileId={profileId}
-              idx={idx}
-            />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+        {!selectedUser ? (
+          <EmptyChat />
+        ) : (
+          <div
+            ref={messagesContainerRef}
+            className="flex flex-col gap-4 scrollbar-hide "
+          >
+            {currentMessages.map((msg, idx) => (
+              <MessageBubble
+                key={msg.id || idx}
+                msg={msg}
+                profileId={profileId}
+                idx={idx}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
       </div>
       {/* Chat Form */}
       <ChatForm
-        sendMessage={sendMessage}
+        sendMessage={submitMessage}
         input={input}
         setInput={setInput}
         handleImageChange={handleImageChange}

@@ -5,8 +5,7 @@ import {
   ProfileSummary,
   useMessageActions,
   useProfile,
-  useSetUserProfiles,
-  useUserProfiles,
+  useProfiles,
 } from "@/store";
 import EachSideUser from "./EachSideUser";
 
@@ -22,22 +21,22 @@ const SideUsers = ({
   >([]);
   const [hasFetchedProfiles, setHasFetchedProfiles] = React.useState(false);
 
-  const setUserProfiles = useSetUserProfiles();
+  const { userProfiles } = useMessageActions();
+  const profiles = useProfiles();
   const profile = useProfile();
-  const userProfiles = useUserProfiles();
   const { getLastMessage } = useMessageActions();
 
   // Fetch user profiles when profileId changes
   useEffect(() => {
     if (profile?.id && !hasFetchedProfiles) {
-      setUserProfiles(profile.id);
+      userProfiles(profile.id);
       setHasFetchedProfiles(true);
     }
-  }, [profile?.id, setUserProfiles, hasFetchedProfiles]);
+  }, [profile?.id, userProfiles, hasFetchedProfiles]);
   //set current user profiles when they are fetched
   useEffect(() => {
     if (hasFetchedProfiles) {
-      setCurrentUserProfiles(userProfiles);
+      setCurrentUserProfiles(profiles);
     }
   }, [hasFetchedProfiles, userProfiles]);
 

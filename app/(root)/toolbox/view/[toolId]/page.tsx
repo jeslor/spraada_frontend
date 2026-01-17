@@ -108,6 +108,21 @@ export default function ViewToolPage() {
     }
   };
 
+  //Message tool owner
+  const handleMessageOwner = () => {
+    if (!tool?.profile) return;
+
+    const { id, firstName, lastName, avatarUrl } = tool.profile;
+
+    router.push(
+      `/messages/${id}?firstName=${encodeURIComponent(
+        firstName ?? ""
+      )}&lastName=${encodeURIComponent(
+        lastName ?? ""
+      )}&avatarUrl=${encodeURIComponent(avatarUrl ?? "")}`
+    );
+  };
+
   useEffect(() => {
     if (toolId) fetchTool();
   }, [toolId]);
@@ -495,6 +510,7 @@ export default function ViewToolPage() {
                         {tool.available ? "Book tool" : "Currently Unavailable"}
                       </SpraadaButton>
                       <SpraadaButton
+                        onClick={handleMessageOwner}
                         variant="outline"
                         className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold hover:bg-primary-100 hover:dark:bg-primary-800/30 transition-colors"
                       >
@@ -669,6 +685,7 @@ export default function ViewToolPage() {
           ) : (
             <div className="flex gap-2">
               <SpraadaButton
+                onClick={handleMessageOwner}
                 variant="outline"
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-medium"
               >

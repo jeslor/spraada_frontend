@@ -1,18 +1,69 @@
 "use client";
 import Chat from "@/components/Messages/Chat";
+import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
 import SideUsers from "@/components/Messages/SideUsers";
-import { ProfileSummary } from "@/store";
+import {
+  ProfileSummary,
+  useFetchMessages,
+  useProfile,
+  useUpdateProfiles,
+} from "@/store";
 
 import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 
 export default function MessagesPage() {
+  const searchParams = useSearchParams();
+  const params = useParams();
+
+  const [hasFetchedMessages, setHasFetchedMessages] = useState(false);
+  const [profileId, setProfileId] = useState<number | undefined>(undefined);
   const [selectedUser, setSelectedUser] = useState<ProfileSummary | null>(null);
+
+  const fetchMessages = useFetchMessages();
+  const updateProfiles = useUpdateProfiles();
+  const profile = useProfile();
+
+  //initialize chat socket
+  useChatSocket(profileId!);
+
+  //set the current User profileId
+  useEffect(() => {
+    if (profile?.id) {
+      setProfileId(profile.id);
+    }
+  }, [profile?.id]);
+
+  // Fetch messages on profileId change
+  useEffect(() => {
+    if (profile?.id && !hasFetchedMessages) {
+      fetchMessages(profile.id);
+      setHasFetchedMessages(true);
+    }
+  }, [profile?.id, hasFetchedMessages, fetchMessages]);
 
   useEffect(() => {
     //check if there is a selected user id in local storage
-    const storedUserId = localStorage.getItem("spraadaSelectedChatUserId");
-    if (storedUserId) {
-      setSelectedUser({ id: parseInt(storedUserId, 10) } as ProfileSummary);
+    if (params.profileId) {
+      const firstName = searchParams.get("firstName") || "";
+      const lastName = searchParams.get("lastName") || "";
+      const avatarUrl = searchParams.get("avatarUrl") || undefined;
+      const newUser: ProfileSummary = {
+        id: Number(params.profileId),
+        firstName,
+        lastName,
+        avatarUrl,
+      };
+      setSelectedUser(newUser);
+      updateProfiles(newUser);
+      localStorage.setItem("spraadaSelectedChatUserId", newUser.id.toString());
+
+      return;
+    } else {
+      const storedUserId = localStorage.getItem("spraadaSelectedChatUserId");
+      if (storedUserId) {
+        setSelectedUser({ id: Number(storedUserId) } as ProfileSummary);
+      }
     }
   }, []);
 
@@ -41,7 +92,13 @@ export default function MessagesPage() {
         />
       </div>
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">
-        {selectedUser && <Chat selectedUser={selectedUser} />}
+        {profileId && (
+          <Chat
+            selectedUser={selectedUser!}
+            profileId={profileId!}
+            hasFetchedMessages={hasFetchedMessages}
+          />
+        )}
       </div>
     </div>
   );

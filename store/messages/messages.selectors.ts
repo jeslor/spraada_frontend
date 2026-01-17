@@ -2,8 +2,14 @@ import { useMessageStore } from "./messages.store";
 import { Message, ProfileSummary } from "./messages.type";
 
 // ==================== Basic Selectors ====================
+
+export const useInitializeChatSocket = () =>
+  useMessageStore((state) => state.initSocketListeners);
 export const useMessages = (): Message[] =>
   useMessageStore((state) => state.messages);
+
+export const useSendMessage = () =>
+  useMessageStore((state) => state.sendMessage);
 
 export const useMessagesLoading = (): boolean =>
   useMessageStore((state) => state.isLoading);
@@ -11,22 +17,47 @@ export const useMessagesLoading = (): boolean =>
 export const useMessagesError = (): string | null =>
   useMessageStore((state) => state.error);
 
-export const useUserProfiles = (): ProfileSummary[] =>
-  useMessageStore((state) => state.profiles);
-
 export const useFetchMessages = () =>
   useMessageStore((state) => state.fetchMessages);
 
 export const useSetMessages = () =>
   useMessageStore((state) => state.setMessages);
 
-export const useSetUserProfiles = () =>
-  useMessageStore((state) => state.setUserProfiles);
-
 export const useUpdateMessages = () =>
   useMessageStore((state) => state.updateMessages);
 
+export const useProfiles = (): ProfileSummary[] =>
+  useMessageStore((state) => state.profiles);
+
+export const useSetProfiles = () =>
+  useMessageStore((state) => state.setProfiles);
+export const useUpdateProfiles = () =>
+  useMessageStore((state) => state.updateProfiles);
+
 // ==================== Derived Selectors ====================
+
+export const useUserProfiles = (profileId: number) => {
+  const messages = useMessageStore.getState().messages;
+
+  const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
+    const otherProfile =
+      message.sender.id === profileId ? message.receiver : message.sender;
+
+    if (!acc.some((p) => p.id === otherProfile.id)) {
+      acc.push({
+        id: otherProfile.id,
+        firstName: otherProfile.firstName,
+        lastName: otherProfile.lastName,
+        avatarUrl: otherProfile.avatarUrl,
+      });
+    }
+
+    return acc;
+  }, [] as ProfileSummary[]);
+
+  useMessageStore.getState().setProfiles(profiles);
+};
+
 export const getLastMessagePreview = (profileId: number): string => {
   const messages = useMessageStore.getState().messages;
   const lastMessage = messages
@@ -50,7 +81,9 @@ export const getSelectedUserMessages = (selectedUserId: number): Message[] => {
   );
 };
 
+// ==================== Combined Selectors ====================
 export const useMessageActions = () => ({
   getLastMessage: getLastMessagePreview,
   selectedUserMessages: getSelectedUserMessages,
+  userProfiles: useUserProfiles,
 });
