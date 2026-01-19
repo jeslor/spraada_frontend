@@ -108,7 +108,6 @@ export const updateUnreadMessagesCountApi = async (
         body: JSON.stringify({ profileId, counters }),
       }
     );
-    console.log(response);
 
     if (!response.ok) {
       throw new Error(

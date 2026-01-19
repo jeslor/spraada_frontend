@@ -174,10 +174,10 @@ export const useMessageStore = create<MessageStore>()(
           const activeChatUser = get().selectedUserToMessage;
 
           get().addIncomingMessage(incomingMessage);
+
           if (
             activeChatUser &&
-            (incomingMessage.senderId !== activeChatUser.id ||
-              incomingMessage.receiverId !== activeChatUser.id)
+            incomingMessage.senderId !== activeChatUser.id
           ) {
             // Update unread messages count
             const unReadMessagesCounter = get().unreadMessagesCount;

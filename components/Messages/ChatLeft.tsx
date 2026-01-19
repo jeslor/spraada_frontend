@@ -16,13 +16,14 @@ const ChatLeft = ({
 }) => {
   const profiles = useProfiles();
   const selectedUserToMessage = useSelectedUserToMessage();
-  const { counters } = useUnreadMessagesCount();
+  const unreadMessagesCounters = useUnreadMessagesCount();
 
   return (
     <div>
       {profiles.map((profile) => (
         <ChatLeftUser
-          unreadCount={counters[profile.id] || 0}
+          unreadMessagesCounters={unreadMessagesCounters}
+          unreadCount={unreadMessagesCounters.counters[profile.id] || 0}
           key={profile.id}
           profile={profile}
           selectedUser={selectedUserToMessage}

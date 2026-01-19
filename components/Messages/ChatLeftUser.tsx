@@ -1,6 +1,10 @@
 "use client";
 
-import { useMessageActions } from "@/store";
+import {
+  UnReadMessagesCounterType,
+  useMessageActions,
+  useUpdateUnreadMessagesCount,
+} from "@/store";
 
 interface EachSideUserProps {
   unreadCount: number;
@@ -19,6 +23,7 @@ interface EachSideUserProps {
     lastName: string;
     avatarUrl?: string;
   }) => void;
+  unreadMessagesCounters: UnReadMessagesCounterType;
 }
 
 const ChatLeftUser = ({
@@ -26,11 +31,31 @@ const ChatLeftUser = ({
   profile,
   selectedUser,
   onSelectUser,
+  unreadMessagesCounters,
 }: EachSideUserProps) => {
   const { getLastMessage } = useMessageActions();
+  const updateUnreadMessagesCount = useUpdateUnreadMessagesCount();
+
+  const updateUreadCountAndSetSelectedUser = () => {
+    // Reset unread count for this user
+    const updatedCounters = {
+      ...unreadMessagesCounters,
+      counters: {
+        ...unreadMessagesCounters.counters,
+        [profile.id]: 0,
+      },
+    };
+    updateUnreadMessagesCount(
+      updatedCounters.id,
+      updatedCounters.profileId,
+      updatedCounters.counters
+    );
+    onSelectUser(profile);
+  };
+
   return (
     <div
-      onClick={() => onSelectUser(profile)}
+      onClick={updateUreadCountAndSetSelectedUser}
       key={profile.id}
       className={`p-2  cursor-pointer hover:bg-primary/10  ${
         selectedUser?.id === profile.id ? "bg-primary/10" : ""
