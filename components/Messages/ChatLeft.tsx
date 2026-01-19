@@ -17,9 +17,6 @@ const ChatLeft = ({
   const profiles = useProfiles();
   const selectedUserToMessage = useSelectedUserToMessage();
   const { counters } = useUnreadMessagesCount();
-  const { getLastMessage } = useMessageActions();
-
-  console.log(counters);
 
   return (
     <div>
@@ -30,7 +27,6 @@ const ChatLeft = ({
           profile={profile}
           selectedUser={selectedUserToMessage}
           onSelectUser={onSelectUser}
-          getLastMessage={getLastMessage}
         />
       ))}
     </div>

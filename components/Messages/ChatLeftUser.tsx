@@ -1,4 +1,7 @@
 "use client";
+
+import { useMessageActions } from "@/store";
+
 interface EachSideUserProps {
   unreadCount: number;
   profile: {
@@ -16,7 +19,6 @@ interface EachSideUserProps {
     lastName: string;
     avatarUrl?: string;
   }) => void;
-  getLastMessage: (userId: number) => string;
 }
 
 const ChatLeftUser = ({
@@ -24,8 +26,8 @@ const ChatLeftUser = ({
   profile,
   selectedUser,
   onSelectUser,
-  getLastMessage,
 }: EachSideUserProps) => {
+  const { getLastMessage } = useMessageActions();
   return (
     <div
       onClick={() => onSelectUser(profile)}
@@ -42,7 +44,11 @@ const ChatLeftUser = ({
         />
         <div className="flex flex-col">
           <p className="m-0 p-0 font-semibold text-[12px]">{`${profile.firstName} ${profile.lastName}`}</p>
-          <p className="m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px]">
+          <p
+            className={`m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px] ${
+              unreadCount > 0 ? "font-bold text-gray-800" : ""
+            }`}
+          >
             {getLastMessage(profile.id)}
           </p>
         </div>
