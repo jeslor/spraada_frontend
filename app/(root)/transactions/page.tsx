@@ -17,8 +17,9 @@ export default function TransactionsPage() {
           View your payment history, earnings, and financial activity.
         </p>
         <div className="mt-8 w-full max-w-md space-y-4">
-          <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-center text-gray-500">
-            No transactions yet. Your payment history will appear here.
+          <div className="p-4 bg-primary-100 rounded-xl border border-gray-200 text-center text-primary-600 text-xs font-semibold">
+            This feature is coming soon. We are working hard to bring you a
+            comprehensive transactions dashboard.
           </div>
         </div>
       </div>

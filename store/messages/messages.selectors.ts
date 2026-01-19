@@ -60,8 +60,8 @@ export const useClearMessages = () =>
 export const useUserProfiles = () => {
   const messages = useMessageStore.getState().messages;
   const profileId = useProfileStore.getState().profile?.id;
-
   const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
+    if (!message.sender || !message.sender.id || !message.receiver) return acc;
     const otherProfile =
       message.sender.id === profileId ? message.receiver : message.sender;
 
