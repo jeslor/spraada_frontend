@@ -115,7 +115,7 @@ export default function ViewToolPage() {
     const { id, firstName, lastName, avatarUrl } = tool.profile;
 
     router.push(
-      `/messages/${id}?firstName=${encodeURIComponent(
+      `/messages/?userId=${id}&firstName=${encodeURIComponent(
         firstName ?? ""
       )}&lastName=${encodeURIComponent(
         lastName ?? ""

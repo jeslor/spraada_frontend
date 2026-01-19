@@ -1,28 +1,27 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getSocket } from "@/lib/socket/socket";
 import {
   Message,
+  ProfileSummary,
+  useMessages,
   useProfile,
   useSelectedUserMessages,
   useSelectedUserToMessage,
   useSendMessage,
   useSetSelectedUserMessages,
-  useSetSelectedUserToMessage,
 } from "@/store";
 import CropImage from "@/components/Onboarding/CropImage";
-import { useMessageActions, ProfileSummary } from "@/store";
 import ChatForm from "./ChatForm";
 import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
 
-export default function Chat({ profileId }: { profileId: number }) {
+export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-
+  useState(false);
   const [sendingImage, setSendingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -31,13 +30,17 @@ export default function Chat({ profileId }: { profileId: number }) {
   const [input, setInput] = useState("");
 
   const sendMessage = useSendMessage();
+  const Messages = useMessages();
   const selectedUserToMessage = useSelectedUserToMessage();
   const selectedUserMessages = useSelectedUserMessages();
   const setSelectedUserMessages = useSetSelectedUserMessages();
   const profile = useProfile();
 
-  //   ==========================Effects==========================
+  useEffect(() => {
+    setHasMounted(false);
+  }, []);
 
+  //   ==========================Effects==========================
   // Scroll to bottom logic
   useEffect(() => {
     // Only scroll if content is taller than container
@@ -46,19 +49,18 @@ export default function Chat({ profileId }: { profileId: number }) {
       if (hasMounted) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       } else {
-        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        messagesEndRef.current?.scrollIntoView();
       }
-    }
-    if (!hasMounted) {
-      setHasMounted(true);
-      return; // Don't scroll on first mount
     }
   }, [selectedUserMessages]); // Only when messages change
 
-  //set current messages when selectedUserId or messages change
+  // Set messages for selected user
   useEffect(() => {
-    setSelectedUserMessages(selectedUserToMessage?.id!);
-  }, [selectedUserToMessage?.id]);
+    if (selectedUserToMessage) {
+      setSelectedUserMessages(selectedUserToMessage.id);
+    }
+  }, [selectedUserToMessage, Messages]);
+
   // Close emoji picker when clicking outside
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -113,10 +115,10 @@ export default function Chat({ profileId }: { profileId: number }) {
     }
     const newMsg = {
       id: new Date().toISOString(),
-      senderId: Number(profileId),
+      senderId: Number(profile?.id),
       receiverId: Number(selectedUserToMessage?.id),
       sender: {
-        id: profileId!,
+        id: profile?.id!,
         firstName: profile?.firstName || "",
         lastName: profile?.lastName || "",
         avatarUrl: profile?.avatarUrl,
@@ -131,7 +133,8 @@ export default function Chat({ profileId }: { profileId: number }) {
       mediaFiles: mediaUrl ? [{ mediaUrl }] : [],
       createdAt: new Date().toISOString(),
     };
-    sendMessage(newMsg, Number(profileId));
+    setHasMounted(true);
+    sendMessage(newMsg, Number(profile?.id));
     setInput("");
   };
 
@@ -155,7 +158,7 @@ export default function Chat({ profileId }: { profileId: number }) {
               <MessageBubble
                 key={msg.id || idx}
                 msg={msg}
-                profileId={profileId}
+                profileId={profile?.id!}
                 idx={idx}
               />
             ))}

@@ -123,11 +123,7 @@ const Sidebar = ({ session }: SidebarProps) => {
           return !item.isProfile ? (
             <Link
               key={item.name}
-              href={
-                item.name.toLowerCase() === "messages"
-                  ? `/messages/${profile?.id}`
-                  : href
-              }
+              href={item.name.toLowerCase() === "messages" ? `/messages` : href}
               className={cn(
                 "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
                 active
