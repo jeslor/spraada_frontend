@@ -79,7 +79,7 @@ const ChatLeftUser = ({
         </div>
         <div className="ml-auto">
           {unreadCount > 0 && (
-            <div className="bg-primary-800/80 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+            <div className="bg-primary-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
               {unreadCount}
             </div>
           )}
