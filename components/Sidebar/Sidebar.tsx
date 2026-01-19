@@ -58,8 +58,6 @@ const Sidebar = ({ session }: SidebarProps) => {
   const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
   const allUnreadMessagesCount = useAllUnReadMessagesCount();
 
-  console.log("all unred messages", allUnreadMessagesCount);
-
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
 
