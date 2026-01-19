@@ -5,8 +5,9 @@ import {
   useMessageActions,
   useProfiles,
   useSelectedUserToMessage,
+  useUnreadMessagesCount,
 } from "@/store";
-import EachSideUser from "./EachSideUser";
+import ChatLeftUser from "./ChatLeftUser";
 
 const ChatLeft = ({
   onSelectUser,
@@ -15,12 +16,16 @@ const ChatLeft = ({
 }) => {
   const profiles = useProfiles();
   const selectedUserToMessage = useSelectedUserToMessage();
+  const { counters } = useUnreadMessagesCount();
   const { getLastMessage } = useMessageActions();
+
+  console.log(counters);
 
   return (
     <div>
       {profiles.map((profile) => (
-        <EachSideUser
+        <ChatLeftUser
+          unreadCount={counters[profile.id] || 0}
           key={profile.id}
           profile={profile}
           selectedUser={selectedUserToMessage}

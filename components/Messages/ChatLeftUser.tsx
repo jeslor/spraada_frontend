@@ -1,8 +1,6 @@
 "use client";
-import { useMessages } from "@/store";
-import React, { useEffect } from "react";
-
 interface EachSideUserProps {
+  unreadCount: number;
   profile: {
     id: number;
     firstName: string;
@@ -21,21 +19,13 @@ interface EachSideUserProps {
   getLastMessage: (userId: number) => string;
 }
 
-const EachSideUser = ({
+const ChatLeftUser = ({
+  unreadCount,
   profile,
   selectedUser,
   onSelectUser,
   getLastMessage,
 }: EachSideUserProps) => {
-  const messages = useMessages();
-
-  const [lastMessage, setLastMessage] = React.useState<string>("");
-
-  useEffect(() => {
-    const message = getLastMessage(profile.id);
-    setLastMessage(message);
-  }, [getLastMessage, profile.id, messages]);
-
   return (
     <div
       onClick={() => onSelectUser(profile)}
@@ -56,9 +46,16 @@ const EachSideUser = ({
             {getLastMessage(profile.id)}
           </p>
         </div>
+        <div className="ml-auto">
+          {unreadCount > 0 && (
+            <div className="bg-primary-800/80 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+              {unreadCount}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
-export default EachSideUser;
+export default ChatLeftUser;

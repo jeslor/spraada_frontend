@@ -104,6 +104,7 @@ export const useAllUnReadMessagesCount = (): number => {
     0
   );
 };
+
 // ==================== Combined Selectors ====================
 export const useMessageActions = () => ({
   getLastMessage: getLastMessagePreview,
