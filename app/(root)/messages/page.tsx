@@ -3,16 +3,15 @@
 import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
 
 import {
-  ProfileSummary,
   useFetchMessages,
   useMessageActions,
   useMessages,
   useProfile,
-  useSelectedUserToMessage,
 } from "@/store";
 
 import { useEffect, useState } from "react";
-import ChatContainer from "@/components/Messages/ChatContainer";
+import Chat from "@/components/Messages/Chat";
+import ChatLoading from "@/components/Messages/ChatLoading";
 
 export default function MessagesPage() {
   const [hasFetchedMessages, setHasFetchedMessages] = useState(false);
@@ -43,9 +42,5 @@ export default function MessagesPage() {
     }
   }, [hasFetchedMessages, hasFetchedProfiles, messages]);
 
-  return hasFetchedMessages && hasFetchedProfiles ? (
-    <ChatContainer />
-  ) : (
-    <div>Loading messages...</div>
-  );
+  return hasFetchedProfiles && hasFetchedMessages ? <Chat /> : <ChatLoading />;
 }

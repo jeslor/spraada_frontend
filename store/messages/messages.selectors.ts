@@ -1,12 +1,15 @@
 import { useProfileStore } from "../profile/profile.store";
 import { useMessageStore } from "./messages.store";
-import { Message, ProfileSummary } from "./messages.type";
+import {
+  Message,
+  ProfileSummary,
+  UnReadMessagesCounterType,
+} from "./messages.type";
 
 // ==================== Basic Selectors ====================
 
 export const useInitializeChatSocket = () =>
   useMessageStore((state) => state.initSocketListeners);
-
 export const useSetSelectedUserToMessage = () =>
   useMessageStore((state) => state.setSelectedUserToMessage);
 export const useSelectedUserToMessage = (): ProfileSummary | null =>
@@ -21,6 +24,16 @@ export const useSetMessages = () =>
   useMessageStore((state) => state.setMessages);
 export const useMessages = (): Message[] =>
   useMessageStore((state) => state.messages);
+
+export const useUnreadMessagesCount = (): UnReadMessagesCounterType =>
+  useMessageStore((state) => state.unreadMessagesCount);
+export const useSetUnreadMessagesCount = () =>
+  useMessageStore((state) => state.setUnreadMessagesCount);
+export const useFetchUnreadMessagesCount = () =>
+  useMessageStore((state) => state.fetchUnReadMessagesCount);
+export const useUpdateUnreadMessagesCount = () =>
+  useMessageStore((state) => state.updateUnreadMessagesCount);
+
 export const useSendMessage = () =>
   useMessageStore((state) => state.sendMessage);
 export const useMessagesLoading = (): boolean =>
@@ -80,6 +93,16 @@ export const getLastMessagePreview = (profileId: number): string => {
         .slice(0, 1)
         .toLocaleUpperCase()}${lastMessage.content.slice(1, 100)}`
     : "";
+};
+
+export const useAllUnReadMessagesCount = (): number => {
+  const unreadMessagesCount = useMessageStore(
+    (state) => state.unreadMessagesCount.counters
+  );
+  return Object.values(unreadMessagesCount).reduce(
+    (total, count) => total + count,
+    0
+  );
 };
 // ==================== Combined Selectors ====================
 export const useMessageActions = () => ({

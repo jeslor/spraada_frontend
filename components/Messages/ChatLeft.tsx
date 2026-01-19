@@ -8,7 +8,7 @@ import {
 } from "@/store";
 import EachSideUser from "./EachSideUser";
 
-const SideUsers = ({
+const ChatLeft = ({
   onSelectUser,
 }: {
   onSelectUser: (user: ProfileSummary) => void;
@@ -32,4 +32,4 @@ const SideUsers = ({
   );
 };
 
-export default SideUsers;
+export default ChatLeft;
