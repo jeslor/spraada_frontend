@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 
 import {
   ProfileSummary,
-  useSelectedUserToMessage,
   useSetSelectedUserToMessage,
   useUpdateProfiles,
 } from "@/store";
@@ -13,7 +12,6 @@ import ChatRight from "./ChatRight";
 const Chat = () => {
   const searchParams = useSearchParams();
 
-  const selectedUserToMessage = useSelectedUserToMessage();
   const updateProfiles = useUpdateProfiles();
   const setSelectedUserToMessage = useSetSelectedUserToMessage();
 

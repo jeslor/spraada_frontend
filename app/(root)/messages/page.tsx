@@ -23,9 +23,6 @@ export default function MessagesPage() {
   const { userProfiles } = useMessageActions();
   const profile = useProfile();
 
-  /* ✅ Hooks must be called at top-level */
-  useChatSocket(profile?.id!);
-
   /* Fetch messages */
   useEffect(() => {
     if (profile?.id && !hasFetchedMessages) {

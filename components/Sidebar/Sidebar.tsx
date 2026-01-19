@@ -19,6 +19,7 @@ import {
   useFetchUnreadMessagesCount,
   useAllUnReadMessagesCount,
 } from "@/store";
+import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
 
 interface SidebarProps {
   session: Session | null;
@@ -48,6 +49,10 @@ const Sidebar = ({ session }: SidebarProps) => {
 
   // Get profile from Zustand store
   const profile = useProfile();
+
+  /* ✅ Hooks must be called at top-level */
+  useChatSocket(profile?.id!);
+
   const user = useUser();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
