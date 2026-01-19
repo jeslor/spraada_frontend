@@ -14,6 +14,10 @@ import {
   useClearProfile,
   useProfileInitials,
   useClearTools,
+  useClearBookings,
+  useClearMessages,
+  useFetchUnreadMessagesCount,
+  useAllUnReadMessagesCount,
 } from "@/store";
 
 interface SidebarProps {
@@ -47,11 +51,23 @@ const Sidebar = ({ session }: SidebarProps) => {
   const user = useUser();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
+  const clearBookings = useClearBookings();
+  const clearMessages = useClearMessages();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
+  const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
+  const allUnreadMessagesCount = useAllUnReadMessagesCount();
+
+  console.log("all unred messages", allUnreadMessagesCount);
 
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
+
+  useEffect(() => {
+    if (profile) {
+      fetchUnreadMessagesCount(profile.id);
+    }
+  }, [profile, fetchUnreadMessagesCount]);
 
   const handleSignOut = async () => {
     const response = await fetch("/api/auth/signout", { method: "GET" });
@@ -62,6 +78,8 @@ const Sidebar = ({ session }: SidebarProps) => {
       // Clear profile and tools from Zustand store
       clearProfile();
       clearTools();
+      clearBookings();
+      clearMessages();
       window.location.href = "/signin";
     }
   };
@@ -107,7 +125,7 @@ const Sidebar = ({ session }: SidebarProps) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col py-4 px-3 space-y-2 overflow-y-auto">
+      <nav className="flex flex-col justify-start py-4 px-3 space-y-2 overflow-y-auto">
         {navItems.map((item: NavItem) => {
           // Use profile userId for the profile link
           const href =
@@ -117,18 +135,22 @@ const Sidebar = ({ session }: SidebarProps) => {
           return !item.isProfile ? (
             <Link
               key={item.name}
-              href={
-                item.name.toLowerCase() === "messages"
-                  ? `/messages/${profile?.id}`
-                  : href
-              }
+              href={item.name.toLowerCase() === "messages" ? `/messages` : href}
               className={cn(
-                "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
+                "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium relative",
                 active
                   ? "bg-gray-100 text-gray-900 font-bold"
                   : "text-gray-700 hover:bg-gray-50"
               )}
             >
+              {item.name.toLowerCase() === "messages" &&
+                allUnreadMessagesCount > 0 && (
+                  <span className="absolute bg-red-700 text-white text-[10px] font-semibold  right-3 px-1 py-0.5 rounded-full min-w-[15px] h-4 flex items-center justify-center">
+                    {allUnreadMessagesCount > 99
+                      ? "99+"
+                      : allUnreadMessagesCount}
+                  </span>
+                )}
               <Icon
                 icon={active ? item.activeIcon : item.icon}
                 className="text-2xl shrink-0 text-primary-600 font-bold"

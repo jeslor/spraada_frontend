@@ -56,3 +56,70 @@ export const fetchProfilesApi = async (
     throw error;
   }
 };
+
+export const fetchUnreadMessagesCountApi = async (
+  userId: number
+): Promise<{
+  id: number;
+  profileId: number;
+  counters: { [key: number]: number };
+}> => {
+  try {
+    const response = await customFetch(
+      `${BACKEND_URL}/message/unreadCount?profileId=${userId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch unread messages count"
+      );
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateUnreadMessagesCountApi = async (
+  unReadMessageId: number,
+  profileId: number,
+  counters: { [key: number]: number }
+): Promise<{
+  id: number;
+  profileId: number;
+  counters: { [key: number]: number };
+}> => {
+  try {
+    const response = await customFetch(
+      `${BACKEND_URL}/message/unreadCount/${unReadMessageId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ profileId, counters }),
+      }
+    );
+    console.log(response);
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to update unread messages count"
+      );
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

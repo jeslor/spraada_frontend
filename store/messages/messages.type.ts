@@ -1,3 +1,5 @@
+import { number } from "zod";
+
 export interface Message {
   id: string;
   content: string;
@@ -19,11 +21,24 @@ export interface Message {
   createdAt: string;
 }
 
+export interface UnReadMessagesCounterType {
+  id: number;
+  profileId: number;
+  counters: { [key: number]: number };
+}
+
 export interface MessageState {
   messages: Message[];
   isLoading: boolean;
   error: string | null;
   profiles: ProfileSummary[];
+  selectedUserToMessage: ProfileSummary | null;
+  selectedUserMessages: Message[];
+  unreadMessagesCount: {
+    id: number;
+    profileId: number;
+    counters: { [key: number]: number };
+  };
 }
 
 export interface ProfileSummary {
@@ -35,7 +50,18 @@ export interface ProfileSummary {
 
 export interface MessageActions {
   setMessages: (messages: Message[]) => void;
+  setUnreadMessagesCount: (
+    unreadMessagesCount: UnReadMessagesCounterType
+  ) => void;
+  fetchUnReadMessagesCount: (profileId: number) => Promise<void>;
+  updateUnreadMessagesCount: (
+    messageCounterId: number,
+    profileId: number,
+    counters: { [key: number]: number }
+  ) => Promise<void>;
   addIncomingMessage: (message: Message) => void;
+  setSelectedUserToMessage: (profile: ProfileSummary | null) => void;
+  setSelectedUserMessages: (selectedUserId: number) => void;
   initSocketListeners: (profileId: number) => void;
   sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;
@@ -44,6 +70,8 @@ export interface MessageActions {
   setError: (error: string | null) => void;
   setProfiles: (profiles: ProfileSummary[]) => void;
   updateProfiles: (profile: ProfileSummary) => void;
+
+  clearMessages: () => void;
 }
 
 export interface MessageStore extends MessageState, MessageActions {}
