@@ -25,6 +25,9 @@ export const useSetMessages = () =>
 export const useMessages = (): Message[] =>
   useMessageStore((state) => state.messages);
 
+export const useDeleteMessage = () =>
+  useMessageStore((state) => state.deleteMessage);
+
 export const useUnreadMessagesCount = (): UnReadMessagesCounterType =>
   useMessageStore((state) => state.unreadMessagesCount);
 export const useSetUnreadMessagesCount = () =>

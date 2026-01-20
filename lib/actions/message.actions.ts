@@ -5,6 +5,32 @@ import customFetch from "@/lib/customFetch";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
+export const saveMessageAPI = async (
+  message: Partial<Message>
+): Promise<Message> => {
+  try {
+    const response = await customFetch(`${BACKEND_URL}/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(message),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to save message"
+      );
+    }
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const fetchMessagesApi = async (userId: number): Promise<Message[]> => {
   try {
     const response = await customFetch(

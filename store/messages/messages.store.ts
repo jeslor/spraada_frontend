@@ -5,6 +5,7 @@ import { MessageStore, Message, ProfileSummary } from "./messages.type";
 import {
   fetchMessagesApi,
   fetchUnreadMessagesCountApi,
+  saveMessageAPI,
   updateUnreadMessagesCountApi,
 } from "@/lib/actions/message.actions";
 import { getSocket } from "@/lib/socket/socket";
@@ -143,11 +144,13 @@ export const useMessageStore = create<MessageStore>()(
         }
       },
 
-      updateMessages: (updatedMessage: Message) => {
+      // ------------------ UPDATE MESSAGES ------------------ //
+      updateMessages: (updatedMessage: Message, localId?: string) => {
         set((state) => {
-          const index = state.messages.findIndex(
-            (msg) => msg.id === updatedMessage.id
+          const index = state.messages.findIndex((msg) =>
+            localId ? msg.id === localId : msg.id === updatedMessage.id
           );
+
           if (index !== -1) {
             state.messages[index] = updatedMessage;
           } else {
@@ -155,6 +158,20 @@ export const useMessageStore = create<MessageStore>()(
           }
         });
       },
+
+      /* ------------------ DELETE MESSAGE ------------------ */
+      deleteMessage: (messageId: string) => {
+        console.log(messageId);
+
+        set((state) => {
+          state.messages = state.messages.filter((msg) => msg.id !== messageId);
+        });
+        const profileId = useProfileStore.getState().profile?.id;
+
+        const socket = getSocket(profileId!);
+        socket.emit("delete_message", { messageId });
+      },
+
       /* ------------------ RECEIVE MESSAGE ------------------ */
       addIncomingMessage: (message: Message) => {
         set((state) => {
@@ -204,8 +221,9 @@ export const useMessageStore = create<MessageStore>()(
       sendMessage: async (msg: Message, profileId: number) => {
         const userId = useProfileStore.getState().profile?.userId;
 
+        // Optimistically add the message locally
         set((state) => {
-          const localMessage = { ...msg, id: `local-${msg.id}` };
+          const localMessage = { ...msg, id: msg.id };
           delete localMessage.blobFiles;
           state.messages.push(localMessage);
         });
@@ -232,9 +250,10 @@ export const useMessageStore = create<MessageStore>()(
           console.error("Image upload failed:", error);
         }
 
-        const socket = getSocket(profileId);
-        socket.emit("chats", {
-          userId: msg.receiverId,
+        //save the message to database here in real app
+        const savedMessage: Message = await saveMessageAPI({
+          senderId: msg.senderId,
+          receiverId: msg.receiverId,
           content: msg.content,
           mediaFiles:
             uploadedImages?.data.map((img: any) => ({
@@ -242,6 +261,13 @@ export const useMessageStore = create<MessageStore>()(
               mediaUrlKey: img.key,
             })) || [],
         });
+
+        // Update the message in the store with the saved message
+        get().updateMessages(savedMessage, msg.id);
+
+        //emit the message to socket server
+        const socket = getSocket(profileId);
+        socket.emit("chats", savedMessage);
       },
       // ==================== Additional Actions ====================
       clearMessages: () => {

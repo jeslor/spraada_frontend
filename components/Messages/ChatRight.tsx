@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Message,
+  useDeleteMessage,
   useMessages,
   useProfile,
   useSelectedUserMessages,
@@ -38,6 +39,7 @@ export default function ChatRight() {
   const selectedUserToMessage = useSelectedUserToMessage();
   const selectedUserMessages = useSelectedUserMessages();
   const setSelectedUserMessages = useSetSelectedUserMessages();
+  const deleteMessage = useDeleteMessage();
   const profile = useProfile();
 
   useEffect(() => {
@@ -183,6 +185,13 @@ export default function ChatRight() {
     setShowEmojiPicker(false);
   };
 
+  // Handle delete message
+  const handleDeleteMessage = (messageId: string) => {
+    console.log(messageId);
+
+    deleteMessage(messageId);
+  };
+
   return (
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
@@ -199,6 +208,7 @@ export default function ChatRight() {
           >
             {selectedUserMessages.map((msg: Message, idx: number) => (
               <MessageBubble
+                handleDeleteMessage={handleDeleteMessage}
                 setChatHeightLocked={setChatHeightLocked}
                 key={msg.id || idx}
                 msg={msg}

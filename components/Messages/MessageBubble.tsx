@@ -1,18 +1,23 @@
 import React, { useEffect, useRef, useState } from "react";
 import MessageBubbleeLightBox from "./MessageBubbleeLightBox";
 import { Icon } from "@iconify/react";
+import { Message } from "@/store";
+
+interface messageBubbleProps {
+  msg: Message;
+  setChatHeightLocked?: React.Dispatch<React.SetStateAction<boolean>>;
+  handleDeleteMessage: (messageId: string) => void;
+  profileId: number | undefined;
+  idx: number;
+}
 
 const MessageBubble = ({
   msg,
   setChatHeightLocked,
+  handleDeleteMessage,
   profileId,
   idx,
-}: {
-  setChatHeightLocked?: React.Dispatch<React.SetStateAction<boolean>>;
-  msg: any;
-  profileId: number | undefined;
-  idx: number;
-}) => {
+}: messageBubbleProps) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [messageActions, setMessageActions] = useState(false);
@@ -117,21 +122,12 @@ const MessageBubble = ({
         {messageActions && (
           <div
             ref={actionsRef}
-            className="absolute top-6 right-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-md z-30 text-[12px] flex flex-col gap-y-0.5 py-3"
+            className="absolute top-6 right-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-md z-30 text-[12px] flex flex-col gap-y-0.5 py-2"
           >
-            <button
-              className="block w-full text-left px-4 py-0.5   text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => {
-                // Implement edit message functionality here
-                handleCloseMessageActions();
-              }}
-            >
-              Edit Message
-            </button>
             <button
               className="block w-full text-left px-4 py-0.5   text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
               onClick={() => {
-                // Implement delete message functionality here
+                handleDeleteMessage(msg.id!);
                 handleCloseMessageActions();
               }}
             >
@@ -170,7 +166,7 @@ const MessageBubble = ({
                   className={`w-40 h-40 object-cover rounded-2xl 
                     border border-gray-200 dark:border-gray-700 
                     shadow-md transition-all duration-500 ease-out
-                    ${msg.mediaFiles.length > 1 ? getCardStyle(index) : ""}
+                    ${msg.mediaFiles!.length > 1 ? getCardStyle(index) : ""}
                   `}
                   style={{ boxShadow: "0 6px 16px rgba(0,0,0,0.15)" }}
                 />

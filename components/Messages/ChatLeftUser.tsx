@@ -72,7 +72,7 @@ const ChatLeftUser = ({
           <p className="m-0 p-0 font-semibold text-[12px]">{`${profile.firstName} ${profile.lastName}`}</p>
           <div
             className={`m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px] ${
-              unreadCount > 0 ? "font-bold text-gray-800" : ""
+              unreadCount > 0 ? "font-bold text-primary-600" : ""
             }`}
           >
             {getLastMessage(profile.id).mediaFiles?.length ? (

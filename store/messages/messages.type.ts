@@ -57,6 +57,7 @@ export interface MessageActions {
   setUnreadMessagesCount: (
     unreadMessagesCount: UnReadMessagesCounterType
   ) => void;
+  deleteMessage: (messageId: string) => void;
   fetchUnReadMessagesCount: (profileId: number) => Promise<void>;
   updateUnreadMessagesCount: (
     messageCounterId: number,
@@ -69,7 +70,7 @@ export interface MessageActions {
   initSocketListeners: (profileId: number) => void;
   sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;
-  updateMessages: (updatedMessage: Message) => void;
+  updateMessages: (updatedMessage: Message, localId?: string) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   setProfiles: (profiles: ProfileSummary[]) => void;
