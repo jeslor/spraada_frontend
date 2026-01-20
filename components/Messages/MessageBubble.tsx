@@ -33,7 +33,10 @@ const MessageBubble = ({
     switch (index) {
       case 0:
         return `
-
+        rotate-[-8deg] translate-x-[-6px] translate-y-[6px]
+        group-hover:rotate-[-14deg]
+        group-hover:translate-x-[-22px]
+        group-hover:translate-y-[10px]
       `;
       case 1:
         return `
@@ -80,10 +83,10 @@ const MessageBubble = ({
                   src={file.mediaUrl}
                   alt="media"
                   className={`w-40 h-40 object-cover rounded-2xl 
-      border border-gray-200 dark:border-gray-700 
-      shadow-md transition-all duration-500 ease-out
-      ${getCardStyle(index)}
-    `}
+                    border border-gray-200 dark:border-gray-700 
+                    shadow-md transition-all duration-500 ease-out
+                    ${msg.mediaFiles.length > 1 ? getCardStyle(index) : ""}
+                  `}
                   style={{ boxShadow: "0 6px 16px rgba(0,0,0,0.15)" }}
                 />
 
