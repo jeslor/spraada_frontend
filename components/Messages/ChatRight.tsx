@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Message,
-  ProfileSummary,
   useMessages,
   useProfile,
   useSelectedUserMessages,
@@ -16,6 +15,7 @@ import ChatForm from "./ChatForm";
 import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
 
+const MAX_IMAGE_PREVIEWS = 3;
 export default function ChatRight() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -23,8 +23,10 @@ export default function ChatRight() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useState(false);
   const [sendingImage, setSendingImage] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
+  const [imageLimitReached, setImageLimitReached] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [showCrop, setShowCrop] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [input, setInput] = useState("");
@@ -83,37 +85,60 @@ export default function ChatRight() {
     };
   }, [showEmojiPicker === true]);
 
+  useEffect(() => {
+    if (imagePreviews.length >= MAX_IMAGE_PREVIEWS) {
+      setImageLimitReached(true);
+    } else {
+      setImageLimitReached(false);
+    }
+  }, [imagePreviews]);
+
   //   ==========================Actions==========================
   // Handle image selection
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (imagePreviews.length >= MAX_IMAGE_PREVIEWS) {
+      setShowCrop(false);
+      return;
+    }
     const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file);
+      setPickedImageFile(file);
       setShowCrop(true);
     }
   };
 
   // Handle cropped image save
   const handleCropSave = (previewUrl: string, file: File) => {
-    setImagePreview(previewUrl);
-    setImageFile(file);
+    setImagePreviews([...imagePreviews!, previewUrl]);
+    setImageFiles([...imageFiles!, file]);
     setShowCrop(false);
+  };
+
+  //handle removing an image preview
+  const handleRemoveImagePreview = (index: number) => {
+    const newPreviews = [...imagePreviews!];
+    const newFiles = [...imageFiles];
+    newPreviews.splice(index, 1);
+    newFiles.splice(index, 1);
+    setImagePreviews(newPreviews);
+    setImageFiles(newFiles);
+    setImageLimitReached(false);
   };
 
   // Send message (text or image)
   const submitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() && !imageFile) return;
+    if (!input.trim() && !imageFiles.length) return;
     let mediaUrl = null;
-    if (imageFile) {
+    if (imageFiles.length) {
       setSendingImage(true);
       // For demo: just use preview, in real app upload to server/cloud
-      mediaUrl = imagePreview;
+      mediaUrl = imagePreviews[0];
       setSendingImage(false);
-      setImageFile(null);
-      setImagePreview(null);
+      setImageFiles([]);
+      setImagePreviews([]);
     }
-    const newMsg = {
+    const newMsg: Message = {
       id: new Date().toISOString(),
       senderId: Number(profile?.id),
       receiverId: Number(selectedUserToMessage?.id),
@@ -130,7 +155,10 @@ export default function ChatRight() {
         avatarUrl: selectedUserToMessage?.avatarUrl,
       },
       content: input,
-      mediaFiles: mediaUrl ? [{ mediaUrl }] : [],
+      mediaFiles: imagePreviews.length
+        ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
+        : [],
+      blobFiles: imageFiles.length ? imageFiles : [],
       createdAt: new Date().toISOString(),
     };
     setHasMounted(true);
@@ -168,9 +196,12 @@ export default function ChatRight() {
       </div>
       {/* Chat Form */}
       <ChatForm
+        imagePreviews={imagePreviews}
         sendMessage={submitMessage}
         input={input}
         setInput={setInput}
+        imageLimitReached={imageLimitReached}
+        handleRemoveImagePreview={handleRemoveImagePreview}
         handleImageChange={handleImageChange}
         sendingImage={sendingImage}
         showEmojiPicker={showEmojiPicker}
@@ -178,13 +209,11 @@ export default function ChatRight() {
         handleEmojiClick={handleEmojiClick}
       />
 
-      {/* Emoji Icon */}
-
       {/* Crop Image Modal */}
-      {showCrop && imageFile && (
+      {showCrop && pickedImageFile && (
         <CropImage
-          file={imageFile}
-          fileName={imageFile.name.split(".")[0]}
+          file={pickedImageFile}
+          fileName={pickedImageFile.name.split(".")[0]}
           onCancel={() => setShowCrop(false)}
           onSave={handleCropSave}
           aspectRatio={1}

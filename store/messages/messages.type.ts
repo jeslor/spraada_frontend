@@ -5,7 +5,11 @@ export interface Message {
   content: string;
   senderId: number;
   receiverId: number;
-  mediaFiles?: { mediaUrl: string }[];
+  mediaFiles?: {
+    mediaUrl: string;
+    mediaUrlKey: string;
+  }[];
+  blobFiles?: File[];
   sender: {
     id: number;
     firstName: string;

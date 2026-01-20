@@ -5,6 +5,7 @@ import {
   useMessageActions,
   useUpdateUnreadMessagesCount,
 } from "@/store";
+import { Icon } from "@iconify/react";
 
 interface EachSideUserProps {
   unreadCount: number;
@@ -69,13 +70,19 @@ const ChatLeftUser = ({
         />
         <div className="flex flex-col">
           <p className="m-0 p-0 font-semibold text-[12px]">{`${profile.firstName} ${profile.lastName}`}</p>
-          <p
+          <div
             className={`m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px] ${
               unreadCount > 0 ? "font-bold text-gray-800" : ""
             }`}
           >
-            {getLastMessage(profile.id)}
-          </p>
+            {getLastMessage(profile.id).mediaFiles?.length ? (
+              <Icon
+                icon="famicons:camera"
+                className="inline-block mr-1 text-[18px]"
+              />
+            ) : null}
+            {getLastMessage(profile.id).content}
+          </div>
         </div>
         <div className="ml-auto">
           {unreadCount > 0 && (
