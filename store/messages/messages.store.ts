@@ -9,6 +9,7 @@ import {
 } from "@/lib/actions/message.actions";
 import { getSocket } from "@/lib/socket/socket";
 import { useProfileStore } from "../profile/profile.store";
+import { uploadResources } from "@/lib/actions/resources.actions";
 
 const initialState = {
   messages: [],
@@ -200,16 +201,46 @@ export const useMessageStore = create<MessageStore>()(
       },
 
       /* ------------------ SEND MESSAGE ------------------ */
-      sendMessage: (msg: Message, profileId: number) => {
+      sendMessage: async (msg: Message, profileId: number) => {
+        const userId = useProfileStore.getState().profile?.userId;
+
         set((state) => {
-          state.messages.push(msg);
+          const localMessage = { ...msg, id: `local-${msg.id}` };
+          delete localMessage.blobFiles;
+          state.messages.push(localMessage);
         });
+
+        //Upload images to server/cloud here in real app
+        let uploadedImages;
+        const formData = new FormData();
+        if (msg.blobFiles && msg.blobFiles.length) {
+          msg.blobFiles.forEach((file) => {
+            formData.append("images", file);
+          });
+        }
+        try {
+          uploadedImages = await uploadResources(
+            userId!,
+            formData,
+            "chat_media"
+          );
+
+          if (!uploadedImages.success) {
+            throw new Error(uploadedImages.error || "Image upload failed");
+          }
+        } catch (error) {
+          console.error("Image upload failed:", error);
+        }
 
         const socket = getSocket(profileId);
         socket.emit("chats", {
           userId: msg.receiverId,
           content: msg.content,
-          mediaUrl: msg.mediaFiles?.[0]?.mediaUrl,
+          mediaFiles:
+            uploadedImages?.data.map((img: any) => ({
+              mediaUrl: img.url,
+              mediaUrlKey: img.key,
+            })) || [],
         });
       },
       // ==================== Additional Actions ====================
