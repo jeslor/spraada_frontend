@@ -120,7 +120,7 @@ const MessageBubble = ({
             className="absolute top-6 right-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-md z-30 text-[12px] flex flex-col gap-y-0.5 py-3"
           >
             <button
-              className="block w-full text-left px-4 py-[2px]   text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="block w-full text-left px-4 py-0.5   text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={() => {
                 // Implement edit message functionality here
                 handleCloseMessageActions();
@@ -129,7 +129,7 @@ const MessageBubble = ({
               Edit Message
             </button>
             <button
-              className="block w-full text-left px-4 py-[2px]   text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
+              className="block w-full text-left px-4 py-0.5   text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
               onClick={() => {
                 // Implement delete message functionality here
                 handleCloseMessageActions();
