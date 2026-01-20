@@ -177,6 +177,8 @@ export default function ChatRight() {
     setHasMounted(true);
     sendMessage(newMsg, Number(profile?.id));
     setInput("");
+    setImagePreviews([]);
+    setImageFiles([]);
   };
 
   //load the emoji into the input field
