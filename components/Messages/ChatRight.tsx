@@ -19,10 +19,12 @@ const MAX_IMAGE_PREVIEWS = 3;
 export default function ChatRight() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const mainMessageContainerRef = useRef<HTMLDivElement>(null);
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useState(false);
   const [sendingImage, setSendingImage] = useState(false);
+  const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
   const [imageLimitReached, setImageLimitReached] = useState(false);
@@ -41,6 +43,23 @@ export default function ChatRight() {
   useEffect(() => {
     setHasMounted(false);
   }, []);
+
+  //prevent scroll when action menu is open
+  useEffect(() => {
+    const container = mainMessageContainerRef.current;
+    if (container) {
+      if (chatHeightLocked) {
+        container.style.overflowY = "hidden";
+      } else {
+        container.style.overflowY = "auto";
+      }
+    }
+    return () => {
+      if (container) {
+        container.style.overflowY = "auto";
+      }
+    };
+  }, [chatHeightLocked]);
 
   //   ==========================Effects==========================
   // Scroll to bottom logic
@@ -85,6 +104,7 @@ export default function ChatRight() {
     };
   }, [showEmojiPicker === true]);
 
+  // Check image limit reached
   useEffect(() => {
     if (imagePreviews.length >= MAX_IMAGE_PREVIEWS) {
       setImageLimitReached(true);
@@ -129,15 +149,6 @@ export default function ChatRight() {
   const submitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() && !imageFiles.length) return;
-    let mediaUrl = null;
-    if (imageFiles.length) {
-      setSendingImage(true);
-      // For demo: just use preview, in real app upload to server/cloud
-      mediaUrl = imagePreviews[0];
-      setSendingImage(false);
-      setImageFiles([]);
-      setImagePreviews([]);
-    }
     const newMsg: Message = {
       id: new Date().toISOString(),
       senderId: Number(profile?.id),
@@ -166,6 +177,7 @@ export default function ChatRight() {
     setInput("");
   };
 
+  //load the emoji into the input field
   const handleEmojiClick = (emojiData: any) => {
     setInput((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
@@ -174,7 +186,10 @@ export default function ChatRight() {
   return (
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-6 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide">
+      <div
+        ref={mainMessageContainerRef}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-6 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide"
+      >
         {!selectedUserToMessage ? (
           <EmptyChat />
         ) : (
@@ -184,6 +199,7 @@ export default function ChatRight() {
           >
             {selectedUserMessages.map((msg: Message, idx: number) => (
               <MessageBubble
+                setChatHeightLocked={setChatHeightLocked}
                 key={msg.id || idx}
                 msg={msg}
                 profileId={profile?.id!}
