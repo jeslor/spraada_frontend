@@ -3,6 +3,7 @@ import { getSession, Session } from "@/lib/session/session";
 import { getUser } from "@/lib/actions/Auth.actions";
 import ProfileInitializer from "@/components/Profile/ProfileInitializer";
 import ToastProvider from "@/components/Providers/ToastProvider";
+import Notifications from "@/components/Notifications/Notifications";
 
 const RootLayout = async ({ children }: { children: React.ReactNode }) => {
   const session: Session | null = await getSession();
@@ -12,6 +13,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <Notifications />
       <ToastProvider />
       <ProfileInitializer user={user} />
       <Sidebar session={session} />

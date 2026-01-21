@@ -10,16 +10,19 @@ import { NavItem, navItems } from "@/lib/constants/navigation";
 import {
   useProfile,
   useUser,
+  useShowNotifications,
   useHasHydrated,
   useClearProfile,
   useProfileInitials,
   useClearTools,
   useClearBookings,
   useClearMessages,
+  useSetShowNotifications,
   useFetchUnreadMessagesCount,
   useAllUnReadMessagesCount,
 } from "@/store";
 import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
+import Notifications from "../Notifications/Notifications";
 
 interface SidebarProps {
   session: Session | null;
@@ -52,6 +55,8 @@ const Sidebar = ({ session }: SidebarProps) => {
 
   /* ✅ Hooks must be called at top-level */
   useChatSocket(profile?.id!);
+  const setShowNotifications = useSetShowNotifications();
+  const showNotifications = useShowNotifications();
 
   const user = useUser();
   const clearProfile = useClearProfile();
@@ -102,6 +107,15 @@ const Sidebar = ({ session }: SidebarProps) => {
     return pathname.startsWith(href);
   };
 
+  const handleRouteToPage = (href: string) => {
+    router.push(href);
+  };
+  const handleShowNotifications = () => {
+    showNotifications
+      ? setShowNotifications(false)
+      : setShowNotifications(true);
+  };
+
   return (
     <aside
       className={cn(
@@ -136,11 +150,15 @@ const Sidebar = ({ session }: SidebarProps) => {
           const active = isActive(href);
 
           return !item.isProfile ? (
-            <Link
+            <button
               key={item.name}
-              href={item.name.toLowerCase() === "messages" ? `/messages` : href}
+              onClick={
+                item.name.toLowerCase() === "notifications"
+                  ? handleShowNotifications
+                  : () => handleRouteToPage(href)
+              }
               className={cn(
-                "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium relative",
+                "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium relative cursor-pointer",
                 active
                   ? "bg-gray-100 text-gray-900 font-bold"
                   : "text-gray-700 hover:bg-gray-50"
@@ -161,14 +179,14 @@ const Sidebar = ({ session }: SidebarProps) => {
               {showLabels && (
                 <span className="text-base whitespace-nowrap">{item.name}</span>
               )}
-            </Link>
+            </button>
           ) : (
             hasHydrated && user && (
-              <Link
+              <button
                 key={item.name}
-                href={href}
+                onClick={() => handleRouteToPage(href)}
                 className={cn(
-                  "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
+                  "flex items-center justify-start gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium cursor-pointer",
                   active
                     ? "bg-gray-100 text-gray-900 font-bold"
                     : "text-gray-700 hover:bg-gray-50"
@@ -187,13 +205,13 @@ const Sidebar = ({ session }: SidebarProps) => {
                   />
                 )}
                 {showLabels && (
-                  <span className="text-base truncate w-[162px] whitespace-nowrap">
+                  <span className="text-base text-start truncate w-[162px] whitespace-nowrap">
                     {user.isOnboarded
                       ? `${profile?.firstName} ${initials.charAt(1) || ""}`
                       : item.name}
                   </span>
                 )}
-              </Link>
+              </button>
             )
           );
         })}
