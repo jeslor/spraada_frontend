@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, memo } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useDeleteMessage,
   useMessages,
@@ -16,7 +16,7 @@ import EmptyChat from "./EmptyChat";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 
 const MAX_IMAGE_PREVIEWS = 3;
-export default memo(function ChatRight() {
+export default function ChatRight() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const mainMessageContainerRef = useRef<HTMLDivElement>(null);
@@ -125,4 +125,4 @@ export default memo(function ChatRight() {
       />
     </div>
   );
-});
+}

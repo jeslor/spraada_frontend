@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import ChatLeft from "./ChatLeft";
 import ChatRight from "./ChatRight";
 
-const Chat = memo(() => {
+const Chat = () => {
   const searchParams = useSearchParams();
 
   const updateProfiles = useUpdateProfiles();
@@ -66,6 +66,6 @@ const Chat = memo(() => {
       </div>
     </div>
   );
-});
+};
 
 export default Chat;
