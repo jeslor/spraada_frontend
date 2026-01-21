@@ -37,6 +37,7 @@ const ChatLeftUser = ({
   const { getLastMessage } = useMessageActions();
   const updateUnreadMessagesCount = useUpdateUnreadMessagesCount();
 
+  // Update unread count and set selected user
   const updateUreadCountAndSetSelectedUser = () => {
     // Reset unread count for this user
     const updatedCounters = {
@@ -53,6 +54,12 @@ const ChatLeftUser = ({
     );
     onSelectUser(profile);
   };
+
+  // Last message preview
+  const userLastMessage = getLastMessage(profile.id);
+  const isDeletedForMe = (msg: Message, profileId?: number) =>
+    (msg.senderId === profileId && msg.deletedByReceiver) ||
+    (msg.receiverId === profileId && msg.deletedBySender);
 
   return (
     <div
@@ -72,16 +79,20 @@ const ChatLeftUser = ({
           <p className="m-0 p-0 font-semibold text-[12px]">{`${profile.firstName} ${profile.lastName}`}</p>
           <div
             className={`m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px] ${
-              unreadCount > 0 ? "font-bold text-gray-800" : ""
+              unreadCount > 0 ? "font-bold text-primary-600" : ""
             }`}
           >
-            {getLastMessage(profile.id).mediaFiles?.length ? (
+            {userLastMessage.mediaFiles?.length ? (
               <Icon
                 icon="famicons:camera"
                 className="inline-block mr-1 text-[18px]"
               />
             ) : null}
-            {getLastMessage(profile.id).content}
+            {isDeletedForMe(userLastMessage, profile.id) ? (
+              <em>Message deleted</em>
+            ) : (
+              userLastMessage?.content
+            )}
           </div>
         </div>
         <div className="ml-auto">

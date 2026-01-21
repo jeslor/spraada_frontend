@@ -18,7 +18,7 @@ const MessageBubbleeLightBox = ({
 }: MessageBubbleeLightBoxProps) => {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer sm:pl-[79px] xl:pl-[250px]"
       onClick={closeLightbox}
     >
       <div
