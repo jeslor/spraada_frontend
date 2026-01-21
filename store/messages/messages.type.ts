@@ -5,6 +5,8 @@ export interface Message {
   content: string;
   senderId: number;
   receiverId: number;
+  deletedBySender?: boolean;
+  deletedByReceiver?: boolean;
   mediaFiles?: {
     mediaUrl: string;
     mediaUrlKey: string;

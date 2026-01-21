@@ -148,3 +148,37 @@ export const updateUnreadMessagesCountApi = async (
     throw error;
   }
 };
+
+export const deleteMessageApi = async (
+  message: Message,
+  profileId: number,
+  userId: number
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const response = await customFetch(`${BACKEND_URL}/message/delete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message, profileId, userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to delete message"
+      );
+    }
+    return {
+      success: response.data.success,
+      message: response.data.message,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: (error as Error).message,
+    };
+  }
+};

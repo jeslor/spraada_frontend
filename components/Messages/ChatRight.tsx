@@ -15,6 +15,7 @@ import CropImage from "@/components/Onboarding/CropImage";
 import ChatForm from "./ChatForm";
 import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
+import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 
 const MAX_IMAGE_PREVIEWS = 3;
 export default function ChatRight() {
@@ -25,6 +26,7 @@ export default function ChatRight() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   useState(false);
   const [sendingImage, setSendingImage] = useState(false);
+  const [isOnlyEdited, setIsOnlyEdited] = useState(false);
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
@@ -68,7 +70,7 @@ export default function ChatRight() {
   useEffect(() => {
     // Only scroll if content is taller than container
     const container = messagesContainerRef.current;
-    if (container) {
+    if (container && !isOnlyEdited) {
       if (hasMounted) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       } else {
@@ -149,6 +151,7 @@ export default function ChatRight() {
 
   // Send message (text or image)
   const submitMessage = async (e: React.FormEvent) => {
+    setIsOnlyEdited(false);
     e.preventDefault();
     if (!input.trim() && !imageFiles.length) return;
     const newMsg: Message = {
@@ -189,8 +192,7 @@ export default function ChatRight() {
 
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
-    console.log(messageId);
-
+    setIsOnlyEdited(true);
     deleteMessage(messageId);
   };
 
@@ -208,16 +210,24 @@ export default function ChatRight() {
             ref={messagesContainerRef}
             className="flex flex-col gap-4 scrollbar-hide "
           >
-            {selectedUserMessages.map((msg: Message, idx: number) => (
-              <MessageBubble
-                handleDeleteMessage={handleDeleteMessage}
-                setChatHeightLocked={setChatHeightLocked}
-                key={msg.id || idx}
-                msg={msg}
-                profileId={profile?.id!}
-                idx={idx}
-              />
-            ))}
+            {selectedUserMessages.map((msg: Message, idx: number) =>
+              (msg.senderId === profile?.id && msg.deletedBySender) ||
+              (msg.receiverId === profile?.id && msg.deletedByReceiver) ? (
+                <ChatMessageDeletedBubble
+                  key={msg.id || idx}
+                  isFromCurrentUser={msg.senderId === profile?.id}
+                />
+              ) : (
+                <MessageBubble
+                  handleDeleteMessage={handleDeleteMessage}
+                  setChatHeightLocked={setChatHeightLocked}
+                  key={msg.id || idx}
+                  msg={msg}
+                  profileId={profile?.id!}
+                  idx={idx}
+                />
+              )
+            )}
             <div ref={messagesEndRef} />
           </div>
         )}

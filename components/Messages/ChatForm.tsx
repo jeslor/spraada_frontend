@@ -57,7 +57,7 @@ const ChatForm = ({
   }, [input]);
 
   return (
-    <div className="relative z-200">
+    <div className="relative z-46">
       {imagePreviews &&
         imagePreviews.length > 0 &&
         imagePreviews.map((previewUrl, index) => (
