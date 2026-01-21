@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  Message,
   useDeleteMessage,
   useMessages,
   useProfile,
   useSelectedUserMessages,
   useSelectedUserToMessage,
-  useSendMessage,
   useSetSelectedUserMessages,
 } from "@/store";
 import ChatForm from "./ChatForm";

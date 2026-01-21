@@ -35,12 +35,20 @@ const Notifications = () => {
       ref={notificationRef}
       className={`absolute h-screen max-w-[500px] w-full top-0 left-0 z-60 bg-white shadow-lg border border-gray-200 rounded-md transition-left duration-300 overflow-y-auto`}
     >
-      <button
-        onClick={closeNotifications}
-        className="absolute top-0 right-0 cursor-pointer text-[18px]"
-      >
-        <Icon icon="ic:round-close" className="m-4" />
-      </button>
+      <div className="relative h-full flex flex-col scrollbar-hide">
+        <div className="sticky top-0 bg-white border-b  z-10">
+          <h2 className="text-xl font-semibold p-4  ">Notifications</h2>
+          <button
+            onClick={closeNotifications}
+            className="absolute top-0 right-0 cursor-pointer text-[18px]"
+          >
+            <Icon icon="ic:round-close" className="m-4" />
+          </button>
+        </div>
+        <div className="flex-1  px-4 py-2 text-primary overflow-y-auto scrollbar-hide">
+          {/* Notifications content goes here */}
+        </div>
+      </div>
     </div>
   );
 };

@@ -193,11 +193,14 @@ export const useMessageStore = create<MessageStore>()(
               : null;
 
           if (exists) {
-            get().updateMessages({
-              ...existingMessage,
-              deletedByReceiver: incomingMessage.deletedByReceiver,
-              deletedBySender: incomingMessage.deletedBySender,
-            });
+            if (existingMessage && typeof existingMessage.id === "string") {
+              get().updateMessages({
+                ...existingMessage,
+                deletedByReceiver: incomingMessage.deletedByReceiver,
+                deletedBySender: incomingMessage.deletedBySender,
+                id: existingMessage.id!, // ensure id is always present and string
+              } as Message);
+            }
             return;
           }
 
