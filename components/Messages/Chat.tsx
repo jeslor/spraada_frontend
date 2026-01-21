@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, memo } from "react";
 
 import {
   ProfileSummary,
@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import ChatLeft from "./ChatLeft";
 import ChatRight from "./ChatRight";
 
-const Chat = () => {
+const Chat = memo(() => {
   const searchParams = useSearchParams();
 
   const updateProfiles = useUpdateProfiles();
@@ -66,6 +66,6 @@ const Chat = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Chat;

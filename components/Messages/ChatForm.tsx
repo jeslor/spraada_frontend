@@ -1,47 +1,39 @@
 "use client";
 import { Icon } from "@iconify/react";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { SpraadaButton } from "../ui/SpraadaButton";
+import {
+  Message,
+  useProfile,
+  useSendMessage,
+  useSelectedUserToMessage,
+} from "@/store";
 import EmojiPicker from "emoji-picker-react";
+import CropImage from "@/components/Onboarding/CropImage";
 
 interface ChatFormProps {
-  sendMessage: (e: React.FormEvent) => Promise<void>;
-  input: string;
-  setInput: React.Dispatch<React.SetStateAction<string>>;
-  handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleRemoveImagePreview: (index: number) => void;
-  imageLimitReached: boolean;
-  sendingImage: boolean;
-  imagePreviews: string[] | null;
-  showEmojiPicker: boolean;
-  setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
-  handleEmojiClick: (emojiObject: any, event: MouseEvent) => void;
+  setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
+  setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const ChatForm = ({
-  sendMessage,
-  imagePreviews,
-  imageLimitReached,
-  input,
-  setInput,
-  handleImageChange,
-  handleRemoveImagePreview,
-  sendingImage,
-  showEmojiPicker,
-  setShowEmojiPicker,
-  handleEmojiClick,
-}: ChatFormProps) => {
+const MAX_IMAGE_PREVIEWS = 3;
+
+const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Only grow textarea when Shift+Enter is pressed
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
+  const [input, setInput] = useState("");
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
+  const [imageLimitReached, setImageLimitReached] = useState(false);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [showCrop, setShowCrop] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  useState(false);
+  const [sendingImage, setSendingImage] = useState(false);
 
-      // Trigger sendMessage here if you want Enter to send
-      sendMessage(e as unknown as React.FormEvent<HTMLTextAreaElement>);
-    }
-  };
+  const sendMessage = useSendMessage();
+  const selectedUserToMessage = useSelectedUserToMessage();
+  const profile = useProfile();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -55,6 +47,121 @@ const ChatForm = ({
       }
     }
   }, [input]);
+
+  // Check image limit reached
+  useEffect(() => {
+    if (imagePreviews.length >= MAX_IMAGE_PREVIEWS) {
+      setImageLimitReached(true);
+    } else {
+      setImageLimitReached(false);
+    }
+  }, [imagePreviews]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      if (
+        !target.closest("#emoji-picker") &&
+        !target.closest("button[title='Add emoji']")
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+
+    return () => {
+      document.removeEventListener("click", handleClick);
+    };
+  }, [showEmojiPicker === true]);
+
+  //   ==========================Actions==========================
+
+  // Only grow textarea when Shift+Enter is pressed
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+
+      // Trigger sendMessage here if you want Enter to send
+      submitMessage(e as unknown as React.FormEvent<HTMLTextAreaElement>);
+    }
+  };
+
+  // Handle image selection
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (imagePreviews.length >= MAX_IMAGE_PREVIEWS) {
+      setShowCrop(false);
+      return;
+    }
+    const file = e.target.files?.[0];
+    if (file) {
+      setPickedImageFile(file);
+      setShowCrop(true);
+    }
+  };
+
+  // Handle cropped image save
+  const handleCropSave = (previewUrl: string, file: File) => {
+    setImagePreviews([...imagePreviews!, previewUrl]);
+    setImageFiles([...imageFiles!, file]);
+    setShowCrop(false);
+  };
+
+  // Send message (text or image)
+  const submitMessage = async (e: React.FormEvent) => {
+    setIsOnlyEdited(false);
+    e.preventDefault();
+    if (!input.trim()) return;
+    const newMsg: Message = {
+      id: new Date().toISOString(),
+      senderId: Number(profile?.id),
+      receiverId: Number(selectedUserToMessage?.id),
+      sender: {
+        id: profile?.id!,
+        firstName: profile?.firstName || "",
+        lastName: profile?.lastName || "",
+        avatarUrl: profile?.avatarUrl,
+      },
+      receiver: {
+        id: Number(selectedUserToMessage?.id),
+        firstName: selectedUserToMessage?.firstName!,
+        lastName: selectedUserToMessage?.lastName!,
+        avatarUrl: selectedUserToMessage?.avatarUrl,
+      },
+      content: input,
+      mediaFiles: imagePreviews.length
+        ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
+        : [],
+      blobFiles: imageFiles.length ? imageFiles : [],
+      createdAt: new Date().toISOString(),
+    };
+    setHasMounted(true);
+    sendMessage(newMsg, Number(profile?.id));
+    setInput("");
+    setImagePreviews([]);
+    setImageFiles([]);
+  };
+
+  //load the emoji into the input field
+  const handleEmojiClick = (emojiData: any) => {
+    setInput((prev) => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  //handle removing an image preview
+  const handleRemoveImagePreview = (index: number) => {
+    const newPreviews = [...imagePreviews!];
+    const newFiles = [...imageFiles];
+    newPreviews.splice(index, 1);
+    newFiles.splice(index, 1);
+    setImagePreviews(newPreviews);
+    setImageFiles(newFiles);
+    setImageLimitReached(false);
+  };
 
   return (
     <div className="relative z-46">
@@ -89,7 +196,7 @@ const ChatForm = ({
         </div>
       )}
       <form
-        onSubmit={sendMessage}
+        onSubmit={submitMessage}
         className="flex items-center gap-3 px-4 py-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 relative"
       >
         <button
@@ -151,6 +258,16 @@ const ChatForm = ({
           </div>
         )}
       </form>
+      {/* Crop Image Modal */}
+      {showCrop && pickedImageFile && (
+        <CropImage
+          file={pickedImageFile}
+          fileName={pickedImageFile.name.split(".")[0]}
+          onCancel={() => setShowCrop(false)}
+          onSave={handleCropSave}
+          aspectRatio={1}
+        />
+      )}
     </div>
   );
 };
