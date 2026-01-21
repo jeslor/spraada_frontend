@@ -4,7 +4,7 @@ import { immer } from "zustand/middleware/immer";
 import { Notification, NotificationStore } from "./notification.type";
 
 const initialState = {
-  showNotifications: false,
+  showNotifications: true,
   notifications: [] as Notification[],
 };
 

@@ -4,7 +4,8 @@ export interface Notification {
   content: string;
   read: boolean;
   createdAt: string;
-  data?: Record<string, any>;
+  contentMediaFiles?: string[];
+  profileMediaFiles?: string[];
 }
 
 interface NotificationState {
