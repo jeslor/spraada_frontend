@@ -3,9 +3,10 @@ export interface Notification {
   title: string;
   content: string;
   read: boolean;
+  link?: string;
   createdAt: string;
-  contentMediaFiles?: string[];
-  profileMediaFiles?: string[];
+  contentMediaFiles?: { mediaUrl: string }[];
+  profileMediaFiles?: { mediaUrl: string }[];
 }
 
 interface NotificationState {
@@ -15,6 +16,7 @@ interface NotificationState {
 
 export interface useNotificationActions {
   setShowNotifications: (show: boolean) => void;
+  initNotificationSocketListeners: (profileId: number) => void;
   clearNotifications: () => void;
 }
 

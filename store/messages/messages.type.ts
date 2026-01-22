@@ -69,7 +69,7 @@ export interface MessageActions {
   addIncomingMessage: (message: Message) => void;
   setSelectedUserToMessage: (profile: ProfileSummary | null) => void;
   setSelectedUserMessages: (selectedUserId: number) => void;
-  initSocketListeners: (profileId: number) => void;
+  initSChatSocketListeners: (profileId: number) => void;
   sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;
   updateMessages: (updatedMessage: Message, localId?: string) => void;

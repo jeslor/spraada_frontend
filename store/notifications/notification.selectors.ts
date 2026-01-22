@@ -3,6 +3,10 @@ import { Notification } from "./notification.type";
 
 // ==================== Basic Selectors ====================
 
+//initial notifications socket listener
+export const useInitializeNotificationSocket = () =>
+  useNotificationStore((state) => state.initNotificationSocketListeners);
+
 //set show notifications
 export const useShowNotifications = (): boolean =>
   useNotificationStore((state) => state.showNotifications);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
+import { useChatSocket } from "@/Hooks/InitializeAppSocket";
 
 import {
   useFetchMessages,

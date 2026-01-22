@@ -9,7 +9,7 @@ import {
 // ==================== Basic Selectors ====================
 
 export const useInitializeChatSocket = () =>
-  useMessageStore((state) => state.initSocketListeners);
+  useMessageStore((state) => state.initSChatSocketListeners);
 export const useSetSelectedUserToMessage = () =>
   useMessageStore((state) => state.setSelectedUserToMessage);
 export const useSelectedUserToMessage = (): ProfileSummary | null =>

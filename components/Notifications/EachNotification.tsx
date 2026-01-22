@@ -4,6 +4,7 @@ import { SpraadaButton } from "../ui/SpraadaButton";
 interface EachNotificationProps {
   id: string;
   title: string;
+  link?: string;
   profileMediaFiles?: { mediaUrl: string }[];
   contentMediaFiles?: { mediaUrl: string }[];
   content: string;

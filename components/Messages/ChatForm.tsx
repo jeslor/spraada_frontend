@@ -150,6 +150,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const handleEmojiClick = (emojiData: any) => {
     setInput((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
+    textareaRef.current?.focus();
   };
 
   //handle removing an image preview

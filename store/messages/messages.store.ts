@@ -170,8 +170,8 @@ export const useMessageStore = create<MessageStore>()(
         });
       },
 
-      /* ------------------ SOCKET INIT ------------------ */
-      initSocketListeners: (profileId: number) => {
+      /* ------------------ SOCKET CHATS INIT ------------------ */
+      initSChatSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
 
         socket.off("chats"); // prevent duplicate listeners

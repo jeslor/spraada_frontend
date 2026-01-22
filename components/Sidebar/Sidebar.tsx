@@ -21,7 +21,7 @@ import {
   useFetchUnreadMessagesCount,
   useAllUnReadMessagesCount,
 } from "@/store";
-import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
+import { useAppSocket } from "@/Hooks/InitializeAppSocket";
 import Notifications from "../Notifications/Notifications";
 
 interface SidebarProps {
@@ -54,7 +54,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const profile = useProfile();
 
   /* ✅ Hooks must be called at top-level */
-  useChatSocket(profile?.id!);
+  useAppSocket(profile?.id!);
   const setShowNotifications = useSetShowNotifications();
   const showNotifications = useShowNotifications();
 

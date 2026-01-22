@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { Notification, NotificationStore } from "./notification.type";
+import { getSocket } from "@/lib/socket/socket";
 
 const initialState = {
   showNotifications: true,
@@ -22,6 +23,18 @@ export const useNotificationStore = create<NotificationStore>()(
           state.notifications = [];
           state.showNotifications = false;
         }),
+
+      /* ------------------ SOCKET CHATS INIT ------------------ */
+      initNotificationSocketListeners: (profileId: number) => {
+        const socket = getSocket(profileId);
+        socket.off("notifications"); // prevent duplicate listeners
+
+        socket.on("notifications", (incomingNotification: Notification) => {
+          set((state) => {
+            state.notifications.unshift(incomingNotification);
+          });
+        });
+      },
     })),
     {
       name: "notifications-store",
