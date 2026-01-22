@@ -136,6 +136,8 @@ export const updateUnreadMessagesCountApi = async (
     );
 
     if (!response.ok) {
+      console.log(response);
+
       throw new Error(
         response.data?.message ||
           response.data?.error ||

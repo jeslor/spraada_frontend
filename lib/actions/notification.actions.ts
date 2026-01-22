@@ -104,8 +104,6 @@ export const updateNotificationAndCounter = async (
   success: boolean;
   data: Notification | Error;
 }> => {
-  console.log(notification, notificationCounter, "backend action");
-
   return customFetch(`${BACKEND_URL}/notification/updateNotifications`, {
     method: "POST",
     headers: {

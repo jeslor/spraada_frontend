@@ -124,12 +124,6 @@ const ToolContent = ({
     }
   };
 
-  // Handle rent action
-  const handleRent = (tool: Tool) => {
-    console.log("Rent tool:", tool.id);
-    // TODO: Open rental modal
-  };
-
   // Handle approve booking
   const handleUpdateBookingStatus = async (
     bookingId: string,
@@ -241,11 +235,6 @@ const ToolContent = ({
             tool={tool}
             variant={getCardVariant()}
             onDelete={type === "owned" ? handleDelete : undefined}
-            onRent={
-              type !== "owned" && type !== "search" && type !== "all"
-                ? handleRent
-                : undefined
-            }
             onCancelBooking={
               type === "rented" || type === "borrowed"
                 ? handleUpdateBookingStatus
