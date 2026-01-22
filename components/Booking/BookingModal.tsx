@@ -11,7 +11,12 @@ import {
   isDateBooked,
 } from "@/lib/helpers/dateHelpers";
 import { createBooking, getBookingsByTool } from "@/lib/actions/book.actions";
-import { useProfile, useFetchBookings } from "@/store";
+import {
+  useProfile,
+  useFetchBookings,
+  useSendNotification,
+  Notification,
+} from "@/store";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -46,6 +51,7 @@ export default function BookingModal({
   const [sameDay, setSameDay] = useState(false);
 
   const profile = useProfile();
+  const sendNotification = useSendNotification();
   const fetchBookings = useFetchBookings();
 
   // Fetch booked dates for this tool when modal opens
@@ -175,7 +181,7 @@ export default function BookingModal({
       setBookingLoading(true);
       const bookingResponse = await createBooking({
         toolId,
-        borrowerId: Number(profile?.id!),
+        borrowerId: Number(profile?.id),
         toolOwnerId: Number(toolOwnerId),
         pickUpDate,
         returnDate: finalReturnDate!,
@@ -183,6 +189,22 @@ export default function BookingModal({
       });
 
       if (bookingResponse.success) {
+        // Send notification to tool owner
+        if (profile) {
+          sendNotification(
+            {
+              id:
+                new Date().getTime().toString() +
+                Math.random().toString(36).substring(2),
+              title: "New Booking Request",
+              profileId: toolOwnerId,
+              content: `${profile.firstName} ${profile.lastName} has requested to book your tool: ${toolName}.`,
+              read: false,
+              link: `/rentals#${bookingResponse.data.id}`,
+            },
+            profile.id
+          );
+        }
         toast.success("Booking request sent successfully!");
         // Refresh borrowed tools list after successful booking
         if (profile?.id) {

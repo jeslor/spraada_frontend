@@ -228,9 +228,8 @@ export const useMessageStore = create<MessageStore>()(
           get().addIncomingMessage(incomingMessage);
 
           if (
-            (activeChatUser &&
-              incomingMessage.senderId !== activeChatUser.id) ||
-            !isMessagePage
+            !isMessagePage ||
+            (activeChatUser && incomingMessage.senderId !== activeChatUser.id)
           ) {
             // Update unread messages count
             const unReadMessagesCounter = get().unreadMessagesCount;

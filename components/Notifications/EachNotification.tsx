@@ -1,22 +1,8 @@
 import React from "react";
 import { SpraadaButton } from "../ui/SpraadaButton";
+import { Notification } from "@/store";
 
-interface EachNotificationProps {
-  id: string;
-  title: string;
-  link?: string;
-  profileMediaFiles?: { mediaUrl: string }[];
-  contentMediaFiles?: { mediaUrl: string }[];
-  content: string;
-  read: boolean;
-  createdAt: string;
-}
-
-const EachNotification = ({
-  notification,
-}: {
-  notification: EachNotificationProps;
-}) => {
+const EachNotification = ({ notification }: { notification: Notification }) => {
   const handleNotificationClick = () => {
     // Add your click handling logic here
   };
@@ -59,7 +45,7 @@ const EachNotification = ({
             </p>
 
             <span className="font-bold text-gray-900 text-[8px] -mt-0.2 block">
-              {new Date(notification.createdAt).toLocaleString()}
+              {new Date(notification.createdAt!).toLocaleString()}
             </span>
           </div>
         </div>

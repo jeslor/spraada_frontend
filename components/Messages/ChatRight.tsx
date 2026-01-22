@@ -68,10 +68,16 @@ export default function ChatRight() {
     }
   }, [selectedUserMessages]); // Only when messages change
 
+  // Reset unread messages count when viewing messages
+  useEffect(() => {
+    if (selectedUserToMessage && profile) {
+      resetUserUnreadMessagesCount(selectedUserToMessage.id);
+    }
+  }, [selectedUserToMessage, profile]);
+
   // Set messages for selected user
   useEffect(() => {
     setHasMounted(true);
-    resetUserUnreadMessagesCount(selectedUserToMessage?.id!);
     if (selectedUserToMessage) {
       setSelectedUserMessages(selectedUserToMessage.id);
     }

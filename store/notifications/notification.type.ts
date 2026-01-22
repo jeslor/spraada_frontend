@@ -1,12 +1,13 @@
 export interface Notification {
-  id: string;
+  id?: string;
   title: string;
   content: string;
+  profileId: number;
   read: boolean;
   link?: string;
-  createdAt: string;
   contentMediaFiles?: { mediaUrl: string }[];
   profileMediaFiles?: { mediaUrl: string }[];
+  createdAt?: string;
 }
 
 export interface NotificationCounter {
@@ -24,6 +25,11 @@ interface NotificationState {
 export interface useNotificationActions {
   setShowNotifications: (show: boolean) => void;
   initNotificationSocketListeners: (profileId: number) => void;
+  getNotifications: (profileId: number) => Promise<void>;
+  addNewNotification: (notification: Notification) => void;
+  getNotificationCounter: (profileId: number) => Promise<void>;
+  updateNotificationCounter: (counter: NotificationCounter) => void;
+  sendNotification: (notification: Notification, profileId: number) => void;
   clearNotifications: () => void;
 }
 
