@@ -106,6 +106,7 @@ export const useNotificationStore = create<NotificationStore>()(
               );
             }
 
+            //move the updated notification to the top of the list
             set((state) => {
               state.notifications.unshift(updatedNotification);
               state.notificationCounter = updatedNotificationCounter;
