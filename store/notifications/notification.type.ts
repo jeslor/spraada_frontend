@@ -9,8 +9,15 @@ export interface Notification {
   profileMediaFiles?: { mediaUrl: string }[];
 }
 
+export interface NotificationCounter {
+  id: number;
+  profileId: number;
+  count: number;
+}
+
 interface NotificationState {
   notifications: Notification[];
+  notificationCounter: NotificationCounter;
   showNotifications: boolean;
 }
 

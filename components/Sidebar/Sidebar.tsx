@@ -20,9 +20,9 @@ import {
   useSetShowNotifications,
   useFetchUnreadMessagesCount,
   useAllUnReadMessagesCount,
+  useSetIsMessagePage,
 } from "@/store";
 import { useAppSocket } from "@/Hooks/InitializeAppSocket";
-import Notifications from "../Notifications/Notifications";
 
 interface SidebarProps {
   session: Session | null;
@@ -59,6 +59,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const showNotifications = useShowNotifications();
 
   const user = useUser();
+  const setIsMessagePage = useSetIsMessagePage();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
@@ -72,10 +73,25 @@ const Sidebar = ({ session }: SidebarProps) => {
   const isExpanded = isDesktop || isHovered;
 
   useEffect(() => {
+    let isMessagePage = pathname.startsWith("/messages");
+    setIsMessagePage(isMessagePage);
+  }, [pathname]);
+
+  useEffect(() => {
     if (profile) {
       fetchUnreadMessagesCount(profile.id);
     }
   }, [profile, fetchUnreadMessagesCount]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      setTimeout(() => setShowLabels(true), 100);
+    } else {
+      // Delay hiding labels for smooth transition
+      const timeout = setTimeout(() => setShowLabels(false), 200);
+      return () => clearTimeout(timeout);
+    }
+  }, [isExpanded]);
 
   const handleSignOut = async () => {
     const response = await fetch("/api/auth/signout", { method: "GET" });
@@ -91,16 +107,6 @@ const Sidebar = ({ session }: SidebarProps) => {
       window.location.href = "/signin";
     }
   };
-
-  useEffect(() => {
-    if (isExpanded) {
-      setTimeout(() => setShowLabels(true), 100);
-    } else {
-      // Delay hiding labels for smooth transition
-      const timeout = setTimeout(() => setShowLabels(false), 200);
-      return () => clearTimeout(timeout);
-    }
-  }, [isExpanded]);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";

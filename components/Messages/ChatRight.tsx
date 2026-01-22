@@ -6,6 +6,7 @@ import {
   useDeleteMessage,
   useMessages,
   useProfile,
+  useResetUserUnreadMessagesCount,
   useSelectedUserMessages,
   useSelectedUserToMessage,
   useSetSelectedUserMessages,
@@ -25,6 +26,7 @@ export default function ChatRight() {
   const [hasMounted, setHasMounted] = useState(false);
 
   const messages = useMessages();
+  const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
   const selectedUserToMessage = useSelectedUserToMessage();
   const selectedUserMessages = useSelectedUserMessages();
   const setSelectedUserMessages = useSetSelectedUserMessages();
@@ -69,6 +71,7 @@ export default function ChatRight() {
   // Set messages for selected user
   useEffect(() => {
     setHasMounted(true);
+    resetUserUnreadMessagesCount(selectedUserToMessage?.id!);
     if (selectedUserToMessage) {
       setSelectedUserMessages(selectedUserToMessage.id);
     }
