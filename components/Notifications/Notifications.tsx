@@ -12,11 +12,20 @@ const notifications = [
     read: false,
     createdAt: "2024-06-01T10:00:00Z",
     profileMediaFiles: [
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
     ],
     contentMediaFiles: [
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
     ],
   },
   {
@@ -33,9 +42,18 @@ const notifications = [
     read: false,
     createdAt: "2024-05-29T09:15:00Z",
     profileMediaFiles: [
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
-      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
+      {
+        mediaUrl:
+          "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+      },
     ],
   },
 ];

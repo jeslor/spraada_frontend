@@ -4,8 +4,8 @@ import { SpraadaButton } from "../ui/SpraadaButton";
 interface EachNotificationProps {
   id: string;
   title: string;
-  profileMediaFiles?: string[];
-  contentMediaFiles?: string[];
+  profileMediaFiles?: { mediaUrl: string }[];
+  contentMediaFiles?: { mediaUrl: string }[];
   content: string;
   read: boolean;
   createdAt: string;
@@ -34,7 +34,7 @@ const EachNotification = ({
             {notification.profileMediaFiles?.slice(0, 2).map((file, index) => (
               <img
                 key={index}
-                src={file}
+                src={file.mediaUrl}
                 alt="notification media"
                 className="absolute w-8 h-8 rounded-full border border-white object-cover shadow-md"
                 style={{
@@ -67,7 +67,7 @@ const EachNotification = ({
         {(notification.contentMediaFiles?.length ?? 0) > 0 ? (
           <div className="w-10 h-10 ">
             <img
-              src={notification.contentMediaFiles?.[0]}
+              src={notification.contentMediaFiles?.[0].mediaUrl}
               alt="content media"
               className="w-10 h-10 object-cover rounded-md border border-gray-200"
             />
