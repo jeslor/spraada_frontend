@@ -15,6 +15,9 @@ const notifications = [
       "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
       "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
     ],
+    contentMediaFiles: [
+      "https://spraada.s3.eu-north-1.amazonaws.com/chat_media/012dabdd-4fff-4886-9965-4a46fbfb0c61-ezgif-3cbdfb24fb0eea27.jpg",
+    ],
   },
   {
     id: "2",
