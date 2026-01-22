@@ -15,7 +15,6 @@ import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 
-const MAX_IMAGE_PREVIEWS = 3;
 export default function ChatRight() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
