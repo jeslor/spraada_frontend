@@ -1,6 +1,7 @@
 import React from "react";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import { Notification } from "@/store";
+import { timeAgo } from "@/lib/helpers/dateHelpers";
 
 const EachNotification = ({ notification }: { notification: Notification }) => {
   const handleNotificationClick = () => {
@@ -9,11 +10,16 @@ const EachNotification = ({ notification }: { notification: Notification }) => {
 
   const handleIsRead = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    // Add your mark as read logic here
+    // Add your mark as read logic here to an independent notification
   };
 
   return (
-    <div onClick={handleNotificationClick} className="w-full">
+    <div
+      onClick={handleNotificationClick}
+      className={`w-full ${
+        notification.isRead ? "bg-white" : "bg-primary-100"
+      }  hover:bg-gray-100 cursor-pointer`}
+    >
       <div className="px-4 flex items-center justify-between gap-2 mb-2 hover:bg-primary-700/10 cursor-pointer rounded-md">
         {/* Profile images */}
         {(notification.profileMediaFiles?.length ?? 0) > 0 && (
@@ -45,7 +51,7 @@ const EachNotification = ({ notification }: { notification: Notification }) => {
             </p>
 
             <span className="font-bold text-gray-900 text-[8px] -mt-0.2 block">
-              {new Date(notification.createdAt!).toLocaleString()}
+              {timeAgo(notification.createdAt!)}
             </span>
           </div>
         </div>
@@ -60,7 +66,7 @@ const EachNotification = ({ notification }: { notification: Notification }) => {
             />
           </div>
         ) : (
-          notification.read === false && (
+          notification.isRead === false && (
             <div className="w-fit h-10  flex justify-end items-center">
               <SpraadaButton
                 onClick={handleIsRead}

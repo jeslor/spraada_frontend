@@ -3,7 +3,7 @@ export interface Notification {
   title: string;
   content: string;
   profileId: number;
-  read: boolean;
+  isRead: boolean;
   link?: string;
   contentMediaFiles?: { mediaUrl: string }[];
   profileMediaFiles?: { mediaUrl: string }[];
@@ -26,9 +26,10 @@ export interface useNotificationActions {
   setShowNotifications: (show: boolean) => void;
   initNotificationSocketListeners: (profileId: number) => void;
   getNotifications: (profileId: number) => Promise<void>;
-  addNewNotification: (notification: Notification) => void;
   getNotificationCounter: (profileId: number) => Promise<void>;
   updateNotificationCounter: (counter: NotificationCounter) => void;
+  updateNotifications: (notifications: Notification[]) => void;
+  updateNotificationsAndCounterAsRead: () => Promise<void>;
   sendNotification: (notification: Notification, profileId: number) => void;
   clearNotifications: () => void;
 }

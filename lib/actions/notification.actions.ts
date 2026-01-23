@@ -20,6 +20,7 @@ export const createNotification = async (
       },
       body: JSON.stringify(notification),
     });
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||

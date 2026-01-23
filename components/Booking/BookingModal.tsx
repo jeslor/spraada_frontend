@@ -11,12 +11,7 @@ import {
   isDateBooked,
 } from "@/lib/helpers/dateHelpers";
 import { createBooking, getBookingsByTool } from "@/lib/actions/book.actions";
-import {
-  useProfile,
-  useFetchBookings,
-  useSendNotification,
-  Notification,
-} from "@/store";
+import { useProfile, useFetchBookings, useSendNotification } from "@/store";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -28,9 +23,13 @@ interface BookingModalProps {
   depositCents: number;
   toolId: string;
   toolOwnerId: number;
+  profileMediaFiles: string[];
+  contentMediaFiles: string[];
 }
 
 export default function BookingModal({
+  profileMediaFiles,
+  contentMediaFiles,
   isOpen,
   onClose,
   toolName,
@@ -198,8 +197,14 @@ export default function BookingModal({
                 Math.random().toString(36).substring(2),
               title: "New Booking Request",
               profileId: toolOwnerId,
+              profileMediaFiles: profileMediaFiles.map((url) => ({
+                mediaUrl: url,
+              })),
+              contentMediaFiles: contentMediaFiles.map((url) => ({
+                mediaUrl: url,
+              })),
               content: `${profile.firstName} ${profile.lastName} has requested to book your tool: ${toolName}.`,
-              read: false,
+              isRead: false,
               link: `/rentals#${bookingResponse.data.id}`,
             },
             profile.id

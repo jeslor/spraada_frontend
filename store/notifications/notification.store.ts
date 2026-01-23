@@ -43,10 +43,10 @@ export const useNotificationStore = create<NotificationStore>()(
         }
       },
 
-      //add new notification to the store
-      addNewNotification: (notification: Notification) =>
+      //update notifications in the store
+      updateNotifications: (notifications: Notification[]) =>
         set((state) => {
-          state.notifications.unshift(notification);
+          state.notifications = notifications;
         }),
 
       // fetch notification counter from backend
@@ -67,6 +67,35 @@ export const useNotificationStore = create<NotificationStore>()(
           state.notificationCounter = counter;
         }),
 
+      //update notifications and counter as read when notification window is open
+      updateNotificationsAndCounterAsRead: async () => {
+        const currentNotifications = get().notifications;
+        const currentCounter = get().notificationCounter;
+
+        const updatedNotifications = currentNotifications.map((notify) => ({
+          ...notify,
+          isRead: true,
+        }));
+        const updatedCounter = {
+          ...currentCounter,
+          count: 0,
+        };
+        get().updateNotifications(updatedNotifications);
+        get().updateNotificationCounter(updatedCounter);
+        //update backend
+        const updateResult = await updateNotificationAndCounter(
+          updatedNotifications[0],
+          updatedCounter
+        );
+
+        if (!updateResult.success) {
+          console.error(
+            "Failed to update notifications and counter as read:",
+            updateResult.data
+          );
+        }
+      },
+
       /* ------------------ SOCKET NOTIFICATION INIT ------------------ */
       initNotificationSocketListeners: async (profileId: number) => {
         const socket = getSocket(profileId);
@@ -86,7 +115,7 @@ export const useNotificationStore = create<NotificationStore>()(
                 notificationCounter.profileId ?? incomingNotification.profileId,
             };
             if (notificationWindowOpen) {
-              updatedNotification.read = true;
+              updatedNotification.isRead = true;
               updatedNotificationCounter.count = Math.max(
                 0,
                 updatedNotificationCounter.count - 1
@@ -107,10 +136,15 @@ export const useNotificationStore = create<NotificationStore>()(
             }
 
             //move the updated notification to the top of the list
-            set((state) => {
-              state.notifications.unshift(updatedNotification);
-              state.notificationCounter = updatedNotificationCounter;
-            });
+            if (updatedNotification.isRead) {
+              get().updateNotificationsAndCounterAsRead();
+            } else {
+              get().updateNotifications([
+                updatedNotification,
+                ...get().notifications,
+              ]);
+              get().updateNotificationCounter(updatedNotificationCounter);
+            }
           }
         );
       },

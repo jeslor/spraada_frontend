@@ -35,6 +35,15 @@ export const useNotificationCounter = () =>
 export const useGetNotificationCounter = () =>
   useNotificationStore((state) => state.getNotificationCounter);
 
+export const useUpdateNotificationCounter = () =>
+  useNotificationStore((state) => state.updateNotificationCounter);
+
+export const useUpdateNotifications = () =>
+  useNotificationStore((state) => state.updateNotifications);
+
+export const useUpdateNotificationsAndCounterAsRead = () =>
+  useNotificationStore((state) => state.updateNotificationsAndCounterAsRead);
+
 // Notification actions (like messages.selectors)
 export const useNotificationActions = () => {
   return {};

@@ -6,6 +6,7 @@ import {
   useProfile,
   useGetNotifications,
   useNotifications,
+  useUpdateNotificationsAndCounterAsRead,
 } from "@/store";
 import { Icon } from "@iconify/react";
 import EachNotification from "./EachNotification";
@@ -17,6 +18,17 @@ const Notifications = () => {
   const getNotifications = useGetNotifications();
   const notifications = useNotifications();
   const profile = useProfile();
+  const updateNotificationsAndCounterAsRead =
+    useUpdateNotificationsAndCounterAsRead();
+
+  useEffect(() => {
+    return () => {
+      // Mark notifications as read when component unmounts
+      if (showNotifications) {
+        updateNotificationsAndCounterAsRead();
+      }
+    };
+  }, [showNotifications]);
 
   const closeNotifications = () => {
     setShowNotifications(false);
