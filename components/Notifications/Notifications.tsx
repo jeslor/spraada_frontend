@@ -10,6 +10,7 @@ import {
 } from "@/store";
 import { Icon } from "@iconify/react";
 import EachNotification from "./EachNotification";
+import NoNotifications from "./NoNotifications";
 
 const Notifications = () => {
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -24,12 +25,11 @@ const Notifications = () => {
   useEffect(() => {
     return () => {
       // Mark notifications as read when component unmounts
-      if (showNotifications) {
+      if (showNotifications && notifications.length > 0) {
         updateNotificationsAndCounterAsRead();
       }
     };
-  }, [showNotifications]);
-
+  }, [showNotifications, notifications.length]);
   const closeNotifications = () => {
     setShowNotifications(false);
   };
@@ -77,12 +77,14 @@ const Notifications = () => {
         </div>
         <div className="flex-1   px-4 py-2 text-primary overflow-y-auto scrollbar-hide">
           {/* Notifications content goes here */}
-          {notifications.map((notification) => (
-            <EachNotification
-              key={notification.id}
-              notification={notification}
-            />
-          ))}
+          {notifications &&
+            notifications.map((notification) => (
+              <EachNotification
+                key={notification.id}
+                notification={notification}
+              />
+            ))}
+          {notifications.length === 0 && <NoNotifications />}
         </div>
       </div>
     </div>
