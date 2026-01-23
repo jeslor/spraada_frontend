@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import {
   useProfile,
@@ -41,6 +41,8 @@ const ToolContent = ({
   emptyState,
   gridClassName,
 }: ToolContentProps) => {
+  const searchParams = useSearchParams();
+  const scrollId = searchParams.get("scrollId") || "";
   const profile = useProfile();
   const myTools = useMyTools();
   const setMyTools = useSetMyTools();
@@ -100,6 +102,7 @@ const ToolContent = ({
     hasFetchedBookings,
     fetchBookings,
     isExternalMode,
+    scrollId,
   ]);
 
   // Handle delete tool

@@ -2,17 +2,16 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { SpraadaButton } from "../ui/SpraadaButton";
-import { Notification } from "@/store";
+import { Notification, useSetShowNotifications } from "@/store";
 import { timeAgo } from "@/lib/helpers/dateHelpers";
 
 const EachNotification = ({ notification }: { notification: Notification }) => {
   const Router = useRouter();
+  const setShowNotifications = useSetShowNotifications();
   const handleNotificationClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (notification.title === "New Booking Request") {
-      //navigate to bookings page
-      Router.push(`${notification.link}`);
-    }
-    // Add more navigation logic based on notification type if needed
+    //navigate to bookings page
+    setShowNotifications(false);
+    Router.push(`${notification.link}`);
   };
 
   const handleIsRead = (e: React.MouseEvent<HTMLButtonElement>) => {

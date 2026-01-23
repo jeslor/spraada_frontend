@@ -179,14 +179,21 @@ export const getBookingsByTool = async (toolId: string) => {
   }
 };
 
+type DeletedBy = {
+  deletedByOwner?: boolean;
+  deletedByBorrower?: boolean;
+};
+
 export const updateBookingAsDeleted = async (
   bookingId: string,
-  deleteBy: { owner?: boolean; borrower?: boolean }
+  deletedBy: DeletedBy
 ): Promise<{
   success: boolean;
   data: any;
 }> => {
   try {
+    console.log(deletedBy);
+
     const response = await customFetch(
       `${
         process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
@@ -196,10 +203,7 @@ export const updateBookingAsDeleted = async (
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          deletedByOwner: deleteBy.owner || false,
-          deletedByBorrower: deleteBy.borrower || false,
-        }),
+        body: JSON.stringify(deletedBy),
       }
     );
 
