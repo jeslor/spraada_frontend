@@ -127,7 +127,7 @@ export const updateUnreadMessagesCountApi = async (
     const response = await customFetch(
       `${BACKEND_URL}/message/unreadCount/${unReadMessageId}`,
       {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },

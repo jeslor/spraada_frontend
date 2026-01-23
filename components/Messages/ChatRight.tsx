@@ -6,6 +6,7 @@ import {
   useDeleteMessage,
   useMessages,
   useProfile,
+  useResetUserUnreadMessagesCount,
   useSelectedUserMessages,
   useSelectedUserToMessage,
   useSetSelectedUserMessages,
@@ -25,6 +26,7 @@ export default function ChatRight() {
   const [hasMounted, setHasMounted] = useState(false);
 
   const messages = useMessages();
+  const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
   const selectedUserToMessage = useSelectedUserToMessage();
   const selectedUserMessages = useSelectedUserMessages();
   const setSelectedUserMessages = useSetSelectedUserMessages();
@@ -65,6 +67,15 @@ export default function ChatRight() {
       }
     }
   }, [selectedUserMessages]); // Only when messages change
+
+  // Reset unread messages count when viewing messages
+  useEffect(() => {
+    if (selectedUserToMessage) {
+      console.log("this message ran");
+
+      resetUserUnreadMessagesCount(selectedUserToMessage.id);
+    }
+  }, [selectedUserToMessage]);
 
   // Set messages for selected user
   useEffect(() => {

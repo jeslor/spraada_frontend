@@ -9,7 +9,11 @@ import {
 // ==================== Basic Selectors ====================
 
 export const useInitializeChatSocket = () =>
-  useMessageStore((state) => state.initSocketListeners);
+  useMessageStore((state) => state.initSChatSocketListeners);
+export const useIsMessagePage = (): boolean =>
+  useMessageStore((state) => state.isMessagePage);
+export const useSetIsMessagePage = () =>
+  useMessageStore((state) => state.setIsMessagePage);
 export const useSetSelectedUserToMessage = () =>
   useMessageStore((state) => state.setSelectedUserToMessage);
 export const useSelectedUserToMessage = (): ProfileSummary | null =>
@@ -36,7 +40,8 @@ export const useFetchUnreadMessagesCount = () =>
   useMessageStore((state) => state.fetchUnReadMessagesCount);
 export const useUpdateUnreadMessagesCount = () =>
   useMessageStore((state) => state.updateUnreadMessagesCount);
-
+export const useResetUserUnreadMessagesCount = () =>
+  useMessageStore((state) => state.resetUserUnreadMessagesCount);
 export const useSendMessage = () =>
   useMessageStore((state) => state.sendMessage);
 export const useMessagesLoading = (): boolean =>

@@ -711,6 +711,10 @@ export default function ViewToolPage() {
       {/* Booking Modal */}
       {tool && (
         <BookingModal
+          profileMediaFiles={[
+            profile?.avatarUrl || "",
+            tool.profile?.avatarUrl || "",
+          ]}
           isOpen={isBookingModalOpen}
           onClose={() => setIsBookingModalOpen(false)}
           toolName={tool.name}
@@ -718,6 +722,7 @@ export default function ViewToolPage() {
           depositCents={tool.depositCents}
           toolId={tool.id}
           toolOwnerId={tool.profileId}
+          contentMediaFiles={tool.toolPhotos.map((photo) => photo.photoUrl)}
         />
       )}
     </div>

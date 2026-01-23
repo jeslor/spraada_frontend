@@ -1,32 +1,31 @@
+"use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { SpraadaButton } from "../ui/SpraadaButton";
+import { Notification, useSetShowNotifications } from "@/store";
+import { timeAgo } from "@/lib/helpers/dateHelpers";
 
-interface EachNotificationProps {
-  id: string;
-  title: string;
-  profileMediaFiles?: string[];
-  contentMediaFiles?: string[];
-  content: string;
-  read: boolean;
-  createdAt: string;
-}
-
-const EachNotification = ({
-  notification,
-}: {
-  notification: EachNotificationProps;
-}) => {
-  const handleNotificationClick = () => {
-    // Add your click handling logic here
+const EachNotification = ({ notification }: { notification: Notification }) => {
+  const Router = useRouter();
+  const setShowNotifications = useSetShowNotifications();
+  const handleNotificationClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    //navigate to bookings page
+    setShowNotifications(false);
+    Router.push(`${notification.link}`);
   };
 
   const handleIsRead = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    // Add your mark as read logic here
+    // Add your mark as read logic here to an independent notification
   };
 
   return (
-    <div onClick={handleNotificationClick} className="w-full">
+    <div
+      onClick={handleNotificationClick}
+      className={`w-full ${
+        notification.isRead ? "bg-white" : "bg-primary-100"
+      }  hover:bg-gray-100 cursor-pointer`}
+    >
       <div className="px-4 flex items-center justify-between gap-2 mb-2 hover:bg-primary-700/10 cursor-pointer rounded-md">
         {/* Profile images */}
         {(notification.profileMediaFiles?.length ?? 0) > 0 && (
@@ -34,7 +33,7 @@ const EachNotification = ({
             {notification.profileMediaFiles?.slice(0, 2).map((file, index) => (
               <img
                 key={index}
-                src={file}
+                src={file.mediaUrl}
                 alt="notification media"
                 className="absolute w-8 h-8 rounded-full border border-white object-cover shadow-md"
                 style={{
@@ -58,7 +57,7 @@ const EachNotification = ({
             </p>
 
             <span className="font-bold text-gray-900 text-[8px] -mt-0.2 block">
-              {new Date(notification.createdAt).toLocaleString()}
+              {timeAgo(notification.createdAt!)}
             </span>
           </div>
         </div>
@@ -67,13 +66,13 @@ const EachNotification = ({
         {(notification.contentMediaFiles?.length ?? 0) > 0 ? (
           <div className="w-10 h-10 ">
             <img
-              src={notification.contentMediaFiles?.[0]}
+              src={notification.contentMediaFiles?.[0].mediaUrl}
               alt="content media"
               className="w-10 h-10 object-cover rounded-md border border-gray-200"
             />
           </div>
         ) : (
-          notification.read === false && (
+          notification.isRead === false && (
             <div className="w-fit h-10  flex justify-end items-center">
               <SpraadaButton
                 onClick={handleIsRead}

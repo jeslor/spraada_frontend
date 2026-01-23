@@ -20,9 +20,11 @@ import {
   useSetShowNotifications,
   useFetchUnreadMessagesCount,
   useAllUnReadMessagesCount,
+  useSetIsMessagePage,
+  useNotificationCounter,
+  useGetNotificationCounter,
 } from "@/store";
-import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
-import Notifications from "../Notifications/Notifications";
+import { useAppSocket } from "@/Hooks/InitializeAppSocket";
 
 interface SidebarProps {
   session: Session | null;
@@ -54,11 +56,12 @@ const Sidebar = ({ session }: SidebarProps) => {
   const profile = useProfile();
 
   /* ✅ Hooks must be called at top-level */
-  useChatSocket(profile?.id!);
+  useAppSocket(profile?.id!);
   const setShowNotifications = useSetShowNotifications();
   const showNotifications = useShowNotifications();
 
   const user = useUser();
+  const setIsMessagePage = useSetIsMessagePage();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
@@ -66,6 +69,8 @@ const Sidebar = ({ session }: SidebarProps) => {
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
   const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
+  const notificationCounter = useNotificationCounter();
+  const getNotificationCounter = useGetNotificationCounter();
   const allUnreadMessagesCount = useAllUnReadMessagesCount();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
@@ -73,9 +78,30 @@ const Sidebar = ({ session }: SidebarProps) => {
 
   useEffect(() => {
     if (profile) {
+      getNotificationCounter(profile.id);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    let isMessagePage = pathname.startsWith("/messages");
+    setIsMessagePage(isMessagePage);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (profile) {
       fetchUnreadMessagesCount(profile.id);
     }
-  }, [profile, fetchUnreadMessagesCount]);
+  }, [profile]);
+
+  useEffect(() => {
+    if (isExpanded) {
+      setTimeout(() => setShowLabels(true), 100);
+    } else {
+      // Delay hiding labels for smooth transition
+      const timeout = setTimeout(() => setShowLabels(false), 200);
+      return () => clearTimeout(timeout);
+    }
+  }, [isExpanded]);
 
   const handleSignOut = async () => {
     const response = await fetch("/api/auth/signout", { method: "GET" });
@@ -91,16 +117,6 @@ const Sidebar = ({ session }: SidebarProps) => {
       window.location.href = "/signin";
     }
   };
-
-  useEffect(() => {
-    if (isExpanded) {
-      setTimeout(() => setShowLabels(true), 100);
-    } else {
-      // Delay hiding labels for smooth transition
-      const timeout = setTimeout(() => setShowLabels(false), 200);
-      return () => clearTimeout(timeout);
-    }
-  }, [isExpanded]);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -164,14 +180,18 @@ const Sidebar = ({ session }: SidebarProps) => {
                   : "text-gray-700 hover:bg-gray-50"
               )}
             >
-              {item.name.toLowerCase() === "messages" &&
-                allUnreadMessagesCount > 0 && (
-                  <span className="absolute bg-red-700 text-white text-[10px] font-semibold  right-3 px-1 py-0.5 rounded-full min-w-[15px] h-4 flex items-center justify-center">
-                    {allUnreadMessagesCount > 99
+              {((item.name.toLowerCase() === "messages" &&
+                allUnreadMessagesCount > 0) ||
+                (item.name.toLowerCase() === "notifications" &&
+                  notificationCounter.count > 0)) && (
+                <span className="absolute bg-red-700 text-white text-[10px] font-semibold right-3 px-1 py-0.5 rounded-full min-w-[15px] h-4 flex items-center justify-center">
+                  {item.name.toLowerCase() === "messages"
+                    ? allUnreadMessagesCount > 99
                       ? "99+"
-                      : allUnreadMessagesCount}
-                  </span>
-                )}
+                      : allUnreadMessagesCount
+                    : notificationCounter.count}
+                </span>
+              )}
               <Icon
                 icon={active ? item.activeIcon : item.icon}
                 className="text-2xl shrink-0 text-primary-600 font-bold"

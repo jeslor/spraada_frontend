@@ -15,6 +15,7 @@ import { uploadResources } from "@/lib/actions/resources.actions";
 
 const initialState = {
   messages: [],
+  isMessagePage: false,
   isLoading: false,
   error: null,
   profiles: [],
@@ -31,6 +32,12 @@ export const useMessageStore = create<MessageStore>()(
   persist(
     immer((set, get) => ({
       ...initialState,
+
+      setIsMessagePage: (isMessagePage: boolean) => {
+        set((state) => {
+          state.isMessagePage = isMessagePage;
+        });
+      },
       setMessages: (messages: Message[]) => {
         set((state) => {
           state.messages = messages;
@@ -108,6 +115,7 @@ export const useMessageStore = create<MessageStore>()(
         counters: { [key: number]: number }
       ) => {
         try {
+          if (!messageCounterId || !profileId) return;
           const updatedCount = await updateUnreadMessagesCountApi(
             messageCounterId,
             profileId,
@@ -119,6 +127,17 @@ export const useMessageStore = create<MessageStore>()(
         } catch (error) {
           throw error;
         }
+      },
+
+      resetUserUnreadMessagesCount: (selectedUserId: number) => {
+        get().updateUnreadMessagesCount(
+          get().unreadMessagesCount.id,
+          get().unreadMessagesCount.profileId,
+          {
+            ...get().unreadMessagesCount.counters,
+            [selectedUserId]: 0,
+          }
+        );
       },
 
       /* ------------------ FETCH MESSAGES ------------------ */
@@ -170,8 +189,8 @@ export const useMessageStore = create<MessageStore>()(
         });
       },
 
-      /* ------------------ SOCKET INIT ------------------ */
-      initSocketListeners: (profileId: number) => {
+      /* ------------------ SOCKET CHATS INIT ------------------ */
+      initSChatSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
 
         socket.off("chats"); // prevent duplicate listeners
@@ -206,11 +225,12 @@ export const useMessageStore = create<MessageStore>()(
 
           // New incoming message that doesn't exist yet
           const activeChatUser = get().selectedUserToMessage;
+          const isMessagePage = get().isMessagePage;
           get().addIncomingMessage(incomingMessage);
 
           if (
-            activeChatUser &&
-            incomingMessage.senderId !== activeChatUser.id
+            !isMessagePage ||
+            (activeChatUser && incomingMessage.senderId !== activeChatUser.id)
           ) {
             // Update unread messages count
             const unReadMessagesCounter = get().unreadMessagesCount;

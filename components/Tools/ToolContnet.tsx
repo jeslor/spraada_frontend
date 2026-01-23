@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import {
   useProfile,
@@ -41,6 +41,8 @@ const ToolContent = ({
   emptyState,
   gridClassName,
 }: ToolContentProps) => {
+  const searchParams = useSearchParams();
+  const scrollId = searchParams.get("scrollId") || "";
   const profile = useProfile();
   const myTools = useMyTools();
   const setMyTools = useSetMyTools();
@@ -100,6 +102,7 @@ const ToolContent = ({
     hasFetchedBookings,
     fetchBookings,
     isExternalMode,
+    scrollId,
   ]);
 
   // Handle delete tool
@@ -122,12 +125,6 @@ const ToolContent = ({
     } catch (error) {
       console.error("Error deleting tool:", error);
     }
-  };
-
-  // Handle rent action
-  const handleRent = (tool: Tool) => {
-    console.log("Rent tool:", tool.id);
-    // TODO: Open rental modal
   };
 
   // Handle approve booking
@@ -241,11 +238,6 @@ const ToolContent = ({
             tool={tool}
             variant={getCardVariant()}
             onDelete={type === "owned" ? handleDelete : undefined}
-            onRent={
-              type !== "owned" && type !== "search" && type !== "all"
-                ? handleRent
-                : undefined
-            }
             onCancelBooking={
               type === "rented" || type === "borrowed"
                 ? handleUpdateBookingStatus

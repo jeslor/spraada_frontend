@@ -35,6 +35,7 @@ export interface UnReadMessagesCounterType {
 
 export interface MessageState {
   messages: Message[];
+  isMessagePage: boolean;
   isLoading: boolean;
   error: string | null;
   profiles: ProfileSummary[];
@@ -67,9 +68,11 @@ export interface MessageActions {
     counters: { [key: number]: number }
   ) => Promise<void>;
   addIncomingMessage: (message: Message) => void;
+  setIsMessagePage: (isMessagePage: boolean) => void;
   setSelectedUserToMessage: (profile: ProfileSummary | null) => void;
   setSelectedUserMessages: (selectedUserId: number) => void;
-  initSocketListeners: (profileId: number) => void;
+  resetUserUnreadMessagesCount: (selectedUserId: number) => void;
+  initSChatSocketListeners: (profileId: number) => void;
   sendMessage: (msg: Message, profileId: number) => void;
   fetchMessages: (userId: number) => Promise<void>;
   updateMessages: (updatedMessage: Message, localId?: string) => void;
