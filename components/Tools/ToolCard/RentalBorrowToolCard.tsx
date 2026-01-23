@@ -145,6 +145,7 @@ const RentalCard = ({
 
   return (
     <Link
+      id={tool.bookingDetails?.id}
       href={`/toolbox/view/${tool.id}`}
       className="group shadow block w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300"
     >

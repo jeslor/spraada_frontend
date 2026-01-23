@@ -63,7 +63,7 @@ const Notifications = () => {
     <div
       style={{ left: showNotifications ? "0" : "-100%" }}
       ref={notificationRef}
-      className={`absolute h-screen max-w-[500px] w-full top-0 left-0 z-60 bg-white shadow-lg border border-gray-200 rounded-md transition-left duration-300 overflow-y-auto`}
+      className={`fixed h-screen max-w-[500px] w-full top-0 left-0 z-60 bg-white shadow-lg border border-gray-200 rounded-md transition-left duration-300 overflow-y-auto`}
     >
       <div className="relative h-full flex flex-col scrollbar-hide">
         <div className="sticky top-0 bg-white border-b  z-10">

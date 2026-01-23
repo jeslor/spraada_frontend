@@ -205,7 +205,7 @@ export default function BookingModal({
               })),
               content: `${profile.firstName} ${profile.lastName} has requested to book your tool: ${toolName}.`,
               isRead: false,
-              link: `/rentals#${bookingResponse.data.id}`,
+              link: `/rentals?scrollId=${bookingResponse.data.id}`,
             },
             profile.id
           );
