@@ -9,7 +9,6 @@ const EachNotification = ({ notification }: { notification: Notification }) => {
   const Router = useRouter();
   const setShowNotifications = useSetShowNotifications();
   const handleNotificationClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    //navigate to bookings page
     setShowNotifications(false);
     Router.push(`${notification.link}`);
   };

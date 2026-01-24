@@ -20,10 +20,12 @@ interface NotificationState {
   notifications: Notification[];
   notificationCounter: NotificationCounter;
   showNotifications: boolean;
+  hasUnreadNotifications: boolean;
 }
 
 export interface useNotificationActions {
   setShowNotifications: (show: boolean) => void;
+  setHasUnreadNotifications: (hasUnread: boolean) => void;
   initNotificationSocketListeners: (profileId: number) => void;
   getNotifications: (profileId: number) => Promise<void>;
   getNotificationCounter: (profileId: number) => Promise<void>;

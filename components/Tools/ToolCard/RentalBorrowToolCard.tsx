@@ -106,6 +106,19 @@ const RentalCard = ({
             : status === "cancelled"
             ? "Booking Cancelled"
             : "Booking Updated",
+        profileMediaFiles: [
+          {
+            mediaUrl: profile?.avatarUrl!,
+          },
+          {
+            mediaUrl: tool.bookingDetails?.borrower?.avatarUrl!,
+          },
+        ],
+        contentMediaFiles: [
+          {
+            mediaUrl: tool.toolPhotos?.[0]?.photoUrl!,
+          },
+        ],
         profileId: isRental
           ? tool.bookingDetails?.borrower?.id!
           : tool.profile?.id!,
@@ -118,8 +131,10 @@ const RentalCard = ({
         isRead: false,
         link:
           status === "confirmed"
-            ? `/rentals?scrollId=${booking.id}`
-            : `/borrowed?scrollId=${booking.id}`,
+            ? `/borrowed?scrollId=${booking.id}`
+            : status === "cancelled" && profile?.id === tool.profileId
+            ? `/borrowed?scrollId=${booking.id}`
+            : `/rentals?scrollId=${booking.id}`,
       };
 
       sendNotification(newNotification, profile?.id!);

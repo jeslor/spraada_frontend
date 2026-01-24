@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   useShowNotifications,
   useSetShowNotifications,
@@ -7,6 +7,8 @@ import {
   useGetNotifications,
   useNotifications,
   useUpdateNotificationsAndCounterAsRead,
+  useFetchBookings,
+  useHasUnreadNotifications,
 } from "@/store";
 import { Icon } from "@iconify/react";
 import EachNotification from "./EachNotification";
@@ -17,6 +19,8 @@ const Notifications = () => {
   const showNotifications = useShowNotifications();
   const setShowNotifications = useSetShowNotifications();
   const getNotifications = useGetNotifications();
+  const hasUnReadNotifications = useHasUnreadNotifications();
+  const fetchBookings = useFetchBookings();
   const notifications = useNotifications();
   const profile = useProfile();
   const updateNotificationsAndCounterAsRead =
@@ -30,14 +34,14 @@ const Notifications = () => {
       }
     };
   }, [showNotifications, notifications.length]);
-  const closeNotifications = () => {
-    setShowNotifications(false);
-  };
 
   //fetch notifications when the panel is opened
   useEffect(() => {
     if (showNotifications && profile?.id) {
       getNotifications(profile?.id!);
+    }
+    if (showNotifications && hasUnReadNotifications && profile?.id) {
+      fetchBookings(profile?.id);
     }
   }, [showNotifications, profile?.id]);
 
@@ -58,6 +62,11 @@ const Notifications = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // notifications Actions
+  const closeNotifications = () => {
+    setShowNotifications(false);
+  };
 
   return (
     <div

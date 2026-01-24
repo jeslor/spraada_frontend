@@ -18,6 +18,7 @@ const initialState = {
   showNotifications: false,
   notificationCounter: {} as NotificationCounter,
   notifications: [] as Notification[],
+  hasUnreadNotifications: false,
 };
 
 export const useNotificationStore = create<NotificationStore>()(
@@ -49,6 +50,12 @@ export const useNotificationStore = create<NotificationStore>()(
           state.notifications = notifications;
         }),
 
+      //set has unread notifications
+      setHasUnreadNotifications: (hasUnread: boolean) =>
+        set((state) => {
+          state.hasUnreadNotifications = hasUnread;
+        }),
+
       // fetch notification counter from backend
       getNotificationCounter: async (profileId: number) => {
         try {
@@ -70,6 +77,7 @@ export const useNotificationStore = create<NotificationStore>()(
       //update notifications and counter as read when notification window is open
       updateNotificationsAndCounterAsRead: async () => {
         const currentNotifications = get().notifications;
+        if (currentNotifications.length === 0) return;
         const currentCounter = get().notificationCounter;
 
         const updatedNotifications = currentNotifications.map((notify) => ({
@@ -82,6 +90,7 @@ export const useNotificationStore = create<NotificationStore>()(
         };
         get().updateNotifications(updatedNotifications);
         get().updateNotificationCounter(updatedCounter);
+        get().setHasUnreadNotifications(false);
         //update backend
         const updateResult = await updateNotificationAndCounter(
           updatedNotifications[0],
@@ -139,6 +148,7 @@ export const useNotificationStore = create<NotificationStore>()(
             if (updatedNotification.isRead) {
               get().updateNotificationsAndCounterAsRead();
             } else {
+              get().setHasUnreadNotifications(true);
               get().updateNotifications([
                 updatedNotification,
                 ...get().notifications,
