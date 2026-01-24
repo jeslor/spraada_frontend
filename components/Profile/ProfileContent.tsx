@@ -12,7 +12,6 @@ import {
   useSetUser,
   useSetProfile,
   useHasHydrated,
-  useMyToolsCount,
 } from "@/store";
 import { User, Profile } from "@/store/profile/profile.types";
 import { cn } from "@/lib/utils";

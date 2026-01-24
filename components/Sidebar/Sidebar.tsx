@@ -23,6 +23,7 @@ import {
   useSetIsMessagePage,
   useNotificationCounter,
   useGetNotificationCounter,
+  useClearNotifications,
 } from "@/store";
 import { useAppSocket } from "@/Hooks/InitializeAppSocket";
 // Import EachSidebar component (adjust the path as needed)
@@ -67,6 +68,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
   const clearMessages = useClearMessages();
+  const clearNotifications = useClearNotifications();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
   const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
@@ -101,11 +103,12 @@ const Sidebar = ({ session }: SidebarProps) => {
       console.error("Sign out failed:", await response.text());
       return;
     } else {
-      // Clear profile and tools from Zustand store
+      // Clear all zustand stores
       clearProfile();
       clearTools();
       clearBookings();
       clearMessages();
+      clearNotifications;
       window.location.href = "/signin";
     }
   };
