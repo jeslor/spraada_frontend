@@ -27,6 +27,10 @@ export const useNotifications = (): Notification[] =>
 export const useSendNotification = () =>
   useNotificationStore((state) => state.sendNotification);
 
+//get has unread notifications
+export const useHasUnreadNotifications = (): boolean =>
+  useNotificationStore((state) => state.hasUnreadNotifications);
+
 //get notification counter
 export const useNotificationCounter = () =>
   useNotificationStore((state) => state.notificationCounter);
