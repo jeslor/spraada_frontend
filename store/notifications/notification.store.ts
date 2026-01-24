@@ -188,6 +188,8 @@ export const useNotificationStore = create<NotificationStore>()(
             profileId: 0,
             count: 0,
           };
+          state.hasUnreadNotifications = false;
+          state.showNotifications = false;
         }),
     })),
     {

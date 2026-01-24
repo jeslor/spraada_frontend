@@ -48,6 +48,9 @@ export const useUpdateNotifications = () =>
 export const useUpdateNotificationsAndCounterAsRead = () =>
   useNotificationStore((state) => state.updateNotificationsAndCounterAsRead);
 
+export const useClearNotifications = () =>
+  useNotificationStore((state) => state.clearNotifications);
+
 // Notification actions (like messages.selectors)
 export const useNotificationActions = () => {
   return {};
