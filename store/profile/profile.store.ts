@@ -6,6 +6,7 @@ import {
   fetchUserProfile,
   updateUserProfile,
 } from "@/lib/actions/profile.actions";
+import { Tool } from "../tool/tool.types";
 
 // Initial state
 const initialState: ProfileState = {
@@ -62,6 +63,7 @@ export const useProfileStore = create<ProfileStore>()(
 
         try {
           const result = await fetchUserProfile(userId);
+          console.log(result);
 
           if (!result.success) {
             throw new Error(result.error || "Failed to fetch profile");
@@ -115,6 +117,21 @@ export const useProfileStore = create<ProfileStore>()(
           });
           return false;
         }
+      },
+      // ==================== Favorite Tools ====================
+      updateProfileFavoriteTools: (favoriteTools: Tool[]) => {
+        set((state) => {
+          if (state.profile) {
+            state.profile.favoriteTools = favoriteTools;
+          }
+        });
+      },
+
+      toolIsFavorited: (toolId: string): boolean => {
+        const state = get();
+        const favoriteTools = state.profile?.favoriteTools || [];
+
+        return favoriteTools.some((tool) => tool.id === toolId);
       },
 
       // ==================== Avatar/Cover Updates ====================

@@ -15,6 +15,11 @@ export const useProfileLoading = (): boolean =>
 export const useProfileUpdating = (): boolean =>
   useProfileStore((state) => state.isUpdating);
 
+export const useUpdateProfileFavoriteTools = () =>
+  useProfileStore((state) => state.updateProfileFavoriteTools);
+export const useToolIsFavorited = () =>
+  useProfileStore((state) => state.toolIsFavorited);
+
 export const useProfileError = (): string | null =>
   useProfileStore((state) => state.error);
 

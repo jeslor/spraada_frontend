@@ -46,6 +46,8 @@ export const updateUserProfile = async (
   profileId: number,
   updates: Partial<Profile>
 ): Promise<ProfileActionResult<Profile>> => {
+  console.log("updates", updates.favoriteTools);
+
   try {
     const updateRes = await customFetch(
       `${
@@ -197,6 +199,52 @@ export const updateProfileAvatar = async ({
         error instanceof Error
           ? error.message
           : "Failed to update profile avatar",
+    };
+  }
+};
+
+// Add or remove favorite tool
+export const updateFavoriteTools = async (
+  profileId: number,
+  toolId: string,
+  action: "add" | "remove"
+): Promise<ProfileActionResult<Profile>> => {
+  try {
+    const response = await customFetch(
+      `${BACKEND_API_URL}/profile/${profileId}/favorite-tools`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          toolId,
+          action,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error:
+          response.data?.message ||
+          response.error ||
+          "Failed to update favorite tools",
+      };
+    }
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update favorite tools",
     };
   }
 };

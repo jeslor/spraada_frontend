@@ -3,11 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { ToolStore, ToolState, Tool } from "./tool.types";
 
-import {
-  getToolsByOwner,
-  getRentedTools,
-  getBorrowedTools,
-} from "@/lib/actions/tools.actions";
+import { getToolsByOwner } from "@/lib/actions/tools.actions";
 import {
   useBorrowedToolsFromBookings,
   useRentedToolsFromBookings,

@@ -4,7 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool, useToolActions } from "@/store";
+import {
+  Tool,
+  useToolActions,
+  useToolIsFavorited,
+  useUpdateProfile,
+  useUpdateProfileFavoriteTools,
+} from "@/store";
 import {
   getToolById,
   updateToolAvailabilityStatus,
@@ -16,6 +22,7 @@ import ViewToolError from "@/components/Tools/ViewToolError";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import BookingModal from "@/components/Booking/BookingModal";
 import toast from "react-hot-toast";
+import { updateFavoriteTools } from "@/lib/actions/profile.actions";
 
 // Format cents to currency
 const formatPrice = (cents: number) => {
@@ -38,7 +45,10 @@ const formatDate = (dateString: string) => {
 export default function ViewToolPage() {
   const params = useParams();
   const router = useRouter();
+
   const profile = useProfile();
+  const toolIsFavorited = useToolIsFavorited();
+  const updateProfileFavoriteTools = useUpdateProfileFavoriteTools();
   const { updateTool } = useToolActions();
   const toolId = params.toolId as string;
   const toolFromStore = useToolById(toolId);
@@ -46,11 +56,19 @@ export default function ViewToolPage() {
   const [tool, setTool] = useState<Tool | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteStatus, setFavoriteStatus] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   const isOwner = profile && tool && tool.profileId === profile.id;
+
+  useEffect(() => {
+    if (profile && tool) {
+      const isFavorited = toolIsFavorited(tool.id);
+
+      setFavoriteStatus(isFavorited);
+    }
+  }, [profile, tool]);
 
   // Fetch tool data - always fetch from API to ensure complete data with profile
   const fetchTool = async () => {
@@ -141,6 +159,25 @@ export default function ViewToolPage() {
     return <ViewToolError />;
   }
 
+  const handleIsFavoritedChange = async (
+    toolId: string,
+    favorited: boolean
+  ) => {
+    setFavoriteStatus(favorited);
+
+    const updatedProfile = await updateFavoriteTools(
+      profile!.id,
+      toolId,
+      favorited ? "add" : "remove"
+    );
+    if (!updatedProfile.success) {
+      toast.error(updatedProfile.error || "Failed to update favorite tools");
+      return;
+    }
+    //updateProfile store state
+    updateProfileFavoriteTools(updatedProfile.data!.favoriteTools || []);
+  };
+
   const descriptionLength = tool.description?.length || 0;
   const shouldTruncateDescription = descriptionLength > 400;
 
@@ -159,19 +196,21 @@ export default function ViewToolPage() {
           </SpraadaButton>
           <div className="flex items-center gap-2">
             <SpraadaButton
-              onClick={() => setIsFavorited(!isFavorited)}
+              onClick={() => handleIsFavoritedChange(tool.id, !favoriteStatus)}
               variant="ghost"
               className={`p-2.5 rounded-full ${
-                isFavorited
-                  ? "bg-red-50 dark:bg-red-900/30 text-red-500"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                favoriteStatus
+                  ? "bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400"
+                  : "bg-gray-100 dark:bg-primary-800 text-primary-600 dark:text-primary-400"
               }`}
               aria-label={
-                isFavorited ? "Remove from favorites" : "Add to favorites"
+                favoriteStatus ? "Remove from favorites" : "Add to favorites"
               }
             >
               <Icon
-                icon={isFavorited ? "solar:heart-bold" : "solar:heart-linear"}
+                icon={
+                  favoriteStatus ? "solar:heart-bold" : "solar:heart-linear"
+                }
                 width={20}
               />
             </SpraadaButton>
@@ -512,30 +551,32 @@ export default function ViewToolPage() {
                       <SpraadaButton
                         onClick={handleMessageOwner}
                         variant="outline"
-                        className="flex items-center justify-center gap-2 w-full py-2.5 text-sm border-2 border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold hover:bg-primary-100 hover:dark:bg-primary-800/30 transition-colors"
+                        className="w-full"
                       >
                         <Icon icon="solar:chat-round-dots-bold" width={16} />
                         Message Owner
                       </SpraadaButton>
                       <div className="flex gap-2">
                         <SpraadaButton
-                          onClick={() => setIsFavorited(!isFavorited)}
+                          onClick={() =>
+                            handleIsFavoritedChange(tool.id, !favoriteStatus)
+                          }
                           variant="outline"
                           className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-medium border ${
-                            isFavorited
-                              ? "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+                            favoriteStatus
+                              ? "border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400"
                               : "border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           <Icon
                             icon={
-                              isFavorited
+                              favoriteStatus
                                 ? "solar:heart-bold"
                                 : "solar:heart-linear"
                             }
                             width={14}
                           />
-                          {isFavorited ? "Saved" : "Save"}
+                          {favoriteStatus ? "Saved" : "Save"}
                         </SpraadaButton>
                         <SpraadaButton
                           variant="outline"

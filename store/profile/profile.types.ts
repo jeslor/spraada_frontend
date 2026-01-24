@@ -69,6 +69,10 @@ export interface ProfileActions {
   updateAvatar: (avatarUrl: string, avatarUrlKey?: string) => void;
   updateCover: (coverUrl: string, coverUrlKey?: string) => void;
 
+  // Favorite tools
+  updateProfileFavoriteTools: (favoriteTools: Tool[]) => void;
+  toolIsFavorited: (toolId: string) => boolean;
+
   // Error handling
   setError: (error: string | null) => void;
   clearError: () => void;
