@@ -4,6 +4,7 @@ import customFetch from "../customFetch";
 import { Profile, ProfileActionResult } from "@/store/profile/profile.types";
 import { deleteResource, uploadResources } from "./resources.actions";
 import { getSession, updateSessionUserData } from "../session/session";
+import { User } from "@/types/auth";
 
 const RESOURCE_FOLDER = "profile-images";
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
@@ -88,9 +89,9 @@ export const updateUserProfile = async (
 //================Main actions ==================
 
 // create profile
-export const createProfile = async (userProfileData: {}): Promise<
-  ProfileActionResult<Profile>
-> => {
+export const createProfile = async (
+  userProfileData: Partial<Profile>
+): Promise<ProfileActionResult<Profile>> => {
   try {
     //create the profile
     const response = await customFetch(
