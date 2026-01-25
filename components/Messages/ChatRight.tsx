@@ -71,8 +71,6 @@ export default function ChatRight() {
   // Reset unread messages count when viewing messages
   useEffect(() => {
     if (selectedUserToMessage) {
-      console.log("this message ran");
-
       resetUserUnreadMessagesCount(selectedUserToMessage.id);
     }
   }, [selectedUserToMessage]);

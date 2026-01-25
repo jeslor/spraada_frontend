@@ -63,7 +63,6 @@ export const useProfileStore = create<ProfileStore>()(
 
         try {
           const result = await fetchUserProfile(userId);
-          console.log(result);
 
           if (!result.success) {
             throw new Error(result.error || "Failed to fetch profile");
