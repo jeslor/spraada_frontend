@@ -80,7 +80,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       {isLoading && <ToolsSkeletonGrid count={8} variant="compact" />}
 
       {/* Tools Grid */}
-      {!isLoading && !error && tools.length > 0 && (
+      {!isLoading && !error && tools && tools.length > 0 && (
         <div className="grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6">
           {tools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} variant="compact" />
@@ -89,7 +89,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && tools.length === 0 && (
+      {!isLoading && !error && tools && tools.length === 0 && (
         <div className="text-center py-16 bg-gray-50 rounded-2xl">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-100 rounded-full mb-6">
             <Icon
@@ -115,7 +115,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       )}
 
       {/* Mobile View All Link */}
-      {!isLoading && !error && tools.length > 0 && (
+      {!isLoading && !error && tools && tools.length > 0 && (
         <div className="flex sm:hidden justify-center mt-6">
           <Link
             href="/browse"
