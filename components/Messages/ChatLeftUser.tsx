@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Message,
   UnReadMessagesCounterType,
   useMessageActions,
   useUpdateUnreadMessagesCount,
