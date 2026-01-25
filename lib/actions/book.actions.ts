@@ -184,8 +184,6 @@ export const updateBookingAsDeleted = async (
   data: any;
 }> => {
   try {
-    console.log(deletedBy);
-
     const response = await customFetch(
       `${BACKEND_API_URL}/bookings/${bookingId}/delete`,
       {

@@ -135,8 +135,6 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
         );
       }
 
-      console.log(uploadRes);
-
       uploadedImage = uploadRes.data[0];
 
       // 2. Submit Profile Data
@@ -157,7 +155,6 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
       setError(message);
-      console.log(message);
     } finally {
       setIsLoading(false);
     }

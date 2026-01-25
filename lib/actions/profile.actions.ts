@@ -48,8 +48,6 @@ export const updateUserProfile = async (
   profileId: number,
   updates: Partial<Profile>
 ): Promise<ProfileActionResult<Profile>> => {
-  console.log("updates", updates.favoriteTools);
-
   try {
     const updateRes = await customFetch(
       `${BACKEND_API_URL}/profile/${profileId}`,

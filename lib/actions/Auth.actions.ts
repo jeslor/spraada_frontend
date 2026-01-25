@@ -161,7 +161,6 @@ export const updateUserDataInSession = async ({
       userRole,
       UserOnboarded,
     });
-    console.log("Updated user data successfully");
   } catch (error) {
     console.log("Error updating user data in session:", error);
   }
