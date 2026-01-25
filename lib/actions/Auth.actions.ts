@@ -8,6 +8,9 @@ import {
 } from "../session/session";
 import customFetch from "../customFetch";
 
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
+
 //sign up a new user with email, password and confirm password, then return the access and refresh tokens
 export const signUp = async (
   data: SignInData | undefined
@@ -16,16 +19,13 @@ export const signUp = async (
     if (!data) {
       throw new Error("No data provided");
     }
-    const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/sign-up`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${BACKEND_API_URL}/auth/sign-up`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
     if (!response.status.toString().startsWith("2")) {
       throw new Error(
@@ -60,16 +60,13 @@ export const signIn = async (
     if (!data) {
       throw new Error("No data provided");
     }
-    const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/sign-in`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
+    const response = await fetch(`${BACKEND_API_URL}/auth/sign-in`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
 
     if (!response.status.toString().startsWith("2")) {
       throw new Error(
@@ -105,18 +102,15 @@ export const getNewRefreshAndAccessToken = async (
   if (!oldRefreshToken) throw new Error("No refresh token provided");
 
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/refresh-tokens`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          refresh_token: oldRefreshToken,
-          email: userEmail,
-          id,
-        }),
-      }
-    );
+    const response = await fetch(`${BACKEND_API_URL}/auth/refresh-tokens`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        refresh_token: oldRefreshToken,
+        email: userEmail,
+        id,
+      }),
+    });
 
     if (!response.ok) {
       console.error("Backend refresh failed:", await response.text());
@@ -175,15 +169,12 @@ export const updateUserDataInSession = async ({
 //fetch the user from the API by ID
 export const getUser = async (id: string) => {
   try {
-    const response = await customFetch(
-      `${process.env.BACKEND_API_URL || "http://localhost:4444"}/auth/${id}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/auth/${id}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -204,16 +195,13 @@ export const getUser = async (id: string) => {
 //Check if user exists no token
 export const checkIfUserExists = async (email: string) => {
   try {
-    const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/check-email`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      }
-    );
+    const response = await fetch(`${BACKEND_API_URL}/auth/check-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
 
     if (!response.status.toString().startsWith("2")) {
       return false;
@@ -233,7 +221,7 @@ export const resetPasswordRequest = async (
 ): Promise<{ success: boolean; data: string }> => {
   try {
     const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/reset-password-request`,
+      `${BACKEND_API_URL}/auth/reset-password-request`,
       {
         method: "POST",
         headers: {
@@ -262,7 +250,7 @@ export const resetPasswordRequest = async (
 //check if user with reset token exists
 export const userWithTokenExists = async (token: string, email: string) => {
   const response = await fetch(
-    `${process.env.BACKEND_API_URL}/auth/check-reset-token-exists`,
+    `${BACKEND_API_URL}/auth/check-reset-token-exists`,
     {
       method: "POST",
       headers: {
@@ -291,7 +279,7 @@ export const tokenExpiryCheck = async (
 ): Promise<{ valid: boolean }> => {
   try {
     const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/check-reset-token-expired`,
+      `${BACKEND_API_URL}/auth/check-reset-token-expired`,
       {
         method: "POST",
         headers: {
@@ -325,16 +313,13 @@ export const saveNewPassword = async (
     if (!token || !email || !newPassword) {
       throw new Error("Missing required fields");
     }
-    const response = await fetch(
-      `${process.env.BACKEND_API_URL}/auth/save-new-password`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token, email, newPassword }),
-      }
-    );
+    const response = await fetch(`${BACKEND_API_URL}/auth/save-new-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token, email, newPassword }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
