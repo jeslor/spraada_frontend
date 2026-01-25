@@ -20,7 +20,8 @@ import { SignInData, AuthError } from "@/types/auth";
 import { signInSchema } from "@/lib/validators/Auth.validators";
 import { signIn } from "@/lib/actions/Auth.actions";
 
-const backendURL = "http://localhost:4444";
+const backendURL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 const SignInPage = () => {
   const [url, setUrl] = useState<string | null>(null);

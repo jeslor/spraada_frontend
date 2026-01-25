@@ -23,7 +23,7 @@ interface NotificationState {
   hasUnreadNotifications: boolean;
 }
 
-export interface useNotificationActions {
+export interface NotificationActions {
   setShowNotifications: (show: boolean) => void;
   setHasUnreadNotifications: (hasUnread: boolean) => void;
   initNotificationSocketListeners: (profileId: number) => void;
@@ -38,4 +38,4 @@ export interface useNotificationActions {
 
 export interface NotificationStore
   extends NotificationState,
-    useNotificationActions {}
+    NotificationActions {}
