@@ -11,6 +11,8 @@ import {
 } from "@/store";
 
 const RESOURCE_FOLDER = "tool-images";
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 export const saveTool = async ({
   toolInfo,
@@ -38,26 +40,21 @@ export const saveTool = async ({
       );
     }
 
-    const savedToolResponse = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...toolInfo,
-          toolPhotos: uploadedToolPhotosResponse.data.map(
-            (photo: { key: string; url: string }) => ({
-              photoUrl: photo.url,
-              photoUrlKey: photo.key,
-            })
-          ),
-        }),
-      }
-    );
+    const savedToolResponse = await customFetch(`${BACKEND_API_URL}/tools`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...toolInfo,
+        toolPhotos: uploadedToolPhotosResponse.data.map(
+          (photo: { key: string; url: string }) => ({
+            photoUrl: photo.url,
+            photoUrlKey: photo.key,
+          })
+        ),
+      }),
+    });
 
     if (!savedToolResponse.ok) {
       throw new Error(
@@ -75,9 +72,7 @@ export const saveTool = async ({
 export const getToolsByOwner = async (ownerId: number) => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/owner/${ownerId}`,
+      `${BACKEND_API_URL}/tools/owner/${ownerId}`,
       {
         method: "GET",
         headers: {
@@ -104,9 +99,7 @@ export const getToolsByOwner = async (ownerId: number) => {
 export const getRandomTools = async (count: number) => {
   try {
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/random?count=${count}`,
+      `${BACKEND_API_URL}/tools/random?count=${count}`,
       {
         method: "GET",
         headers: {
@@ -142,9 +135,7 @@ export const searchTools = async (
     if (params.limit) queryParams.set("limit", params.limit.toString());
 
     const response = await fetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/search?${queryParams.toString()}`,
+      `${BACKEND_API_URL}/tools/search?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
@@ -167,9 +158,7 @@ export const searchTools = async (
 export const getAllTools = async (limit?: number) => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools${limit ? `?limit=${limit}` : ""}`,
+      `${BACKEND_API_URL}/tools${limit ? `?limit=${limit}` : ""}`,
       {
         method: "GET",
         headers: {
@@ -196,17 +185,12 @@ export const getAllTools = async (limit?: number) => {
 
 export const getToolById = async (toolId: string): Promise<Tool | null> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/${toolId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/tools/${toolId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -296,18 +280,13 @@ export const updateTool = async ({
     }
 
     // Update the tool details with the combined photos
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/${toolId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatePayload),
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/tools/${toolId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatePayload),
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -329,18 +308,13 @@ export const deleteTool = async (
   profileId: number
 ): Promise<{ success: boolean; data: string }> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/${tool.id}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ profileId }),
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/tools/${tool.id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ profileId }),
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -370,9 +344,7 @@ export const updateToolAvailabilityStatus = async (
 ): Promise<{ success: boolean; data: boolean }> => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/tools/${toolId}/availability`,
+      `${BACKEND_API_URL}/tools/${toolId}/availability`,
       {
         method: "PATCH",
         headers: {
@@ -407,9 +379,7 @@ export const updateToolAvailabilityStatus = async (
 export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/rented/profile/${profileId}`,
+      `${BACKEND_API_URL}/bookings/rented/profile/${profileId}`,
       {
         method: "GET",
         headers: {
@@ -438,9 +408,7 @@ export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
 export const getBorrowedTools = async (profileId: number): Promise<Tool[]> => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/borrowed/profile/${profileId}`,
+      `${BACKEND_API_URL}/bookings/borrowed/profile/${profileId}`,
       {
         method: "GET",
         headers: {

@@ -7,7 +7,8 @@ import { getSession, updateSessionUserData } from "../session/session";
 import { User } from "@/types/auth";
 
 const RESOURCE_FOLDER = "profile-images";
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 // =================helper functions for profile actions ===================
 //Fetch user profile by user ID
@@ -51,9 +52,7 @@ export const updateUserProfile = async (
 
   try {
     const updateRes = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/profile/${profileId}`,
+      `${BACKEND_API_URL}/profile/${profileId}`,
       {
         method: "PATCH",
         headers: {
@@ -94,16 +93,13 @@ export const createProfile = async (
 ): Promise<ProfileActionResult<Profile>> => {
   try {
     //create the profile
-    const response = await customFetch(
-      `${process.env.BACKEND_API_URL || "http://localhost:4444"}/profile`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userProfileData),
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/profile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userProfileData),
+    });
 
     if (!response.ok) {
       throw new Error(
