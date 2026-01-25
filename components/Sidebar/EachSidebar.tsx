@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import {
   useAllUnReadMessagesCount,
+  useFetchUnreadMessagesCount,
   useGetNotificationCounter,
   useNotificationCounter,
   useProfile,
@@ -33,6 +34,7 @@ const EachSidebar = ({
   const [animateBubble, setAnimateBubble] = useState(false);
   const notificationCounter = useNotificationCounter();
   const getNotificationCounter = useGetNotificationCounter();
+  const getUnreadMessagesCount = useFetchUnreadMessagesCount();
   const allUnreadMessagesCount = useAllUnReadMessagesCount();
   const profile = useProfile();
   const user = useUser();
@@ -40,6 +42,7 @@ const EachSidebar = ({
   useEffect(() => {
     if (profile) {
       getNotificationCounter(profile.id);
+      getUnreadMessagesCount(profile.id);
     }
   }, [profile]);
 
