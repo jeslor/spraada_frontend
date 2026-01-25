@@ -39,7 +39,7 @@ export default function Messages() {
     }
   }, [hasFetchedMessages, hasFetchedProfiles, messages]);
 
-  return hasFetchedProfiles && hasFetchedMessages && !selectedUserToMessage ? (
+  return hasFetchedProfiles && hasFetchedMessages && selectedUserToMessage ? (
     <Chat />
   ) : (
     <ChatLoading />
