@@ -48,7 +48,7 @@ const EachSidebar = ({
     setAnimateBubble(true);
     const timeout = setTimeout(() => setAnimateBubble(false), 350);
     return () => clearTimeout(timeout);
-  }, [notificationCounter.count]);
+  }, [notificationCounter.count, allUnreadMessagesCount]);
 
   const href = item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
   const active = isActive(href);
