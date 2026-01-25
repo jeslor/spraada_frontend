@@ -19,6 +19,9 @@ enum BookingStatus {
   cancelled = "CANCELLED",
 }
 
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
+
 export const createBooking = async ({
   toolId,
   borrowerId,
@@ -31,25 +34,20 @@ export const createBooking = async ({
   data: any;
 }> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          toolId,
-          rentedById: toolOwnerId, // Owner is the renter
-          borrowedById: borrowerId, // User borrowing
-          pickUpDate,
-          returnDate,
-          totalPrice,
-        }),
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/bookings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        toolId,
+        rentedById: toolOwnerId, // Owner is the renter
+        borrowedById: borrowerId, // User borrowing
+        pickUpDate,
+        returnDate,
+        totalPrice,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -75,9 +73,7 @@ export const createBooking = async ({
 export const getBookingsByProfile = async (profileId: number) => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/profile/${profileId}`,
+      `${BACKEND_API_URL}/bookings/profile/${profileId}`,
       {
         method: "GET",
         headers: {
@@ -111,9 +107,7 @@ export const updateBookingStatus = async (
 }> => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/${bookingId}`,
+      `${BACKEND_API_URL}/bookings/${bookingId}`,
       {
         method: "PATCH",
         headers: {
@@ -152,9 +146,7 @@ export const updateBookingStatus = async (
 export const getBookingsByTool = async (toolId: string) => {
   try {
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/tool/${toolId}`,
+      `${BACKEND_API_URL}/bookings/tool/${toolId}`,
       {
         method: "GET",
         headers: {
@@ -195,9 +187,7 @@ export const updateBookingAsDeleted = async (
     console.log(deletedBy);
 
     const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/${bookingId}/delete`,
+      `${BACKEND_API_URL}/bookings/${bookingId}/delete`,
       {
         method: "PATCH",
         headers: {
