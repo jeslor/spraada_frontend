@@ -2,6 +2,7 @@
 import { formatPrice } from "@/lib/helpers/dateHelpers";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
+import { useRouter } from "next/navigation";
 
 import { useState } from "react";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
@@ -16,6 +17,7 @@ const DefaultCard = ({
   onDelete?: (toolId: Tool) => void;
   isDeleting?: boolean;
 }) => {
+  const Router = useRouter();
   const isOwnedByUser = isToolOwnedByUser(tool);
   const isFavoriteTool = isFavorite(tool.id);
 
@@ -59,9 +61,13 @@ const DefaultCard = ({
     setImageIndex(idx);
   };
 
+  const handleNavigateToTool = () => {
+    Router.push(`/toolbox/view/${tool.id}`);
+  };
+
   return (
-    <Link
-      href={`/toolbox/view/${tool.id}`}
+    <div
+      onClick={handleNavigateToTool}
       className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -270,7 +276,7 @@ const DefaultCard = ({
         onConfirm={() => onDelete?.(tool)}
         onCancel={() => setShowDeleteConfirm(false)}
       />
-    </Link>
+    </div>
   );
 };
 export default DefaultCard;
