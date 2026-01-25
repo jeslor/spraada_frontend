@@ -5,6 +5,7 @@ import {
   useMessageActions,
   useMessages,
   useProfile,
+  useSelectedUserToMessage,
 } from "@/store";
 
 import { useEffect, useState } from "react";
@@ -16,6 +17,7 @@ export default function Messages() {
   const [hasFetchedProfiles, setHasFetchedProfiles] = useState(false);
 
   const fetchMessages = useFetchMessages();
+  const selectedUserToMessage = useSelectedUserToMessage();
   const messages = useMessages();
 
   const { userProfiles } = useMessageActions();
@@ -37,5 +39,9 @@ export default function Messages() {
     }
   }, [hasFetchedMessages, hasFetchedProfiles, messages]);
 
-  return hasFetchedProfiles && hasFetchedMessages ? <Chat /> : <ChatLoading />;
+  return hasFetchedProfiles && hasFetchedMessages && !selectedUserToMessage ? (
+    <Chat />
+  ) : (
+    <ChatLoading />
+  );
 }
