@@ -105,7 +105,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
             Be the first to share your tools with the community!
           </p>
           <Link
-            href="/toolbox/add"
+            href="/create"
             className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
           >
             <Icon icon="solar:add-circle-bold" width={20} />
