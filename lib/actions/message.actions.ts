@@ -9,7 +9,7 @@ export const saveMessageAPI = async (
   message: Partial<Message>
 ): Promise<Message> => {
   try {
-    const response = await customFetch(`${BACKEND_URL}/message`, {
+    const response = await fetch(`${BACKEND_URL}/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -18,14 +18,10 @@ export const saveMessageAPI = async (
     });
 
     if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to save message"
-      );
+      throw new Error(response.statusText || "Failed to save message");
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw error;
   }
@@ -33,24 +29,17 @@ export const saveMessageAPI = async (
 
 export const fetchMessagesApi = async (userId: number): Promise<Message[]> => {
   try {
-    const response = await customFetch(
-      `${BACKEND_URL}/message?userId=${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${BACKEND_URL}/message?userId=${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to fetch messages"
-      );
+      throw new Error(response.statusText || "Failed to fetch messages");
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw error;
   }
@@ -60,7 +49,7 @@ export const fetchProfilesApi = async (
   userId: number
 ): Promise<ProfileSummary[]> => {
   try {
-    const response = await customFetch(
+    const response = await fetch(
       `${BACKEND_URL}/message/profiles?userId=${userId}`,
       {
         method: "GET",
@@ -70,14 +59,10 @@ export const fetchProfilesApi = async (
       }
     );
     if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to fetch profiles"
-      );
+      throw new Error(response.statusText || "Failed to fetch profiles");
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw error;
   }
@@ -91,7 +76,7 @@ export const fetchUnreadMessagesCountApi = async (
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await customFetch(
+    const response = await fetch(
       `${BACKEND_URL}/message/unreadCount?profileId=${userId}`,
       {
         method: "GET",
@@ -101,14 +86,12 @@ export const fetchUnreadMessagesCountApi = async (
       }
     );
     if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to fetch unread messages count"
-      );
+      if (!response.ok) {
+        throw new Error(response.statusText || "Failed to fetch random tools");
+      }
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw error;
   }
@@ -124,7 +107,7 @@ export const updateUnreadMessagesCountApi = async (
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await customFetch(
+    const response = await fetch(
       `${BACKEND_URL}/message/unreadCount/${unReadMessageId}`,
       {
         method: "POST",
@@ -137,13 +120,11 @@ export const updateUnreadMessagesCountApi = async (
 
     if (!response.ok) {
       throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to update unread messages count"
+        response.statusText || "Failed to update unread messages count"
       );
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     throw error;
   }
