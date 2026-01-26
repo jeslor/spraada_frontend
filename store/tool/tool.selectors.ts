@@ -12,6 +12,9 @@ export const useRentedTools = (): Tool[] =>
 export const useBorrowedTools = (): Tool[] =>
   useToolStore((state) => state.borrowedTools);
 
+export const useFeaturedTools = (): Tool[] =>
+  useToolStore((state) => state.featuredTools);
+
 export const useToolsLoading = (): boolean =>
   useToolStore((state) => state.isLoading);
 
@@ -77,6 +80,9 @@ export const useSetRentedTools = () =>
 
 export const useSetBorrowedTools = () =>
   useToolStore((state) => state.setBorrowedTools);
+
+export const useSetFeaturedTools = () =>
+  useToolStore((state) => state.setFeaturedTools);
 
 export const useClearTools = () => useToolStore((state) => state.clearTools);
 

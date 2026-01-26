@@ -4,28 +4,6 @@ import { getRandomTools } from "@/lib/actions/tools.actions";
 import ToolsSkeletonGrid from "@/components/Tools/ToolsSkeletonGrid";
 
 // Loading skeleton for tools section
-const ToolsSkeleton = () => (
-  <section className="py-8 w-full max-w-[1400px] mx-auto">
-    <div className="flex items-center justify-between mb-6">
-      <div>
-        <div className="h-8 bg-gray-200 rounded w-64 animate-pulse" />
-        <div className="h-4 bg-gray-200 rounded w-48 mt-2 animate-pulse" />
-      </div>
-    </div>
-    <ToolsSkeletonGrid count={8} variant="compact" />
-  </section>
-);
-
-// Server component to fetch tools
-const FeaturedToolsServer = async () => {
-  try {
-    const tools = await getRandomTools(12);
-    return <FeaturedTools initialTools={tools} />;
-  } catch (error) {
-    console.error("Error fetching tools:", error);
-    return <FeaturedTools />;
-  }
-};
 
 const Page = () => {
   return (
@@ -36,9 +14,7 @@ const Page = () => {
       </div>
 
       {/* Featured Tools Grid */}
-      <Suspense fallback={<ToolsSkeleton />}>
-        <FeaturedToolsServer />
-      </Suspense>
+      <FeaturedTools />
 
       {/* How It Works Section */}
       <HowItWorks />

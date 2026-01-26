@@ -56,7 +56,6 @@ const ToolContent = ({
   const fetchBookings = useFetchBookings();
   const updateBookingStatusInStore = useUpdateBookingStatus();
   const [hasFetchedTools, setHasFetchedTools] = useState(false);
-  const [hasFetchedBookings, setHasFetchedBookings] = useState(false);
 
   // Memoize profileId to prevent unnecessary effect runs
   const profileId = profile?.id;
@@ -83,26 +82,6 @@ const ToolContent = ({
     hasFetchedTools,
     fetchMyTools,
     isExternalMode,
-  ]);
-
-  // Fetch bookings for rented/borrowed types
-  useEffect(() => {
-    if (isExternalMode) return;
-
-    if (profileId && bookingsHydrated && !hasFetchedBookings) {
-      if (type === "rented" || type === "borrowed") {
-        setHasFetchedBookings(true);
-        fetchBookings(profileId);
-      }
-    }
-  }, [
-    type,
-    profileId,
-    bookingsHydrated,
-    hasFetchedBookings,
-    fetchBookings,
-    isExternalMode,
-    scrollId,
   ]);
 
   // Handle delete tool
@@ -180,7 +159,7 @@ const ToolContent = ({
         (profile?.id && tools.length === 0 && !hasFetchedTools)
       : !bookingsHydrated ||
         bookingsLoading ||
-        (profile?.id && tools.length === 0 && !hasFetchedBookings);
+        (profile?.id && tools.length === 0);
 
   // Show skeleton while loading
   if (isLoading) {

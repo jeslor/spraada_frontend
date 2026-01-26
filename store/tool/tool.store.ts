@@ -14,6 +14,7 @@ const initialState: ToolState = {
   myTools: [],
   rentedTools: [],
   borrowedTools: [],
+  featuredTools: [],
   isLoading: false,
   isUpdating: false,
   error: null,
@@ -30,6 +31,13 @@ export const useToolStore = create<ToolStore>()(
       setMyTools: (tools: Tool[]) => {
         set((state) => {
           state.myTools = tools;
+          state.error = null;
+        });
+      },
+
+      setFeaturedTools: (tools: Tool[]) => {
+        set((state) => {
+          state.featuredTools = tools;
           state.error = null;
         });
       },
@@ -70,8 +78,18 @@ export const useToolStore = create<ToolStore>()(
       updateTool: (toolId: string, updates: Partial<Tool>) => {
         set((state) => {
           const index = state.myTools.findIndex((t) => t.id === toolId);
+          const indexInFavorites = state.featuredTools.findIndex(
+            (t) => t.id === toolId
+          );
           if (index !== -1) {
             state.myTools[index] = { ...state.myTools[index], ...updates };
+          }
+
+          if (indexInFavorites !== -1) {
+            state.featuredTools[indexInFavorites] = {
+              ...state.featuredTools[indexInFavorites],
+              ...updates,
+            };
           }
         });
       },
