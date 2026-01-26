@@ -1,6 +1,6 @@
 import { Message } from "@/store/messages/messages.type";
 import { ProfileSummary } from "@/store/messages/messages.type";
-import customFetch from "@/lib/customFetch";
+import customFetch, { normalCustomFetch } from "@/lib/customFetch";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
@@ -9,19 +9,23 @@ export const saveMessageAPI = async (
   message: Partial<Message>
 ): Promise<Message> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/message`, {
+    const response = await normalCustomFetch(`${BACKEND_URL}/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(message),
     });
-
     if (!response.ok) {
-      throw new Error(response.statusText || "Failed to save message");
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to save message"
+      );
     }
-    const data = await response.json();
-    return data;
+
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -29,17 +33,25 @@ export const saveMessageAPI = async (
 
 export const fetchMessagesApi = async (userId: number): Promise<Message[]> => {
   try {
-    const response = await fetch(`${BACKEND_URL}/message?userId=${userId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await normalCustomFetch(
+      `${BACKEND_URL}/message?userId=${userId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     if (!response.ok) {
-      throw new Error(response.statusText || "Failed to fetch messages");
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch messages"
+      );
     }
-    const data = await response.json();
-    return data;
+
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -49,7 +61,7 @@ export const fetchProfilesApi = async (
   userId: number
 ): Promise<ProfileSummary[]> => {
   try {
-    const response = await fetch(
+    const response = await normalCustomFetch(
       `${BACKEND_URL}/message/profiles?userId=${userId}`,
       {
         method: "GET",
@@ -59,10 +71,15 @@ export const fetchProfilesApi = async (
       }
     );
     if (!response.ok) {
-      throw new Error(response.statusText || "Failed to fetch profiles");
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch profiles"
+      );
     }
-    const data = await response.json();
-    return data;
+
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -76,7 +93,7 @@ export const fetchUnreadMessagesCountApi = async (
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await fetch(
+    const response = await normalCustomFetch(
       `${BACKEND_URL}/message/unreadCount?profileId=${userId}`,
       {
         method: "GET",
@@ -87,14 +104,14 @@ export const fetchUnreadMessagesCountApi = async (
     );
 
     if (!response.ok) {
-      if (!response.ok) {
-        throw new Error(response.statusText || "Failed to fetch random tools");
-      }
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch unread messages count"
+      );
     }
-
-    const data = await response.json();
-
-    return data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -110,7 +127,7 @@ export const updateUnreadMessagesCountApi = async (
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await fetch(
+    const response = await normalCustomFetch(
       `${BACKEND_URL}/message/unreadCount/${unReadMessageId}`,
       {
         method: "POST",
@@ -123,10 +140,13 @@ export const updateUnreadMessagesCountApi = async (
 
     if (!response.ok) {
       throw new Error(
-        response.statusText || "Failed to update unread messages count"
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to update unread messages count"
       );
     }
-    const data = await response.json();
+    const data = response.data;
     return data;
   } catch (error) {
     throw error;

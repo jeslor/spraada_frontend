@@ -4,8 +4,6 @@ import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import {
   useAllUnReadMessagesCount,
-  useFetchUnreadMessagesCount,
-  useGetNotificationCounter,
   useNotificationCounter,
   useProfile,
   useUser,
@@ -33,18 +31,9 @@ const EachSidebar = ({
 }: EachSidebarProps) => {
   const [animateBubble, setAnimateBubble] = useState(false);
   const notificationCounter = useNotificationCounter();
-  const getNotificationCounter = useGetNotificationCounter();
-  const getUnreadMessagesCount = useFetchUnreadMessagesCount();
   const allUnreadMessagesCount = useAllUnReadMessagesCount();
   const profile = useProfile();
   const user = useUser();
-
-  useEffect(() => {
-    if (profile) {
-      getNotificationCounter(profile.id);
-      getUnreadMessagesCount(profile.id);
-    }
-  }, [profile]);
 
   useEffect(() => {
     // Animate bubble every time notification count changes

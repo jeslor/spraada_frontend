@@ -115,7 +115,7 @@ export const useMessageStore = create<MessageStore>()(
         counters: { [key: number]: number }
       ) => {
         try {
-          if (!messageCounterId || !profileId) return;
+          if (!profileId) return;
           const updatedCount = await updateUnreadMessagesCountApi(
             messageCounterId,
             profileId,
