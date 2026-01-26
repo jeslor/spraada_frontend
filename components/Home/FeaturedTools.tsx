@@ -1,34 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/store";
+import { Tool, useFeaturedTools, useSetFeaturedTools } from "@/store";
 import { getRandomTools } from "@/lib/actions/tools.actions";
 import ToolCard from "@/components/Tools/ToolCard/ToolCard";
 import ToolsSkeletonGrid from "@/components/Tools/ToolsSkeletonGrid";
 
-interface FeaturedToolsProps {
-  initialTools?: Tool[];
-}
-
-export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
-  const [tools, setTools] = useState<Tool[]>(initialTools || []);
-  const [isLoading, setIsLoading] = useState(!initialTools);
+export const FeaturedTools = () => {
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const featuredTools = useFeaturedTools();
+  const setFeaturedTools = useSetFeaturedTools();
+
   useEffect(() => {
-    if (!initialTools) {
+    setIsLoading(true);
+    if (featuredTools.length > 0) {
+      setTools(featuredTools);
+      setIsLoading(false);
+    }
+  }, [featuredTools]);
+
+  useEffect(() => {
+    if (featuredTools.length === 0) {
       fetchTools();
     }
-  }, [initialTools]);
+  }, [featuredTools]);
 
   const fetchTools = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const data = await getRandomTools(12);
-      setTools(data);
+      setFeaturedTools(data);
     } catch (err) {
       setError("Failed to load tools");
       console.error("Error fetching tools:", err);
