@@ -85,12 +85,15 @@ export const fetchUnreadMessagesCountApi = async (
         },
       }
     );
+
     if (!response.ok) {
       if (!response.ok) {
         throw new Error(response.statusText || "Failed to fetch random tools");
       }
     }
+
     const data = await response.json();
+
     return data;
   } catch (error) {
     throw error;
