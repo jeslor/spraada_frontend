@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useProfileStore } from "@/store";
+import { useEffect, useRef, useState } from "react";
+import { useFetchBookings, useProfile, useProfileStore } from "@/store";
 import { User } from "@/store/profile/profile.types";
 
 interface ProfileInitializerProps {
@@ -14,7 +14,9 @@ interface ProfileInitializerProps {
  */
 export function ProfileInitializer({ user }: ProfileInitializerProps) {
   const setUser = useProfileStore((state) => state.setUser);
+  const fetchBookings = useFetchBookings();
   const hasHydrated = useProfileStore((state) => state._hasHydrated);
+  const profile = useProfile();
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -24,6 +26,13 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
       setUser(user);
     }
   }, [user, setUser, hasHydrated]);
+
+  useEffect(() => {
+    if (profile) {
+      fetchBookings(profile.id);
+      //fetchbookings or other data if needed
+    }
+  }, [profile]);
 
   return null;
 }
