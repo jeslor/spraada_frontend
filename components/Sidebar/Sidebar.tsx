@@ -76,6 +76,8 @@ const Sidebar = ({ session }: SidebarProps) => {
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
 
+  console.log("app reloaded");
+
   useEffect(() => {
     let isMessagePage = pathname.startsWith("/messages");
     setIsMessagePage(isMessagePage);
