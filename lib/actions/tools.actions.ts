@@ -1,7 +1,7 @@
 "use server";
 
 import { deleteResource, uploadResources } from "./resources.actions";
-import customFetch from "../customFetch";
+import customFetch, { normalCustomFetch } from "../customFetch";
 import {
   SearchToolsParams,
   SearchToolsResponse,
@@ -71,7 +71,7 @@ export const saveTool = async ({
 
 export const getToolsByOwner = async (ownerId: number) => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/tools/owner/${ownerId}`,
       {
         method: "GET",
@@ -98,7 +98,7 @@ export const getToolsByOwner = async (ownerId: number) => {
 
 export const getRandomTools = async (count: number) => {
   try {
-    const response = await fetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/tools/random?count=${count}`,
       {
         method: "GET",
@@ -108,14 +108,16 @@ export const getRandomTools = async (count: number) => {
         cache: "no-store",
       }
     );
-
     if (!response.ok) {
-      throw new Error(response.statusText || "Failed to fetch random tools");
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch random tools"
+      );
     }
 
-    const data = await response.json();
-
-    return data.data;
+    return response.data;
   } catch (error) {
     throw error;
   }
@@ -157,7 +159,7 @@ export const searchTools = async (
 
 export const getAllTools = async (limit?: number) => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/tools${limit ? `?limit=${limit}` : ""}`,
       {
         method: "GET",
@@ -185,12 +187,15 @@ export const getAllTools = async (limit?: number) => {
 
 export const getToolById = async (toolId: string): Promise<Tool | null> => {
   try {
-    const response = await customFetch(`${BACKEND_API_URL}/tools/${toolId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await normalCustomFetch(
+      `${BACKEND_API_URL}/tools/${toolId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -343,7 +348,7 @@ export const updateToolAvailabilityStatus = async (
   profileId: number
 ): Promise<{ success: boolean; data: boolean }> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/tools/${toolId}/availability`,
       {
         method: "PATCH",
@@ -378,7 +383,7 @@ export const updateToolAvailabilityStatus = async (
 // Get tools that a user has rented out to others
 export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/rented/profile/${profileId}`,
       {
         method: "GET",
@@ -407,7 +412,7 @@ export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
 // Get tools that a user has borrowed from others
 export const getBorrowedTools = async (profileId: number): Promise<Tool[]> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/borrowed/profile/${profileId}`,
       {
         method: "GET",

@@ -1,5 +1,5 @@
 "use server";
-import customFetch from "../customFetch";
+import customFetch, { normalCustomFetch } from "../customFetch";
 
 interface CreateBookingProps {
   toolId: string;
@@ -34,7 +34,7 @@ export const createBooking = async ({
   data: any;
 }> => {
   try {
-    const response = await customFetch(`${BACKEND_API_URL}/bookings`, {
+    const response = await normalCustomFetch(`${BACKEND_API_URL}/bookings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +72,7 @@ export const createBooking = async ({
 
 export const getBookingsByProfile = async (profileId: number) => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/profile/${profileId}`,
       {
         method: "GET",
@@ -106,7 +106,7 @@ export const updateBookingStatus = async (
   data: any;
 }> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/${bookingId}`,
       {
         method: "PATCH",
@@ -145,7 +145,7 @@ export const updateBookingStatus = async (
 
 export const getBookingsByTool = async (toolId: string) => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/tool/${toolId}`,
       {
         method: "GET",
@@ -184,7 +184,7 @@ export const updateBookingAsDeleted = async (
   data: any;
 }> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_API_URL}/bookings/${bookingId}/delete`,
       {
         method: "PATCH",
