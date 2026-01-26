@@ -19,9 +19,7 @@ import {
   useClearMessages,
   useSetShowNotifications,
   useFetchUnreadMessagesCount,
-  useAllUnReadMessagesCount,
   useSetIsMessagePage,
-  useNotificationCounter,
   useGetNotificationCounter,
   useClearNotifications,
 } from "@/store";
@@ -72,11 +70,10 @@ const Sidebar = ({ session }: SidebarProps) => {
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
   const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
+  const getNotificationCounter = useGetNotificationCounter();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
-
-  console.log("app reloaded");
 
   useEffect(() => {
     let isMessagePage = pathname.startsWith("/messages");
@@ -86,6 +83,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   useEffect(() => {
     if (profile) {
       fetchUnreadMessagesCount(profile.id);
+      getNotificationCounter(profile.id);
     }
   }, [profile]);
 
