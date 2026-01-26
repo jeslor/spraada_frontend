@@ -1,11 +1,11 @@
 "use client";
 
-import { Session } from "@/lib/session/session";
+import { deleteSession, Session } from "@/lib/session/session";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { NavItem, navItems } from "@/lib/constants/navigation";
 import {
   useProfile,
@@ -47,6 +47,7 @@ const useMediaQuery = (query: string): boolean => {
 };
 
 const Sidebar = ({ session }: SidebarProps) => {
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
@@ -98,19 +99,16 @@ const Sidebar = ({ session }: SidebarProps) => {
   }, [isExpanded]);
 
   const handleSignOut = async () => {
-    const response = await fetch("/api/auth/signout", { method: "GET" });
-    if (!response.ok) {
-      console.error("Sign out failed:", await response.text());
-      return;
-    } else {
-      // Clear all zustand stores
-      clearProfile();
-      clearTools();
-      clearBookings();
-      clearMessages();
-      clearNotifications;
-      window.location.href = "/signin";
-    }
+    setIsSigningOut(true);
+    clearProfile();
+    clearTools();
+    clearBookings();
+    clearMessages();
+    clearNotifications;
+    await deleteSession();
+    window.location.href = "/signin";
+
+    // const response = fetch("/api/auth/signout", { method: "GET" });
   };
 
   const isActive = (href: string) => {
@@ -127,6 +125,16 @@ const Sidebar = ({ session }: SidebarProps) => {
       : setShowNotifications(true);
   };
 
+  useEffect(() => {
+    if (isSigningOut) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [isSigningOut]);
+
   return (
     <aside
       className={cn(
@@ -136,6 +144,24 @@ const Sidebar = ({ session }: SidebarProps) => {
       onMouseEnter={() => !isDesktop && setIsHovered(true)}
       onMouseLeave={() => !isDesktop && setIsHovered(false)}
     >
+      {isSigningOut && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-white px-8 py-6 shadow-xl">
+            {/* Spinner */}
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900" />
+
+            {/* Text */}
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-900">
+                Signing you out
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                See you again soon 👋
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Logo */}
       <div className="h-20 flex items-center px-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
@@ -195,7 +221,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         {session ? (
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             <Icon icon="solar:logout-2-linear" className="text-2xl shrink-0" />
             {isExpanded && (
