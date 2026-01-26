@@ -148,7 +148,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4 rounded-2xl bg-white px-8 py-6 shadow-xl">
             {/* Spinner */}
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900" />
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
 
             {/* Text */}
             <div className="text-center">
@@ -156,7 +156,7 @@ const Sidebar = ({ session }: SidebarProps) => {
                 Signing you out
               </p>
               <p className="mt-1 text-sm text-gray-500">
-                See you again soon 👋
+                See you again soon <span className="text-[20px]">👋🏾</span>
               </p>
             </div>
           </div>
