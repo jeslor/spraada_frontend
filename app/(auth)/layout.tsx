@@ -79,7 +79,7 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
 
       {/* Right Side - Auth Form */}
       <div className="auth-form-side scrollbar-hide">
-        <div className="auth-form-container h-fit">{children}</div>
+        <div className="auth-form-container h-fit pb-4">{children}</div>
       </div>
     </div>
   );
