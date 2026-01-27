@@ -23,43 +23,14 @@ const ProfileLayout = async ({
     redirect(`/profile/${session.user.id}`);
   }
 
-  const user = await getUser(id);
-
-  // If no user record in database → redirect
-  if (!user) {
-    redirect("/signin");
-  }
-
-  // Sync session data with DB
-  if (
-    user.isOnboarded !== session.user.isOnboarded &&
-    user.isOnboarded === true
-  ) {
-    await fetch(
-      `${
-        process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
-      }/api/session/update-user-data`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userRole: user.role,
-          UserOnboarded: user.isOnboarded,
-        }),
-      }
-    );
-  }
-
   return (
     <div className="profile-layout min-h-screen bg-gray-50 py-8">
       <div className="myContainer">
-        {user.isOnboarded ? (
+        {session.user.isOnboarded ? (
           <main>{children}</main>
         ) : (
           <div className="flex items-center justify-center min-h-[60vh]">
-            <OnboardingForm userRole={user.role} userId={id} />
+            <OnboardingForm userRole={session.user.role} userId={id} />
           </div>
         )}
       </div>

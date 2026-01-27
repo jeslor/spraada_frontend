@@ -45,6 +45,11 @@ export interface ProfileState {
   // Data
   profile: Profile | null;
   user: User | null;
+  stats: {
+    totalTools: number;
+    totalRentals: number;
+    totalEarningsCents: number;
+  } | null;
 
   // Loading states
   isLoading: boolean;
@@ -57,13 +62,16 @@ export interface ProfileState {
 
 export interface ProfileActions {
   // Core actions
-  setProfile: (profile: Profile) => void;
+  setProfile: (profile: Profile | null) => void;
   setUser: (user: User) => void;
   clearProfile: () => void;
 
   // Async actions
   fetchProfile: (userId: string) => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<boolean>;
+
+  // Stats
+  setStats: () => void;
 
   // Avatar/Cover updates
   updateAvatar: (avatarUrl: string, avatarUrlKey?: string) => void;

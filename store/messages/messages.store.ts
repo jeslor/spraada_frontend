@@ -17,6 +17,7 @@ const initialState = {
   messages: [],
   isMessagePage: false,
   isLoading: false,
+  loadingProfiles: false,
   error: null,
   profiles: [],
   selectedUserToMessage: null,
@@ -90,6 +91,11 @@ export const useMessageStore = create<MessageStore>()(
       setLoading: (isLoading: boolean) => {
         set((state) => {
           state.isLoading = isLoading;
+        });
+      },
+      setIsLoadingProfiles: (isLoading: boolean) => {
+        set((state) => {
+          state.loadingProfiles = isLoading;
         });
       },
       setError: (error: string | null) => {
@@ -180,13 +186,41 @@ export const useMessageStore = create<MessageStore>()(
       },
 
       /* ------------------ RECEIVE MESSAGE ------------------ */
+
       addIncomingMessage: (message: Message) => {
         set((state) => {
           const exists = state.messages.some((m) => m.id === message.id);
           if (!exists) {
             state.messages.push(message);
           }
+          // --- Always add sender/receiver to profiles if missing (even if message exists) ---
+          const addProfileIfMissing = (profileObj: any) => {
+            if (!profileObj || !profileObj.id) return;
+            const alreadyExists = state.profiles.some(
+              (p) => p.id === profileObj.id
+            );
+            if (!alreadyExists) {
+              state.profiles.push({
+                id: profileObj.id,
+                firstName: profileObj.firstName || "",
+                lastName: profileObj.lastName || "",
+                avatarUrl: profileObj.avatarUrl,
+              });
+            }
+          };
+          addProfileIfMissing(message.sender);
+          addProfileIfMissing(message.receiver);
         });
+
+        // --- Always update selectedUserMessages if the selected user matches ---
+        const selectedUser = get().selectedUserToMessage;
+        if (
+          selectedUser &&
+          (message.senderId === selectedUser.id ||
+            message.receiverId === selectedUser.id)
+        ) {
+          get().setSelectedUserMessages(selectedUser.id);
+        }
       },
 
       /* ------------------ SOCKET CHATS INIT ------------------ */
@@ -228,6 +262,7 @@ export const useMessageStore = create<MessageStore>()(
           const isMessagePage = get().isMessagePage;
           get().addIncomingMessage(incomingMessage);
 
+          //update the message counter only if not on message page or chatting with another user
           if (
             !isMessagePage ||
             (activeChatUser && incomingMessage.senderId !== activeChatUser.id)
@@ -365,6 +400,14 @@ export const useMessageStore = create<MessageStore>()(
           state.messages = [];
           state.profiles = [];
           state.isLoading = false;
+          state.selectedUserToMessage = null;
+          state.selectedUserMessages = [];
+          state.unreadMessagesCount = {
+            id: 0,
+            profileId: 0,
+            counters: {},
+          };
+          state.loadingProfiles = false;
           state.error = null;
         });
       },

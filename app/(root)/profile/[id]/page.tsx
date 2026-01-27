@@ -1,41 +1,45 @@
-import { getUser } from "@/lib/actions/Auth.actions";
-import { getSession } from "@/lib/session/session";
-import { redirect } from "next/navigation";
+"use client";
+
 import ProfileContent from "@/components/Profile/ProfileContent";
+import ProfileSkeleton from "@/components/Profile/ProfileSkeleton";
+import { fetchUserProfile } from "@/lib/actions/profile.actions";
+import { useProfile, useSetProfile, useUser } from "@/store";
+import { useEffect, useState } from "react";
 
-export default async function ProfilePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const session = await getSession();
-  if (!session) redirect("/signin");
+const page = () => {
+  const [hasRefetchedProfile, setHasRefetchedProfile] = useState(false);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const user = useUser();
+  const profile = useProfile();
+  const setProfile = useSetProfile();
 
-  const { id } = await params;
-  const user = await getUser(id);
-  if (!user) redirect("/signin");
+  useEffect(() => {
+    if (user?.profile) {
+      setProfile(user.profile);
+    }
+  }, [user]);
 
-  const isOwnProfile = session.user.id === id;
+  const fetchProfileOnOnboarding = async () => {
+    const fetchProfile = await fetchUserProfile(user?.id!);
+    if (fetchProfile.success && fetchProfile.data) {
+      setProfile(fetchProfile.data);
+      setHasRefetchedProfile(true);
+    }
+  };
 
-  // Layout handles onboarding form for non-onboarded users
-  // This page only renders for onboarded users or when viewing others' profiles
-
-  // For users without a profile viewing someone else's incomplete profile
-  if (!user.profile) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <p className="text-gray-500">This profile is not yet complete.</p>
-        </div>
-      </div>
-    );
+  if (!hasRefetchedProfile && !profile && user?.id) {
+    fetchProfileOnOnboarding();
   }
 
-  return (
-    <ProfileContent
-      initialUser={user}
-      initialProfile={user.profile}
-      isOwnProfile={isOwnProfile}
-    />
+  useEffect(() => {
+    setIsOwnProfile(user?.id === profile?.userId);
+  }, [user, profile]);
+
+  return profile ? (
+    <ProfileContent isOwnProfile={isOwnProfile} />
+  ) : (
+    <ProfileSkeleton />
   );
-}
+};
+
+export default page;

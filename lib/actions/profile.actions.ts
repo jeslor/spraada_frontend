@@ -1,6 +1,6 @@
 "use server";
 
-import customFetch from "../customFetch";
+import customFetch, { normalCustomFetch } from "../customFetch";
 import { Profile, ProfileActionResult } from "@/store/profile/profile.types";
 import { deleteResource, uploadResources } from "./resources.actions";
 import { getSession, updateSessionUserData } from "../session/session";

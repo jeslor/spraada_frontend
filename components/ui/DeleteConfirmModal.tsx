@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@iconify/react";
+import { useEffect } from "react";
 
 interface DeleteConfirmModalProps {
   isOpen: boolean;
@@ -48,6 +49,16 @@ export const DeleteConfirmModal = ({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={handleBackdropClick}
     >
+      {isDeleting && (
+        <div className="fixed inset-0 bg-black/20 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-primary-900 p-6 rounded-lg shadow-lg flex items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
+            <span className="text-primary-900 dark:text-primary-100 font-medium">
+              Deleting your tool...
+            </span>
+          </div>
+        </div>
+      )}
       <div
         className="bg-white rounded-2xl p-6 shadow-2xl max-w-sm w-full mx-4 animate-in fade-in zoom-in-95 duration-200"
         onClick={handleModalClick}

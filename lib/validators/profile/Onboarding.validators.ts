@@ -7,6 +7,7 @@ export const onboardingSchema = z.object({
   phone: z
     .string()
     .min(10, "Phone number must be at least 10 digits")
+    .regex(/^\+?[1-9]\d{9,14}$/, "Invalid phone number")
     .optional()
     .or(z.literal("")),
   country: z.string().min(2, "Country is required"),

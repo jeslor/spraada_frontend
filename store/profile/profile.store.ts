@@ -7,11 +7,13 @@ import {
   updateUserProfile,
 } from "@/lib/actions/profile.actions";
 import { Tool } from "../tool/tool.types";
+import { useToolStore } from "../tool/tool.store";
 
 // Initial state
 const initialState: ProfileState = {
   profile: null,
   user: null,
+  stats: null,
   isLoading: false,
   isUpdating: false,
   error: null,
@@ -25,7 +27,7 @@ export const useProfileStore = create<ProfileStore>()(
 
       // ==================== Core Actions ====================
 
-      setProfile: (profile: Profile) => {
+      setProfile: (profile: Profile | null) => {
         set((state) => {
           state.profile = profile;
           state.error = null;
@@ -42,6 +44,25 @@ export const useProfileStore = create<ProfileStore>()(
         });
       },
 
+      setStats: () => {
+        const toolState = useToolStore.getState();
+        const tools = toolState.myTools;
+        const myRentals = toolState.rentedTools;
+
+        const totalEarningsCents = myRentals.reduce(
+          (sum, rental) => sum + (rental.bookingDetails?.totalPrice || 0),
+          0
+        );
+
+        set((state) => {
+          state.stats = {
+            totalTools: tools.length,
+            totalRentals: myRentals.length,
+            totalEarningsCents,
+          };
+        });
+      },
+
       clearProfile: () => {
         set((state) => {
           state.profile = null;
@@ -49,6 +70,7 @@ export const useProfileStore = create<ProfileStore>()(
           state.error = null;
           state.isLoading = false;
           state.isUpdating = false;
+          state.stats = null;
         });
         localStorage.removeItem("spraadaSelectedChatUserId");
       },
