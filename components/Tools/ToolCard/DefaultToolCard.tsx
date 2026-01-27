@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 import { isFavorite, isToolOwnedByUser, Tool } from "@/store";
 
@@ -64,6 +64,16 @@ const DefaultCard = ({
   const handleNavigateToTool = () => {
     Router.push(`/toolbox/view/${tool.id}`);
   };
+
+  useEffect(() => {
+    if (showDeleteConfirm || isDeleting) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [showDeleteConfirm, isDeleting]);
 
   return (
     <div

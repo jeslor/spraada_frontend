@@ -5,7 +5,6 @@ import {
   useMessageActions,
   useMessages,
   useProfile,
-  useSelectedUserToMessage,
 } from "@/store";
 
 import { useEffect, useState } from "react";
@@ -17,7 +16,7 @@ export default function Messages() {
   const [hasFetchedProfiles, setHasFetchedProfiles] = useState(false);
 
   const fetchMessages = useFetchMessages();
-  const selectedUserToMessage = useSelectedUserToMessage();
+
   const messages = useMessages();
 
   const { userProfiles } = useMessageActions();
@@ -29,7 +28,7 @@ export default function Messages() {
       fetchMessages(profile.id);
       setHasFetchedMessages(true);
     }
-  }, [profile?.id, hasFetchedMessages, fetchMessages]);
+  }, [profile?.id, hasFetchedMessages]);
 
   /* Build user profiles from messages */
   useEffect(() => {
