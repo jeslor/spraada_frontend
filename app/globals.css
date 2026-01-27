@@ -203,15 +203,16 @@
   }
 
   .auth-brand-side {
-    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-800 to-primary-900 relative overflow-hidden;
+    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-800 to-primary-900 relative overflow-hidden h-screen max-h-screen;
+    overflow-y: auto;
   }
 
   .auth-form-side {
-    @apply flex-1 flex items-center justify-center p-6 lg:p-12;
+    @apply flex-1 flex flex-col p-6 lg:p-12 h-screen overflow-y-auto items-center;
   }
 
   .auth-form-container {
-    @apply w-full max-w-md space-y-6;
+    @apply w-full max-w-md space-y-6 flex flex-col flex-1 justify-center h-full;
   }
 
   /* Form Elements */
