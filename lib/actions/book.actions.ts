@@ -1,5 +1,5 @@
 "use server";
-import customFetch from "../customFetch";
+import customFetch, { normalCustomFetch } from "../customFetch";
 
 interface CreateBookingProps {
   toolId: string;
@@ -19,6 +19,9 @@ enum BookingStatus {
   cancelled = "CANCELLED",
 }
 
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
+
 export const createBooking = async ({
   toolId,
   borrowerId,
@@ -31,25 +34,20 @@ export const createBooking = async ({
   data: any;
 }> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          toolId,
-          rentedById: toolOwnerId, // Owner is the renter
-          borrowedById: borrowerId, // User borrowing
-          pickUpDate,
-          returnDate,
-          totalPrice,
-        }),
-      }
-    );
+    const response = await normalCustomFetch(`${BACKEND_API_URL}/bookings`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        toolId,
+        rentedById: toolOwnerId, // Owner is the renter
+        borrowedById: borrowerId, // User borrowing
+        pickUpDate,
+        returnDate,
+        totalPrice,
+      }),
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -74,10 +72,8 @@ export const createBooking = async ({
 
 export const getBookingsByProfile = async (profileId: number) => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/profile/${profileId}`,
+    const response = await normalCustomFetch(
+      `${BACKEND_API_URL}/bookings/profile/${profileId}`,
       {
         method: "GET",
         headers: {
@@ -110,10 +106,8 @@ export const updateBookingStatus = async (
   data: any;
 }> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/${bookingId}`,
+    const response = await normalCustomFetch(
+      `${BACKEND_API_URL}/bookings/${bookingId}`,
       {
         method: "PATCH",
         headers: {
@@ -151,10 +145,8 @@ export const updateBookingStatus = async (
 
 export const getBookingsByTool = async (toolId: string) => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/tool/${toolId}`,
+    const response = await normalCustomFetch(
+      `${BACKEND_API_URL}/bookings/tool/${toolId}`,
       {
         method: "GET",
         headers: {
@@ -179,27 +171,27 @@ export const getBookingsByTool = async (toolId: string) => {
   }
 };
 
+type DeletedBy = {
+  deletedByOwner?: boolean;
+  deletedByBorrower?: boolean;
+};
+
 export const updateBookingAsDeleted = async (
   bookingId: string,
-  deleteBy: { owner?: boolean; borrower?: boolean }
+  deletedBy: DeletedBy
 ): Promise<{
   success: boolean;
   data: any;
 }> => {
   try {
-    const response = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/bookings/${bookingId}/delete`,
+    const response = await normalCustomFetch(
+      `${BACKEND_API_URL}/bookings/${bookingId}/delete`,
       {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          deletedByOwner: deleteBy.owner || false,
-          deletedByBorrower: deleteBy.borrower || false,
-        }),
+        body: JSON.stringify(deletedBy),
       }
     );
 

@@ -2,7 +2,7 @@
 
 import {
   ProfileSummary,
-  useMessageActions,
+  useLoadingProfiles,
   useProfiles,
   useSelectedUserToMessage,
   useUnreadMessagesCount,
@@ -15,10 +15,13 @@ const ChatLeft = ({
   onSelectUser: (user: ProfileSummary) => void;
 }) => {
   const profiles = useProfiles();
+  const loadingProfiles = useLoadingProfiles();
   const selectedUserToMessage = useSelectedUserToMessage();
   const unreadMessagesCounters = useUnreadMessagesCount();
 
-  return (
+  return loadingProfiles ? (
+    <div className="p-4 text-center text-gray-500">Loading...</div>
+  ) : (
     <div>
       {profiles.map((profile) => (
         <ChatLeftUser

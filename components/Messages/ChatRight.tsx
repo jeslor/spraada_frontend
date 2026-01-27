@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  Message,
   useDeleteMessage,
   useMessages,
   useProfile,
+  useResetUserUnreadMessagesCount,
   useSelectedUserMessages,
   useSelectedUserToMessage,
-  useSendMessage,
   useSetSelectedUserMessages,
 } from "@/store";
 import ChatForm from "./ChatForm";
@@ -15,7 +16,6 @@ import MessageBubble from "./MessageBubble";
 import EmptyChat from "./EmptyChat";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 
-const MAX_IMAGE_PREVIEWS = 3;
 export default function ChatRight() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -26,6 +26,7 @@ export default function ChatRight() {
   const [hasMounted, setHasMounted] = useState(false);
 
   const messages = useMessages();
+  const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
   const selectedUserToMessage = useSelectedUserToMessage();
   const selectedUserMessages = useSelectedUserMessages();
   const setSelectedUserMessages = useSetSelectedUserMessages();
@@ -66,6 +67,13 @@ export default function ChatRight() {
       }
     }
   }, [selectedUserMessages]); // Only when messages change
+
+  // Reset unread messages count when viewing messages
+  useEffect(() => {
+    if (selectedUserToMessage) {
+      resetUserUnreadMessagesCount(selectedUserToMessage.id);
+    }
+  }, [selectedUserToMessage]);
 
   // Set messages for selected user
   useEffect(() => {

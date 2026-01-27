@@ -1,34 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
-import { Tool } from "@/store";
+import { Tool, useFeaturedTools, useSetFeaturedTools } from "@/store";
 import { getRandomTools } from "@/lib/actions/tools.actions";
 import ToolCard from "@/components/Tools/ToolCard/ToolCard";
 import ToolsSkeletonGrid from "@/components/Tools/ToolsSkeletonGrid";
 
-interface FeaturedToolsProps {
-  initialTools?: Tool[];
-}
-
-export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
-  const [tools, setTools] = useState<Tool[]>(initialTools || []);
-  const [isLoading, setIsLoading] = useState(!initialTools);
+export const FeaturedTools = () => {
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const featuredTools = useFeaturedTools();
+  const setFeaturedTools = useSetFeaturedTools();
+
   useEffect(() => {
-    if (!initialTools) {
+    setIsLoading(true);
+    if (featuredTools.length > 0) {
+      setTools(featuredTools);
+      setIsLoading(false);
+    }
+  }, [featuredTools]);
+
+  useEffect(() => {
+    if (featuredTools.length === 0) {
       fetchTools();
     }
-  }, [initialTools]);
+  }, [featuredTools]);
 
   const fetchTools = async () => {
     try {
       setIsLoading(true);
       setError(null);
       const data = await getRandomTools(12);
-      setTools(data);
+      setFeaturedTools(data);
     } catch (err) {
       setError("Failed to load tools");
       console.error("Error fetching tools:", err);
@@ -80,7 +87,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       {isLoading && <ToolsSkeletonGrid count={8} variant="compact" />}
 
       {/* Tools Grid */}
-      {!isLoading && !error && tools.length > 0 && (
+      {!isLoading && !error && tools && tools.length > 0 && (
         <div className="grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6">
           {tools.map((tool) => (
             <ToolCard key={tool.id} tool={tool} variant="compact" />
@@ -89,7 +96,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       )}
 
       {/* Empty State */}
-      {!isLoading && !error && tools.length === 0 && (
+      {!isLoading && !error && tools && tools.length === 0 && (
         <div className="text-center py-16 bg-gray-50 rounded-2xl">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-100 rounded-full mb-6">
             <Icon
@@ -105,7 +112,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
             Be the first to share your tools with the community!
           </p>
           <Link
-            href="/toolbox/add"
+            href="/create"
             className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
           >
             <Icon icon="solar:add-circle-bold" width={20} />
@@ -115,7 +122,7 @@ export const FeaturedTools = ({ initialTools }: FeaturedToolsProps) => {
       )}
 
       {/* Mobile View All Link */}
-      {!isLoading && !error && tools.length > 0 && (
+      {!isLoading && !error && tools && tools.length > 0 && (
         <div className="flex sm:hidden justify-center mt-6">
           <Link
             href="/browse"

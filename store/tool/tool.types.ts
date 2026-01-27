@@ -86,6 +86,9 @@ export interface ToolState {
   // Borrowed tools (tools I've borrowed from others)
   borrowedTools: Tool[];
 
+  // Featured tools for homepage or browsing
+  featuredTools: Tool[];
+
   // Loading states
   isLoading: boolean;
   isUpdating: boolean;
@@ -122,6 +125,7 @@ export interface ToolActions {
   setMyTools: (tools: Tool[]) => void;
   setRentedTools: (tools: Tool[]) => void;
   setBorrowedTools: (tools: Tool[]) => void;
+  setFeaturedTools: (tools: Tool[]) => void;
   clearTools: () => void;
 
   // Single tool operations

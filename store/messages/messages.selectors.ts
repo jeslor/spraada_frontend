@@ -9,7 +9,11 @@ import {
 // ==================== Basic Selectors ====================
 
 export const useInitializeChatSocket = () =>
-  useMessageStore((state) => state.initSocketListeners);
+  useMessageStore((state) => state.initSChatSocketListeners);
+export const useIsMessagePage = (): boolean =>
+  useMessageStore((state) => state.isMessagePage);
+export const useSetIsMessagePage = () =>
+  useMessageStore((state) => state.setIsMessagePage);
 export const useSetSelectedUserToMessage = () =>
   useMessageStore((state) => state.setSelectedUserToMessage);
 export const useSelectedUserToMessage = (): ProfileSummary | null =>
@@ -36,7 +40,8 @@ export const useFetchUnreadMessagesCount = () =>
   useMessageStore((state) => state.fetchUnReadMessagesCount);
 export const useUpdateUnreadMessagesCount = () =>
   useMessageStore((state) => state.updateUnreadMessagesCount);
-
+export const useResetUserUnreadMessagesCount = () =>
+  useMessageStore((state) => state.resetUserUnreadMessagesCount);
 export const useSendMessage = () =>
   useMessageStore((state) => state.sendMessage);
 export const useMessagesLoading = (): boolean =>
@@ -48,6 +53,8 @@ export const useFetchMessages = () =>
 export const useUpdateMessages = () =>
   useMessageStore((state) => state.updateMessages);
 
+export const useLoadingProfiles = (): boolean =>
+  useMessageStore((state) => state.loadingProfiles);
 export const useProfiles = (): ProfileSummary[] =>
   useMessageStore((state) => state.profiles);
 export const useSetProfiles = () =>
@@ -60,7 +67,9 @@ export const useClearMessages = () =>
 
 // ==================== Derived Selectors ====================
 
+//get the profiles of users who have messaged or been messaged by the current user
 export const useUserProfiles = () => {
+  useMessageStore.getState().setIsLoadingProfiles(true);
   const messages = useMessageStore.getState().messages;
   const profileId = useProfileStore.getState().profile?.id;
   const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
@@ -81,6 +90,7 @@ export const useUserProfiles = () => {
   }, [] as ProfileSummary[]);
 
   useMessageStore.getState().setProfiles(profiles);
+  useMessageStore.getState().setIsLoadingProfiles(false);
 };
 
 export const getLastMessagePreview = (profileId: number): Message => {

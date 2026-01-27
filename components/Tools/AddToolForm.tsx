@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,7 +12,14 @@ import { addToolSchema } from "@/lib/validators/tools/tools.validator";
 import { toolCategoriesForForms } from "@/lib/constants/tools";
 import CropImage from "@/components/Onboarding/CropImage";
 import { saveTool } from "@/lib/actions/tools.actions";
-import { useProfile, useFetchMyTools, ToolPhoto, useUser } from "@/store";
+import {
+  useProfile,
+  useFetchMyTools,
+  ToolPhoto,
+  useUser,
+  useProfileStats,
+  useSetProfileStats,
+} from "@/store";
 import { useRouter } from "next/navigation";
 
 const MAX_PHOTOS = 5;
@@ -39,6 +46,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const profile = useProfile();
   const user = useUser();
   const fetchMyTools = useFetchMyTools();
+  const setProfileStats = useSetProfileStats();
 
   const {
     register,
@@ -174,6 +182,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
       // Refresh the tools in the store to include the new tool
       if (profile?.id) {
         await fetchMyTools(profile.id);
+        setProfileStats();
       }
 
       toast.success("Tool added successfully!");
@@ -189,8 +198,28 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
     }
   };
 
+  useEffect(() => {
+    if (isSubmitting) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [isSubmitting]);
+
   return (
     <div className="w-full  xl:max-w-280 mr-auto lg:px-4 py-8">
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black/20 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-primary-900 p-6 rounded-lg shadow-lg flex items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
+            <span className="text-primary-900 dark:text-primary-100 font-medium">
+              Adding your tool...
+            </span>
+          </div>
+        </div>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
         {/* Basic Information Section */}
         <section className="space-y-10">

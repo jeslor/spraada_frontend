@@ -1,12 +1,14 @@
 "use server";
 
-import customFetch from "../customFetch";
+import customFetch, { normalCustomFetch } from "../customFetch";
 import { Profile, ProfileActionResult } from "@/store/profile/profile.types";
 import { deleteResource, uploadResources } from "./resources.actions";
 import { getSession, updateSessionUserData } from "../session/session";
+import { User } from "@/types/auth";
 
 const RESOURCE_FOLDER = "profile-images";
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:4444";
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 // =================helper functions for profile actions ===================
 //Fetch user profile by user ID
@@ -48,9 +50,7 @@ export const updateUserProfile = async (
 ): Promise<ProfileActionResult<Profile>> => {
   try {
     const updateRes = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/profile/${profileId}`,
+      `${BACKEND_API_URL}/profile/${profileId}`,
       {
         method: "PATCH",
         headers: {
@@ -86,21 +86,18 @@ export const updateUserProfile = async (
 //================Main actions ==================
 
 // create profile
-export const createProfile = async (userProfileData: {}): Promise<
-  ProfileActionResult<Profile>
-> => {
+export const createProfile = async (
+  userProfileData: Partial<Profile>
+): Promise<ProfileActionResult<Profile>> => {
   try {
     //create the profile
-    const response = await customFetch(
-      `${process.env.BACKEND_API_URL || "http://localhost:4444"}/profile`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userProfileData),
-      }
-    );
+    const response = await customFetch(`${BACKEND_API_URL}/profile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userProfileData),
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -197,6 +194,52 @@ export const updateProfileAvatar = async ({
         error instanceof Error
           ? error.message
           : "Failed to update profile avatar",
+    };
+  }
+};
+
+// Add or remove favorite tool
+export const updateFavoriteTools = async (
+  profileId: number,
+  toolId: string,
+  action: "add" | "remove"
+): Promise<ProfileActionResult<Profile>> => {
+  try {
+    const response = await customFetch(
+      `${BACKEND_API_URL}/profile/${profileId}/favorite-tools`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          toolId,
+          action,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error:
+          response.data?.message ||
+          response.error ||
+          "Failed to update favorite tools",
+      };
+    }
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update favorite tools",
     };
   }
 };

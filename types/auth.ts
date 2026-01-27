@@ -2,6 +2,7 @@ export interface User {
   id: number;
   email: string;
   isOnboarded: boolean;
+  role?: "USER" | "ADMIN" | "RENTER";
 }
 
 export interface AuthResponse {

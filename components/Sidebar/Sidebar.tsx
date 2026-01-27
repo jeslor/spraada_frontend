@@ -1,25 +1,31 @@
 "use client";
 
-import { Session } from "@/lib/session/session";
+import { deleteSession, Session } from "@/lib/session/session";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { NavItem, navItems } from "@/lib/constants/navigation";
 import {
   useProfile,
   useUser,
+  useShowNotifications,
   useHasHydrated,
   useClearProfile,
   useProfileInitials,
   useClearTools,
   useClearBookings,
   useClearMessages,
+  useSetShowNotifications,
   useFetchUnreadMessagesCount,
-  useAllUnReadMessagesCount,
+  useSetIsMessagePage,
+  useGetNotificationCounter,
+  useClearNotifications,
 } from "@/store";
-import { useChatSocket } from "@/Hooks/InitializeMessageSocket";
+import { useAppSocket } from "@/Hooks/InitializeAppSocket";
+// Import EachSidebar component (adjust the path as needed)
+import EachSidebar from "./EachSidebar";
 
 interface SidebarProps {
   session: Session | null;
@@ -41,6 +47,7 @@ const useMediaQuery = (query: string): boolean => {
 };
 
 const Sidebar = ({ session }: SidebarProps) => {
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
@@ -51,41 +58,35 @@ const Sidebar = ({ session }: SidebarProps) => {
   const profile = useProfile();
 
   /* ✅ Hooks must be called at top-level */
-  useChatSocket(profile?.id!);
+  useAppSocket(profile?.id!);
+  const setShowNotifications = useSetShowNotifications();
+  const showNotifications = useShowNotifications();
 
-  const user = useUser();
+  const setIsMessagePage = useSetIsMessagePage();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
   const clearMessages = useClearMessages();
+  const clearNotifications = useClearNotifications();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
   const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
-  const allUnreadMessagesCount = useAllUnReadMessagesCount();
+  const getNotificationCounter = useGetNotificationCounter();
 
   // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
 
   useEffect(() => {
+    let isMessagePage = pathname.startsWith("/messages");
+    setIsMessagePage(isMessagePage);
+  }, [pathname]);
+
+  useEffect(() => {
     if (profile) {
       fetchUnreadMessagesCount(profile.id);
+      getNotificationCounter(profile.id);
     }
-  }, [profile, fetchUnreadMessagesCount]);
-
-  const handleSignOut = async () => {
-    const response = await fetch("/api/auth/signout", { method: "GET" });
-    if (!response.ok) {
-      console.error("Sign out failed:", await response.text());
-      return;
-    } else {
-      // Clear profile and tools from Zustand store
-      clearProfile();
-      clearTools();
-      clearBookings();
-      clearMessages();
-      window.location.href = "/signin";
-    }
-  };
+  }, [profile]);
 
   useEffect(() => {
     if (isExpanded) {
@@ -97,10 +98,42 @@ const Sidebar = ({ session }: SidebarProps) => {
     }
   }, [isExpanded]);
 
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    clearProfile();
+    clearTools();
+    clearBookings();
+    clearMessages();
+    clearNotifications;
+    await deleteSession();
+    window.location.href = "/signin";
+
+    // const response = fetch("/api/auth/signout", { method: "GET" });
+  };
+
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
+
+  const handleRouteToPage = (href: string) => {
+    router.push(href);
+  };
+  const handleShowNotifications = () => {
+    showNotifications
+      ? setShowNotifications(false)
+      : setShowNotifications(true);
+  };
+
+  useEffect(() => {
+    if (isSigningOut) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [isSigningOut]);
 
   return (
     <aside
@@ -111,6 +144,24 @@ const Sidebar = ({ session }: SidebarProps) => {
       onMouseEnter={() => !isDesktop && setIsHovered(true)}
       onMouseLeave={() => !isDesktop && setIsHovered(false)}
     >
+      {isSigningOut && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-2xl bg-white px-8 py-6 shadow-xl">
+            {/* Spinner */}
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
+
+            {/* Text */}
+            <div className="text-center">
+              <p className="text-base font-semibold text-gray-900">
+                Signing you out
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                See you again soon <span className="text-[20px]">👋🏾</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Logo */}
       <div className="h-20 flex items-center px-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
@@ -129,74 +180,18 @@ const Sidebar = ({ session }: SidebarProps) => {
 
       {/* Navigation */}
       <nav className="flex flex-col justify-start py-4 px-3 space-y-2 overflow-y-auto">
-        {navItems.map((item: NavItem) => {
-          // Use profile userId for the profile link
-          const href =
-            item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
-          const active = isActive(href);
-
-          return !item.isProfile ? (
-            <Link
-              key={item.name}
-              href={item.name.toLowerCase() === "messages" ? `/messages` : href}
-              className={cn(
-                "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium relative",
-                active
-                  ? "bg-gray-100 text-gray-900 font-bold"
-                  : "text-gray-700 hover:bg-gray-50"
-              )}
-            >
-              {item.name.toLowerCase() === "messages" &&
-                allUnreadMessagesCount > 0 && (
-                  <span className="absolute bg-red-700 text-white text-[10px] font-semibold  right-3 px-1 py-0.5 rounded-full min-w-[15px] h-4 flex items-center justify-center">
-                    {allUnreadMessagesCount > 99
-                      ? "99+"
-                      : allUnreadMessagesCount}
-                  </span>
-                )}
-              <Icon
-                icon={active ? item.activeIcon : item.icon}
-                className="text-2xl shrink-0 text-primary-600 font-bold"
-              />
-              {showLabels && (
-                <span className="text-base whitespace-nowrap">{item.name}</span>
-              )}
-            </Link>
-          ) : (
-            hasHydrated && user && (
-              <Link
-                key={item.name}
-                href={href}
-                className={cn(
-                  "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium",
-                  active
-                    ? "bg-gray-100 text-gray-900 font-bold"
-                    : "text-gray-700 hover:bg-gray-50"
-                )}
-              >
-                {profile?.avatarUrl ? (
-                  <img
-                    src={profile.avatarUrl}
-                    alt={`${profile.firstName} ${profile.lastName}`}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-gray-200"
-                  />
-                ) : (
-                  <Icon
-                    icon={active ? item.activeIcon : item.icon}
-                    className="text-2xl shrink-0"
-                  />
-                )}
-                {showLabels && (
-                  <span className="text-base truncate w-[162px] whitespace-nowrap">
-                    {user.isOnboarded
-                      ? `${profile?.firstName} ${initials.charAt(1) || ""}`
-                      : item.name}
-                  </span>
-                )}
-              </Link>
-            )
-          );
-        })}
+        {navItems.map((item: NavItem) => (
+          <EachSidebar
+            key={item.name}
+            item={item}
+            isActive={isActive}
+            handleShowNotifications={handleShowNotifications}
+            handleRouteToPage={handleRouteToPage}
+            showLabels={showLabels}
+            hasHydrated={hasHydrated}
+            initials={initials}
+          />
+        ))}
       </nav>
 
       {/* Bottom Section */}
@@ -226,7 +221,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         {session ? (
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             <Icon icon="solar:logout-2-linear" className="text-2xl shrink-0" />
             {isExpanded && (

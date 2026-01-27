@@ -150,6 +150,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const handleEmojiClick = (emojiData: any) => {
     setInput((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
+    textareaRef.current?.focus();
   };
 
   //handle removing an image preview
@@ -244,11 +245,11 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
             <Icon icon="lsicon:send-filled" width={22} />
           </SpraadaButton>
           <div
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition text-[23px] text-primary-600"
             title="Add emoji"
             onClick={() => setShowEmojiPicker((v) => !v)}
           >
-            <Icon icon="emojione:boy-medium-dark-skin-tone" width={24} />
+            <Icon icon="line-md:emoji-grin" />
           </div>
         </div>
 

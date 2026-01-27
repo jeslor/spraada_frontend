@@ -18,6 +18,7 @@ import {
   Tool,
   updateBookingStatusInStore,
   useProfile,
+  useSendNotification,
 } from "@/store";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -61,6 +62,7 @@ const RentalCard = ({
 
   const profile = useProfile();
   const removeBookingById = removeBooking();
+  const sendNotification = useSendNotification();
   const updateBookingStatusStore = updateBookingStatusInStore();
 
   const daysRemaining = booking
@@ -94,6 +96,48 @@ const RentalCard = ({
       // Optimistically update the store first for instant UI feedback
       setBookingStatus(status);
       updateBookingStatusStore(booking.id, status);
+      //Send notification
+
+      const newNotification = {
+        id: Date.now().toString() + Math.random().toString(36).substring(2),
+        title:
+          status === "confirmed"
+            ? "Booking Confirmed"
+            : status === "cancelled"
+            ? "Booking Cancelled"
+            : "Booking Updated",
+        profileMediaFiles: [
+          {
+            mediaUrl: profile?.avatarUrl!,
+          },
+          {
+            mediaUrl: tool.bookingDetails?.borrower?.avatarUrl!,
+          },
+        ],
+        contentMediaFiles: [
+          {
+            mediaUrl: tool.toolPhotos?.[0]?.photoUrl!,
+          },
+        ],
+        profileId: isRental
+          ? tool.bookingDetails?.borrower?.id!
+          : tool.profile?.id!,
+        content:
+          status === "confirmed"
+            ? `${profile?.firstName} ${profile?.lastName} has confirmed your booking for the tool: ${tool.name}.`
+            : status === "cancelled"
+            ? `${profile?.firstName} ${profile?.lastName} has cancelled your booking for the tool: ${tool.name}.`
+            : `${profile?.firstName} ${profile?.lastName} has updated your booking for the tool: ${tool.name}.`,
+        isRead: false,
+        link:
+          status === "confirmed"
+            ? `/borrowed?scrollId=${booking.id}`
+            : status === "cancelled" && profile?.id === tool.profileId
+            ? `/borrowed?scrollId=${booking.id}`
+            : `/rentals?scrollId=${booking.id}`,
+      };
+
+      sendNotification(newNotification, profile?.id!);
       toast.success(`Booking ${status.toLowerCase()} successfully`);
     } catch (error) {
       console.error(`Error updating booking status to ${status}:`, error);
@@ -128,7 +172,9 @@ const RentalCard = ({
       setIsUpdatingStatus(true);
       const result = await updateBookingAsDeleted(
         booking.id,
-        profile?.id === tool.profile?.id ? { owner: true } : { borrower: true }
+        profile?.id === tool.profileId
+          ? { deletedByOwner: true }
+          : { deletedByBorrower: true }
       );
       if (!result.success) {
         throw new Error(result.data || "Failed to mark booking as deleted");
@@ -145,6 +191,7 @@ const RentalCard = ({
 
   return (
     <Link
+      id={tool.bookingDetails?.id}
       href={`/toolbox/view/${tool.id}`}
       className="group shadow block w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-lg transition-all duration-300"
     >

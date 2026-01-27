@@ -15,7 +15,9 @@ import { uploadResources } from "@/lib/actions/resources.actions";
 
 const initialState = {
   messages: [],
+  isMessagePage: false,
   isLoading: false,
+  loadingProfiles: false,
   error: null,
   profiles: [],
   selectedUserToMessage: null,
@@ -31,6 +33,12 @@ export const useMessageStore = create<MessageStore>()(
   persist(
     immer((set, get) => ({
       ...initialState,
+
+      setIsMessagePage: (isMessagePage: boolean) => {
+        set((state) => {
+          state.isMessagePage = isMessagePage;
+        });
+      },
       setMessages: (messages: Message[]) => {
         set((state) => {
           state.messages = messages;
@@ -85,6 +93,11 @@ export const useMessageStore = create<MessageStore>()(
           state.isLoading = isLoading;
         });
       },
+      setIsLoadingProfiles: (isLoading: boolean) => {
+        set((state) => {
+          state.loadingProfiles = isLoading;
+        });
+      },
       setError: (error: string | null) => {
         set((state) => {
           state.error = error;
@@ -108,6 +121,7 @@ export const useMessageStore = create<MessageStore>()(
         counters: { [key: number]: number }
       ) => {
         try {
+          if (!profileId) return;
           const updatedCount = await updateUnreadMessagesCountApi(
             messageCounterId,
             profileId,
@@ -119,6 +133,17 @@ export const useMessageStore = create<MessageStore>()(
         } catch (error) {
           throw error;
         }
+      },
+
+      resetUserUnreadMessagesCount: (selectedUserId: number) => {
+        get().updateUnreadMessagesCount(
+          get().unreadMessagesCount.id,
+          get().unreadMessagesCount.profileId,
+          {
+            ...get().unreadMessagesCount.counters,
+            [selectedUserId]: 0,
+          }
+        );
       },
 
       /* ------------------ FETCH MESSAGES ------------------ */
@@ -161,17 +186,45 @@ export const useMessageStore = create<MessageStore>()(
       },
 
       /* ------------------ RECEIVE MESSAGE ------------------ */
+
       addIncomingMessage: (message: Message) => {
         set((state) => {
           const exists = state.messages.some((m) => m.id === message.id);
           if (!exists) {
             state.messages.push(message);
           }
+          // --- Always add sender/receiver to profiles if missing (even if message exists) ---
+          const addProfileIfMissing = (profileObj: any) => {
+            if (!profileObj || !profileObj.id) return;
+            const alreadyExists = state.profiles.some(
+              (p) => p.id === profileObj.id
+            );
+            if (!alreadyExists) {
+              state.profiles.push({
+                id: profileObj.id,
+                firstName: profileObj.firstName || "",
+                lastName: profileObj.lastName || "",
+                avatarUrl: profileObj.avatarUrl,
+              });
+            }
+          };
+          addProfileIfMissing(message.sender);
+          addProfileIfMissing(message.receiver);
         });
+
+        // --- Always update selectedUserMessages if the selected user matches ---
+        const selectedUser = get().selectedUserToMessage;
+        if (
+          selectedUser &&
+          (message.senderId === selectedUser.id ||
+            message.receiverId === selectedUser.id)
+        ) {
+          get().setSelectedUserMessages(selectedUser.id);
+        }
       },
 
-      /* ------------------ SOCKET INIT ------------------ */
-      initSocketListeners: (profileId: number) => {
+      /* ------------------ SOCKET CHATS INIT ------------------ */
+      initSChatSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
 
         socket.off("chats"); // prevent duplicate listeners
@@ -193,21 +246,26 @@ export const useMessageStore = create<MessageStore>()(
               : null;
 
           if (exists) {
-            get().updateMessages({
-              ...existingMessage,
-              deletedByReceiver: incomingMessage.deletedByReceiver,
-              deletedBySender: incomingMessage.deletedBySender,
-            });
+            if (existingMessage && typeof existingMessage.id === "string") {
+              get().updateMessages({
+                ...existingMessage,
+                deletedByReceiver: incomingMessage.deletedByReceiver,
+                deletedBySender: incomingMessage.deletedBySender,
+                id: existingMessage.id!, // ensure id is always present and string
+              } as Message);
+            }
             return;
           }
 
           // New incoming message that doesn't exist yet
           const activeChatUser = get().selectedUserToMessage;
+          const isMessagePage = get().isMessagePage;
           get().addIncomingMessage(incomingMessage);
 
+          //update the message counter only if not on message page or chatting with another user
           if (
-            activeChatUser &&
-            incomingMessage.senderId !== activeChatUser.id
+            !isMessagePage ||
+            (activeChatUser && incomingMessage.senderId !== activeChatUser.id)
           ) {
             // Update unread messages count
             const unReadMessagesCounter = get().unreadMessagesCount;
@@ -342,6 +400,14 @@ export const useMessageStore = create<MessageStore>()(
           state.messages = [];
           state.profiles = [];
           state.isLoading = false;
+          state.selectedUserToMessage = null;
+          state.selectedUserMessages = [];
+          state.unreadMessagesCount = {
+            id: 0,
+            profileId: 0,
+            counters: {},
+          };
+          state.loadingProfiles = false;
           state.error = null;
         });
       },

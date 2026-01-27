@@ -20,7 +20,8 @@ import { SignInData, AuthError } from "@/types/auth";
 import { signInSchema } from "@/lib/validators/Auth.validators";
 import { signIn } from "@/lib/actions/Auth.actions";
 
-const backendURL = "http://localhost:4444";
+const backendURL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 const SignInPage = () => {
   const [url, setUrl] = useState<string | null>(null);
@@ -63,6 +64,18 @@ const SignInPage = () => {
     <>
       {/* Header */}
       <div className="auth-form-header">
+        <Link
+          className="group self-start underline block mr-auto w-fit text-[13px] text-primary-800 hover:text-primary-600"
+          href="/"
+        >
+          <Icon
+            icon="mdi:arrow-left"
+            className="inline-block mr-1 group-hover:translate-x-0.5 transition-transform"
+            width={16}
+            height={16}
+          />
+          Back To Home
+        </Link>
         <h1 className="auth-form-title">Welcome back</h1>
         <p className="auth-form-subtitle">
           Sign in to your account to continue renting tools

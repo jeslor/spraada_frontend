@@ -3,6 +3,9 @@
 import { ProfileActionResult } from "@/store";
 import customFetch from "../customFetch";
 
+const BACKEND_API_URL =
+  process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
+
 export const uploadResources = async (
   userId: number,
   formData: FormData,
@@ -10,9 +13,7 @@ export const uploadResources = async (
 ): Promise<ProfileActionResult<any>> => {
   try {
     const imageUploadResult = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/resources/upload/${userId}?resourceFolder=${resourceFolder}`,
+      `${BACKEND_API_URL}/resources/upload/${userId}?resourceFolder=${resourceFolder}`,
       {
         method: "POST",
         body: formData,
@@ -52,9 +53,7 @@ export const deleteResource = async ({
 }): Promise<ProfileActionResult> => {
   try {
     const deleteOldResource = await customFetch(
-      `${
-        process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444"
-      }/resources/delete/${userId}`,
+      `${BACKEND_API_URL}/resources/delete/${userId}`,
       {
         method: "POST",
         headers: {
