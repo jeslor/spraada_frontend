@@ -203,12 +203,12 @@
   }
 
   .auth-brand-side {
-    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-800 to-primary-900 relative overflow-hidden h-screen max-h-screen;
+    @apply hidden lg:flex lg:w-1/2 bg-radial-[at_center_top] from-primary-400 via-primary-800 to-primary-900 relative overflow-y-scroll items-center  h-screen max-h-screen;
     overflow-y: auto;
   }
 
   .auth-form-side {
-    @apply flex-1 flex flex-col p-6 lg:p-12 h-screen overflow-y-auto items-center;
+    @apply flex-1 flex flex-col px-4 md:p-6 lg:p-12 h-screen overflow-y-auto items-center;
   }
 
   .auth-form-container {
@@ -225,7 +225,7 @@
   }
 
   .auth-form-subtitle {
-    @apply text-primary-600 dark:text-primary-300 opacity-70;
+    @apply text-primary-600 dark:text-primary-300 opacity-70 text-[12px];
   }
 
   .auth-form-error {
@@ -276,7 +276,7 @@
   }
 
   .auth-link {
-    @apply text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors;
+    @apply text-primary-700 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors;
   }
 
   /* Password Requirements */
@@ -298,7 +298,7 @@
 
   /* Auth Footer */
   .auth-footer {
-    @apply text-center text-primary-600 dark:text-primary-300;
+    @apply text-center text-primary-600 dark:text-primary-300 text-[12px];
   }
 
   /* Brand Elements */
