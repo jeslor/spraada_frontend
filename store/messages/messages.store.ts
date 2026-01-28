@@ -55,12 +55,19 @@ export const useMessageStore = create<MessageStore>()(
             .getState()
             .addMessageToConversation(conversationId, msg, otherParticipant);
         }
+
         //save message to backend
         const savedMessage = await saveMessageAPI(
-          msg,
+          {
+            mediaFiles: msg.mediaFiles,
+            content: msg.content,
+            senderId: msg.senderId,
+          },
           otherParticipant.id,
-          conversationId,
         );
+
+        console.log(savedMessage);
+
         if (savedMessage.success) {
           //update message in conversation store with saved message data
           useConversationStore

@@ -9,7 +9,6 @@ const BACKEND_URL =
 export const saveMessageAPI = async (
   message: Partial<Message>,
   otherProfileId: number,
-  conversationId: number,
 ): Promise<
   { data: Message; success: boolean } | { error: Error; success: false }
 > => {
@@ -19,8 +18,11 @@ export const saveMessageAPI = async (
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message, otherProfileId, conversationId }),
+      body: JSON.stringify({ message, otherProfileId }),
     });
+
+    console.log(response);
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
