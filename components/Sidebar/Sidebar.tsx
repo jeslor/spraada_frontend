@@ -19,6 +19,7 @@ import {
   useSetShowNotifications,
   useGetNotificationCounter,
   useClearNotifications,
+  useClearConversations,
 } from "@/store";
 import { useAppSocket } from "@/Hooks/InitializeAppSocket";
 // Import EachSidebar component (adjust the path as needed)
@@ -63,6 +64,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
   const clearNotifications = useClearNotifications();
+  const clearConversationStore = useClearConversations();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
   const getNotificationCounter = useGetNotificationCounter();
@@ -91,7 +93,8 @@ const Sidebar = ({ session }: SidebarProps) => {
     clearProfile();
     clearTools();
     clearBookings();
-    clearNotifications;
+    clearNotifications();
+    clearConversationStore();
     await deleteSession();
     window.location.href = "/signin";
 

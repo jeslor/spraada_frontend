@@ -88,6 +88,55 @@ export const useConversationStore = create<ConversationStore>()(
           }
         });
       },
+      replaceConversationId: (oldId: number, newId: number) => {
+        set((state) => {
+          const conversation = state.conversations.find((c) => c.id === oldId);
+          if (conversation) {
+            conversation.id = newId;
+          }
+        });
+      },
+
+      replaceConversation: (
+        oldConversationId: number,
+        newConversation: Conversation,
+      ) => {
+        set((state) => {
+          const conversationIdx = state.conversations.findIndex(
+            (c) => c.id === oldConversationId,
+          );
+          if (conversationIdx !== -1) {
+            state.conversations[conversationIdx] = newConversation;
+            state.selectedConversation = newConversation;
+          }
+        });
+      },
+
+      replaceMessageInConversation: (
+        conversationId: number,
+        oldMessageId: string,
+        updatedMessage: Message,
+      ) => {
+        set((state) => {
+          const conversation = state.conversations.find(
+            (c) => c.id === conversationId,
+          );
+          if (conversation) {
+            const messageIdx = conversation.messages.findIndex(
+              (m) => m.id === oldMessageId,
+            );
+            if (messageIdx !== -1) {
+              conversation.messages[messageIdx] = updatedMessage;
+            }
+          }
+        });
+      },
+
+      clearConversations: () => {
+        set(() => ({
+          ...initialState,
+        }));
+      },
     })),
     {
       name: "conversation-store",

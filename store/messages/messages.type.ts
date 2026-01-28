@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   content: string;
   senderId: number;
+  conversationId: number;
   deletedBySender?: boolean;
   deletedByReceiver?: boolean;
   mediaFiles?: {

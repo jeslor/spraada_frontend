@@ -39,16 +39,6 @@ export const useMessageStore = create<MessageStore>()(
         otherParticipant: ProfileSummary,
         conversationId: number,
       ) => {
-        console.log(
-          "testing out the message sending and the conversation creation",
-        );
-        console.log("other participant:", otherParticipant);
-        console.log("conversationId:", conversationId);
-        console.log("message:", msg);
-        console.log(
-          "*****************************************************************",
-        );
-
         //add message to conversation store optimistically
         if (conversationId) {
           useConversationStore
@@ -66,19 +56,34 @@ export const useMessageStore = create<MessageStore>()(
           otherParticipant.id,
         );
 
-        console.log(savedMessage);
-
         if (savedMessage.success) {
-          //update message in conversation store with saved message data
-          useConversationStore
-            .getState()
-            .addMessageToConversation(conversationId, savedMessage.data);
-          console.log("Message saved successfully:", savedMessage.data);
+          let updatedConversationId = savedMessage.data.conversationId;
+          //update message in conversation store with saved message data and also replace conversation id if it was created optimistically
+
+          if (updatedConversationId !== conversationId) {
+            useConversationStore
+              .getState()
+              .replaceConversation(conversationId, {
+                id: updatedConversationId,
+                otherParticipant: otherParticipant,
+                messages: [savedMessage.data],
+                currentPage: 1,
+              });
+          } else {
+            //update only the message in the conversations
+            useConversationStore
+              .getState()
+              .replaceMessageInConversation(
+                updatedConversationId,
+                msg.id,
+                savedMessage.data,
+              );
+          }
 
           //emit message via socket
           const socket = getSocket(msg.senderId);
           socket.emit("conversation:send_message", {
-            conversationId,
+            conversationId: updatedConversationId,
             message: savedMessage.data,
           });
         }

@@ -23,8 +23,19 @@ export interface ConversationActions {
     message: Message,
     otherParticipant?: ProfileSummary,
   ) => void;
+  replaceConversation: (
+    oldConversationId: number,
+    newConversation: Conversation,
+  ) => void;
+  replaceMessageInConversation: (
+    conversationId: number,
+    oldMessageId: string,
+    updatedMessage: Message,
+  ) => void;
+  replaceConversationId: (oldId: number, newId: number) => void;
   fetchConversations: (profileId: number) => Promise<void>;
   setSelectedConversation: (conversation: Conversation | null) => void;
+  clearConversations: () => void;
 }
 
 export interface ConversationStore

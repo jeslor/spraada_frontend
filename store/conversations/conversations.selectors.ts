@@ -14,3 +14,6 @@ export const useSetSelectedConversation = () =>
   useConversationStore((state: any) => state.setSelectedConversation);
 export const useSelectedConversation = () =>
   useConversationStore((state: any) => state.selectedConversation);
+
+export const useClearConversations = () =>
+  useConversationStore((state: any) => state.clearConversations);
