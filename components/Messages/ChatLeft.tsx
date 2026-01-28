@@ -2,28 +2,26 @@
 
 import {
   Conversation,
-  ProfileSummary,
   useConversations,
   useFetchConversations,
   useIsLoadingConversations,
   useProfile,
+  useSelectedConversation,
 } from "@/store";
 import ChatLeftUser from "./ChatLeftUser";
 import MessageLeftChatSkeleton from "./MessageLeftChatSkeleton";
-import { useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
+import { set } from "zod";
 
-interface ChatLeftProps {
-  onSelectUser: (user: ProfileSummary) => void;
-}
-
-const ChatLeft = ({ onSelectUser }: ChatLeftProps) => {
+const ChatLeft = memo(() => {
   const { ref, inView, entry } = useInView({
     /* Optional options */
     threshold: 0,
   });
 
   const conversations = useConversations();
+  const selectedConversation = useSelectedConversation();
   const isConversationsLoading = useIsLoadingConversations();
   const fetchConversations = useFetchConversations();
   const profile = useProfile();
@@ -42,26 +40,25 @@ const ChatLeft = ({ onSelectUser }: ChatLeftProps) => {
     }
   }, [inView, entry]);
 
-  console.log(conversations);
+  const selectedChatLeftUser = selectedConversation?.otherParticipant || null;
 
   return isConversationsLoading ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
     <div>
-      {conversations.map((conversation: Conversation) => (
-        // <ChatLeftUser
-        //   unreadMessagesCounters={{}}
-        //   unreadCount={0}
-        //   key={conversation.id}
-        //   profile={conversation.otherParticipant}
-        //   selectedUser={null}
-        //   onSelectUser={onSelectUser}
-        // />
-        <div key={conversation.id}>user</div>
-      ))}
+      {conversations.length > 0 &&
+        conversations.map((conversation: Conversation) => (
+          <ChatLeftUser
+            unreadMessagesCounters={{}}
+            unreadCount={0}
+            key={conversation.id}
+            conversation={conversation}
+            selectedUser={selectedChatLeftUser}
+          />
+        ))}
       {/* <MessageLeftChatSkeleton attachRef={true} ref={ref} /> */}
     </div>
   );
-};
+});
 
 export default ChatLeft;

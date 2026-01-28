@@ -1,73 +1,50 @@
 "use client";
 
 import {
-  Message,
-  UnReadMessagesCounterType,
-  useMessageActions,
-  useUpdateUnreadMessagesCount,
+  Conversation,
+  useGetLastMessageByConversationId,
+  useSelectedConversation,
+  useSetSelectedConversation,
 } from "@/store";
 import { Icon } from "@iconify/react";
 
 interface EachSideUserProps {
   unreadCount: number;
-  profile: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  };
+  conversation: Conversation;
   selectedUser: {
     id: number;
   } | null;
-  onSelectUser: (user: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  }) => void;
-  unreadMessagesCounters: UnReadMessagesCounterType;
+  unreadMessagesCounters: Record<number, number>;
 }
 
 const ChatLeftUser = ({
   unreadCount,
-  profile,
-  selectedUser,
-  onSelectUser,
+  conversation,
   unreadMessagesCounters,
 }: EachSideUserProps) => {
-  const { getLastMessage } = useMessageActions();
-  const updateUnreadMessagesCount = useUpdateUnreadMessagesCount();
+  const selectedConversation = useSelectedConversation();
+  const setSelectedConversation = useSetSelectedConversation();
+  const getLastMessageByConversationId = useGetLastMessageByConversationId();
 
-  // Update unread count and set selected user
-  const updateUreadCountAndSetSelectedUser = () => {
-    // Reset unread count for this user
-    const updatedCounters = {
-      ...unreadMessagesCounters,
-      counters: {
-        ...unreadMessagesCounters.counters,
-        [profile.id]: 0,
-      },
-    };
-    updateUnreadMessagesCount(
-      updatedCounters.id,
-      updatedCounters.profileId,
-      updatedCounters.counters
-    );
-    onSelectUser(profile);
+  const profile = conversation.otherParticipant;
+  const userLastMessage = getLastMessageByConversationId(conversation.id);
+
+  const handleSelectConversation = () => {
+    setSelectedConversation(conversation);
   };
 
-  // Last message preview
-  const userLastMessage = getLastMessage(profile.id);
-  const isDeletedForMe = (msg: Message, profileId?: number) =>
-    (msg.senderId === profileId && msg.deletedByReceiver) ||
-    (msg.receiverId === profileId && msg.deletedBySender);
+  const isDeletedForMe = (message: any, userId: number) => {
+    return message.deletedFor?.includes(userId);
+  };
 
   return (
     <div
-      onClick={updateUreadCountAndSetSelectedUser}
+      onClick={handleSelectConversation}
       key={profile.id}
       className={`p-2  cursor-pointer hover:bg-primary/10  ${
-        selectedUser?.id === profile.id ? "bg-primary/10" : ""
+        selectedConversation?.otherParticipant.id === profile.id
+          ? "bg-primary/10"
+          : ""
       }`}
     >
       <div className="flex items-center gap-3">

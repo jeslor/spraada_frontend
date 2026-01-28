@@ -56,7 +56,7 @@ const Chat = () => {
       });
       return;
     }
-  }, [searchParams]);
+  }, [searchParams, selectedConversation]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -65,14 +65,10 @@ const Chat = () => {
     }
   }, [selectedConversation]);
 
-  const handleSelectedUser = (user: ProfileSummary) => {
-    localStorage.setItem("spraadaSelectedChatUserId", user.id.toString());
-  };
-
   return (
     <div className="flex h-dvh min-h-0 fixed w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
       <div className="bg-primary-50 w-[80vw] max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
-        <ChatLeft onSelectUser={handleSelectedUser} />
+        <ChatLeft />
       </div>
 
       <div className="flex-1 flex flex-col h-full min-h-0 p-0 m-0">

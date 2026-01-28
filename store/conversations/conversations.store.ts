@@ -70,24 +70,30 @@ export const useConversationStore = create<ConversationStore>()(
         message: Message,
         otherParticipant?: ProfileSummary,
       ) => {
-        set((state) => {
-          const conversation = state.conversations.find(
-            (c) => c.id === conversationId,
-          );
-          if (conversation) {
-            conversation.messages.push(message);
-          }
-          if (!conversation && otherParticipant) {
+        alert("here");
+        const conversationIndex = get().conversations.findIndex(
+          (c) => c.id === conversationId,
+        );
+
+        if (conversationIndex === -1 && otherParticipant) {
+          set((state) => {
             state.conversations.unshift({
               id: conversationId,
               otherParticipant: otherParticipant,
               messages: [message],
               currentPage: 1,
             });
-            // get the conversation from backend if not found
+          });
+          return;
+        }
+        set((state) => {
+          const conversation = state.conversations[conversationIndex];
+          if (conversation) {
+            conversation.messages.push(message);
           }
         });
       },
+
       replaceConversationId: (oldId: number, newId: number) => {
         set((state) => {
           const conversation = state.conversations.find((c) => c.id === oldId);

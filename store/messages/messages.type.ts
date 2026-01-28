@@ -2,7 +2,7 @@ export interface Message {
   id: string;
   content: string;
   senderId: number;
-  conversationId: number;
+  conversationId?: number;
   deletedBySender?: boolean;
   deletedByReceiver?: boolean;
   mediaFiles?: {
@@ -34,4 +34,5 @@ export interface MessageStore {
     otherParticipant: ProfileSummary,
     conversationId: number,
   ) => Promise<void>;
+  getLastMessageByConversationId: (conversationId: number) => Message | null;
 }

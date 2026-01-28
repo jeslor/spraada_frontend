@@ -16,6 +16,15 @@ export const useMessageStore = create<MessageStore>()(
     immer((set, get) => ({
       ...initialState,
 
+      getLastMessageByConversationId: (conversationId: number) => {
+        return (
+          useConversationStore
+            .getState()
+            .conversations.find((c) => c.id === conversationId)
+            ?.messages.slice(-1)[0] || null
+        );
+      },
+
       // Socket: listen for new conversation messages
       initConversationSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
@@ -64,7 +73,7 @@ export const useMessageStore = create<MessageStore>()(
             useConversationStore
               .getState()
               .replaceConversation(conversationId, {
-                id: updatedConversationId,
+                id: updatedConversationId!,
                 otherParticipant: otherParticipant,
                 messages: [savedMessage.data],
                 currentPage: 1,

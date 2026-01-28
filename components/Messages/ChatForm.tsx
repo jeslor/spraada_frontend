@@ -142,6 +142,7 @@ const ChatForm = ({
       createdAt: new Date().toISOString(),
     };
     setHasMounted(true);
+
     sendMessage(newMsg, otherParticipant, selectedConversation?.id);
     setInput("");
     setImagePreviews([]);
