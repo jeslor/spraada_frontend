@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  Message,
-  useDeleteMessage,
-  useIsLoadingProfiles,
-  useMessages,
-  useProfile,
-  useResetUserUnreadMessagesCount,
-  useSelectedUserMessages,
-  useSelectedUserToMessage,
-} from "@/store";
+import { Message, useProfile, useSelectedConversation } from "@/store";
 import EmptyChat from "./EmptyChat";
 import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
+import MoreMessagesHereIndicator from "./MoreMessagesHereIndicator";
 
 const ChatRightMessages = ({
   setHasMounted,
@@ -33,13 +25,9 @@ const ChatRightMessages = ({
 
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
 
-  const deleteMessage = useDeleteMessage();
-  const isLoadingProfiles = useIsLoadingProfiles();
-  const messages = useMessages();
   const profile = useProfile();
-  const selectedUserMessages = useSelectedUserMessages();
-  const selectedUserToMessage = useSelectedUserToMessage();
-  const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
+  const selectedConversation = useSelectedConversation();
+  // const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
 
   useEffect(() => {
     setHasMounted(false);
@@ -56,7 +44,7 @@ const ChatRightMessages = ({
         messagesEndRef.current?.scrollIntoView();
       }
     }
-  }, [selectedUserMessages]); // Only when messages change
+  }, [selectedConversation?.messages.length]); // Only when messages change
 
   //prevent scroll when action menu is open
   useEffect(() => {
@@ -75,19 +63,20 @@ const ChatRightMessages = ({
     };
   }, [chatHeightLocked]);
 
+  // reset conversation count
   useEffect(() => {
-    if (selectedUserToMessage) {
-      resetUserUnreadMessagesCount(selectedUserToMessage.id);
+    if (selectedConversation?.otherParticipant) {
+      // resetUserUnreadMessagesCount(selectedConversation.otherParticipant.id);
     }
-  }, [selectedUserToMessage]);
+  }, [selectedConversation]);
 
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
     setIsOnlyEdited(true);
-    deleteMessage(messageId);
+    // deleteMessage(messageId);
   };
 
-  const isLoadingChatSkeleton = isLoadingProfiles && messages.length === 0;
+  const isLoadingChatSkeleton = false;
 
   return (
     <div
@@ -96,16 +85,18 @@ const ChatRightMessages = ({
     >
       {isLoadingChatSkeleton ? (
         <MessageChatRightSkeleton />
-      ) : !selectedUserToMessage || selectedUserMessages.length === 0 ? (
+      ) : !selectedConversation ||
+        selectedConversation.messages.length === 0 ? (
         <EmptyChat />
       ) : (
         <div
           ref={messagesContainerRef}
           className="flex flex-col gap-4 scrollbar-hide "
         >
-          {selectedUserMessages.map((msg: Message, idx: number) =>
-            (msg.senderId === profile?.id && msg.deletedBySender) ||
-            (msg.receiverId === profile?.id && msg.deletedByReceiver) ? (
+          <MoreMessagesHereIndicator />
+          {selectedConversation.messages.map((msg: Message, idx: number) =>
+            (profile?.id && msg.deletedBySender) ||
+            (profile?.id && msg.deletedByReceiver) ? (
               <ChatMessageDeletedBubble
                 key={msg.id || idx}
                 isFromCurrentUser={msg.senderId === profile?.id}

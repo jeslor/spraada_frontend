@@ -17,3 +17,6 @@ export const useSelectedConversation = () =>
 
 export const useClearConversations = () =>
   useConversationStore((state: any) => state.clearConversations);
+
+export const useHasHydratedConversations = () =>
+  useConversationStore((state: any) => state._hasHydratedConversations);

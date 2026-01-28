@@ -14,6 +14,7 @@ export interface ConversationState {
   error: string | null;
   currentConversationPage: number;
   selectedConversation: Conversation | null;
+  _hasHydratedConversations: boolean;
 }
 
 export interface ConversationActions {

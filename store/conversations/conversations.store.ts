@@ -11,6 +11,7 @@ const initialState = {
   error: null as string | null,
   currentConversationPage: 1,
   selectedConversation: null as Conversation | null,
+  _hasHydratedConversations: false,
 };
 
 export const useConversationStore = create<ConversationStore>()(
@@ -18,31 +19,44 @@ export const useConversationStore = create<ConversationStore>()(
     immer((set, get) => ({
       ...initialState,
 
-      //set conversations
-      setConversations: (conversations: Conversation[]) => {
+      // Logic: Merge new data with old data, prioritizing new data for duplicates
+      setConversations: (incoming: Conversation[]) => {
         set((state) => {
-          state.conversations = [
-            ...conversations,
-            ...state.conversations.filter(
-              (c) => !conversations.some((newC) => newC.id === c.id),
-            ),
-          ];
+          const conversationMap = new Map(
+            state.conversations.map((c) => [c.id, c]),
+          );
+
+          incoming.forEach((conv) => {
+            conversationMap.set(conv.id, conv);
+          });
+
+          state.conversations = Array.from(conversationMap.values());
         });
       },
+
       //fetch conversations from backend
       fetchConversations: async (profileId: number) => {
-        const page = get().currentConversationPage;
+        // Guard: Prevent double-fetching the same page
+        if (get().isLoadingConversations) return;
+
         set((state) => {
           state.isLoadingConversations = true;
           state.error = null;
         });
-        const conversation = await fetchConversationsAPI(profileId, page);
-        if (conversation.success) {
+
+        const result = await fetchConversationsAPI(
+          profileId,
+          get().currentConversationPage,
+        );
+
+        if (result.success) {
           set((state) => {
-            state.conversations = [
-              ...conversation.data,
-              ...state.conversations,
-            ];
+            const incoming = result.data;
+            // Filter out any items that already exist in state to avoid duplicates
+            const existingIds = new Set(state.conversations.map((c) => c.id));
+            const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
+
+            state.conversations.push(...uniqueNew);
             state.currentConversationPage += 1;
             state.isLoadingConversations = false;
           });
@@ -50,9 +64,7 @@ export const useConversationStore = create<ConversationStore>()(
           set((state) => {
             state.isLoadingConversations = false;
             state.error =
-              conversation.data instanceof Error
-                ? conversation.data.message
-                : "failed to fetch conversations";
+              result.data instanceof Error ? result.data.message : "Failed";
           });
         }
       },
@@ -70,26 +82,25 @@ export const useConversationStore = create<ConversationStore>()(
         message: Message,
         otherParticipant?: ProfileSummary,
       ) => {
-        alert("here");
-        const conversationIndex = get().conversations.findIndex(
-          (c) => c.id === conversationId,
-        );
+        set((state) => {
+          const conversation = state.conversations.find(
+            (c) => c.id === conversationId,
+          );
 
-        if (conversationIndex === -1 && otherParticipant) {
-          set((state) => {
+          if (conversation) {
+            // Deduplicate messages within the conversation
+            const exists = conversation.messages.some(
+              (m) => m.id === message.id,
+            );
+            if (!exists) conversation.messages.push(message);
+          } else if (otherParticipant) {
+            // New conversation: add to the beginning of the list
             state.conversations.unshift({
               id: conversationId,
-              otherParticipant: otherParticipant,
+              otherParticipant,
               messages: [message],
               currentPage: 1,
             });
-          });
-          return;
-        }
-        set((state) => {
-          const conversation = state.conversations[conversationIndex];
-          if (conversation) {
-            conversation.messages.push(message);
           }
         });
       },
@@ -147,6 +158,13 @@ export const useConversationStore = create<ConversationStore>()(
     {
       name: "conversation-store",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        conversations: state.conversations,
+        currentConversationPage: state.currentConversationPage,
+      }),
+      onRehydrateStorage: () => (state) => {
+        state!._hasHydratedConversations = true;
+      },
     },
   ),
 );

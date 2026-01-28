@@ -6,6 +6,9 @@ import {
   Conversation,
   ProfileSummary,
   useConversations,
+  useFetchConversations,
+  useHasHydratedConversations,
+  useProfile,
   useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
@@ -13,14 +16,22 @@ import { useSearchParams } from "next/navigation";
 import ChatLeft from "./ChatLeft";
 import ChatRight from "./ChatRight";
 
-const Chat = () => {
+const Chat = memo(() => {
   const searchParams = useSearchParams();
-  const [otherParticipant, setOtherParticipant] =
-    React.useState<ProfileSummary | null>(null);
 
   const selectedConversation = useSelectedConversation();
   const setSelectedConversation = useSetSelectedConversation();
   const conversations = useConversations();
+  const fetchConversations = useFetchConversations();
+  const hasHydratedConversations = useHasHydratedConversations();
+  const profile = useProfile();
+
+  /* Fetch conversations on mount if not already fetched */
+  useEffect(() => {
+    if (hasHydratedConversations && profile?.id && conversations.length === 0) {
+      fetchConversations(profile.id);
+    }
+  }, [hasHydratedConversations, profile?.id, conversations.length]);
 
   /* Handle URL params & localStorage */
   useEffect(() => {
@@ -58,13 +69,6 @@ const Chat = () => {
     }
   }, [searchParams, selectedConversation]);
 
-  useEffect(() => {
-    if (selectedConversation) {
-      const { otherParticipant } = selectedConversation;
-      setOtherParticipant(otherParticipant);
-    }
-  }, [selectedConversation]);
-
   return (
     <div className="flex h-dvh min-h-0 fixed w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
       <div className="bg-primary-50 w-[80vw] max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
@@ -76,6 +80,6 @@ const Chat = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Chat;

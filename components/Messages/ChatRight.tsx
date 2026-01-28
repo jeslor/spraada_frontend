@@ -10,7 +10,6 @@ export default function ChatRight() {
   const [hasMounted, setHasMounted] = useState(false);
   const [isOnlyEdited, setIsOnlyEdited] = useState(false);
 
-  const profile = useProfile();
   const selectedConversation = useSelectedConversation();
 
   //   ==========================Effects==========================
@@ -30,12 +29,12 @@ export default function ChatRight() {
   return (
     <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Messages */}
-      {/* <ChatRightMessages
+      <ChatRightMessages
         setHasMounted={setHasMounted}
         setIsOnlyEdited={setIsOnlyEdited}
         hasMounted={hasMounted}
         isOnlyEdited={isOnlyEdited}
-      /> */}
+      />
       {/* Chat Form */}
       <ChatForm
         otherParticipant={selectedConversation?.otherParticipant || null}
