@@ -20,12 +20,12 @@ const EmptyChat = () => {
 
       {/* Subtitle */}
       <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-        Select a contact from the left to start a new conversation or continue
-        chatting.
+        Select a contact from the left to start a new conversation or start a
+        conversation.
       </p>
 
       {/* Optional hint */}
-      <div className="mt-6 flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+      <div className="mt-6 flex items-center gap-2 text-xs text-primary-400 dark:text-gray-500">
         <Icon icon="mdi:cursor-default-outline" width={16} />
         <span>Choose a chat to begin</span>
       </div>

@@ -15,6 +15,11 @@ export const useProfileLoading = (): boolean =>
 export const useProfileUpdating = (): boolean =>
   useProfileStore((state) => state.isUpdating);
 
+export const useUpdateProfileFavoriteTools = () =>
+  useProfileStore((state) => state.updateProfileFavoriteTools);
+export const useToolIsFavorited = () =>
+  useProfileStore((state) => state.toolIsFavorited);
+
 export const useProfileError = (): string | null =>
   useProfileStore((state) => state.error);
 
@@ -57,11 +62,10 @@ export const useTransactionsCount = (): number =>
 // ==================== Stats Selectors ====================
 
 export const useProfileStats = () => {
-  return {
-    myToolsCount: useMyToolsCount() || 0,
-    bookingsCount: useBookingsCount() || 0,
-    transactionsCount: useTransactionsCount() || 0,
-  };
+  return useProfileStore((state) => state.stats);
+};
+export const useSetProfileStats = () => {
+  return useProfileStore((state) => state.setStats);
 };
 
 // ==================== Action Selectors ====================

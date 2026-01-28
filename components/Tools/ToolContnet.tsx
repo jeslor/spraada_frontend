@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import ToolsSkeletonGrid from "./ToolsSkeletonGrid";
 import {
   useProfile,
@@ -17,6 +16,7 @@ import {
   useBookingsLoading,
   useBookingsHasHydrated,
   useUpdateBookingStatus,
+  useSetProfileStats,
 } from "@/store";
 import NoTools from "./NoTools";
 import ToolCard from "./ToolCard/ToolCard";
@@ -41,6 +41,7 @@ const ToolContent = ({
   emptyState,
   gridClassName,
 }: ToolContentProps) => {
+  const [isDeleting, setIsDeleting] = useState(false);
   const profile = useProfile();
   const myTools = useMyTools();
   const setMyTools = useSetMyTools();
@@ -52,9 +53,9 @@ const ToolContent = ({
   const bookingsHydrated = useBookingsHasHydrated();
   const fetchMyTools = useFetchMyTools();
   const fetchBookings = useFetchBookings();
+  const setProfileStats = useSetProfileStats();
   const updateBookingStatusInStore = useUpdateBookingStatus();
   const [hasFetchedTools, setHasFetchedTools] = useState(false);
-  const [hasFetchedBookings, setHasFetchedBookings] = useState(false);
 
   // Memoize profileId to prevent unnecessary effect runs
   const profileId = profile?.id;
@@ -83,27 +84,9 @@ const ToolContent = ({
     isExternalMode,
   ]);
 
-  // Fetch bookings for rented/borrowed types
-  useEffect(() => {
-    if (isExternalMode) return;
-
-    if (profileId && bookingsHydrated && !hasFetchedBookings) {
-      if (type === "rented" || type === "borrowed") {
-        setHasFetchedBookings(true);
-        fetchBookings(profileId);
-      }
-    }
-  }, [
-    type,
-    profileId,
-    bookingsHydrated,
-    hasFetchedBookings,
-    fetchBookings,
-    isExternalMode,
-  ]);
-
   // Handle delete tool
   const handleDelete = async (tool: Tool) => {
+    setIsDeleting(true);
     try {
       const deleteToolResult = await deleteTool(tool, profileId!);
       if (deleteToolResult.success) {
@@ -115,25 +98,23 @@ const ToolContent = ({
         if ((type === "rented" || type === "borrowed") && profileId) {
           fetchBookings(profileId);
         }
+        setProfileStats();
+
         toast.success(deleteToolResult.data);
       } else {
         console.error("Failed to delete tool:", deleteToolResult.data);
       }
     } catch (error) {
       console.error("Error deleting tool:", error);
+    } finally {
+      setIsDeleting(false);
     }
-  };
-
-  // Handle rent action
-  const handleRent = (tool: Tool) => {
-    console.log("Rent tool:", tool.id);
-    // TODO: Open rental modal
   };
 
   // Handle approve booking
   const handleUpdateBookingStatus = async (
     bookingId: string,
-    status: BookStatus
+    status: BookStatus,
   ) => {
     alert(`Change booking ${bookingId} to status: ${status}`);
     try {
@@ -168,25 +149,23 @@ const ToolContent = ({
   const tools = isExternalMode
     ? propTools || []
     : type === "owned"
-    ? myTools
-    : type === "rented"
-    ? rentedTools
-    : borrowedTools;
+      ? myTools
+      : type === "rented"
+        ? rentedTools
+        : borrowedTools;
 
   // Determine loading state
   const isLoading =
     externalLoading !== undefined
       ? externalLoading
       : type === "owned"
-      ? !toolsHydrated ||
-        toolsLoading ||
-        (profile?.id && tools.length === 0 && !hasFetchedTools)
-      : !bookingsHydrated ||
-        bookingsLoading ||
-        (profile?.id && tools.length === 0 && !hasFetchedBookings);
+        ? !toolsHydrated ||
+          toolsLoading ||
+          (profile?.id && tools.length === 0 && !hasFetchedTools)
+        : !bookingsHydrated || bookingsLoading;
 
   // Show skeleton while loading
-  if (isLoading) {
+  if (isLoading || bookingsHydrated === false) {
     // Use fullWidth skeletons for rentals and borrowed
     const isFullWidth = type === "rented" || type === "borrowed";
     return (
@@ -201,7 +180,7 @@ const ToolContent = ({
   }
 
   // Empty state
-  if (tools.length === 0) {
+  if (!isLoading && tools.length === 0) {
     // Use custom empty state if provided
     if (emptyState) {
       return <>{emptyState}</>;
@@ -219,8 +198,8 @@ const ToolContent = ({
     (variant === "compact"
       ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6"
       : variant === "default"
-      ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-3 gap-y-6"
-      : "");
+        ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-3 gap-y-6"
+        : "");
 
   // Determine card variant based on type
   const getCardVariant = () => {
@@ -239,13 +218,9 @@ const ToolContent = ({
           <ToolCard
             key={tool.specialId || tool.id}
             tool={tool}
+            isDeleting={isDeleting}
             variant={getCardVariant()}
             onDelete={type === "owned" ? handleDelete : undefined}
-            onRent={
-              type !== "owned" && type !== "search" && type !== "all"
-                ? handleRent
-                : undefined
-            }
             onCancelBooking={
               type === "rented" || type === "borrowed"
                 ? handleUpdateBookingStatus

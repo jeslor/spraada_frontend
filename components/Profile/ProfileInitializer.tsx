@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useProfileStore } from "@/store";
+import { useEffect, useRef, useState } from "react";
+import {
+  useFetchBookings,
+  useProfile,
+  useProfileStore,
+  useSetProfile,
+  useSetProfileStats,
+  useToolsHasHydrated,
+} from "@/store";
 import { User } from "@/store/profile/profile.types";
+import { fetchUserProfile } from "@/lib/actions/profile.actions";
 
 interface ProfileInitializerProps {
   user: User | null;
@@ -14,7 +22,11 @@ interface ProfileInitializerProps {
  */
 export function ProfileInitializer({ user }: ProfileInitializerProps) {
   const setUser = useProfileStore((state) => state.setUser);
+  const fetchBookings = useFetchBookings();
   const hasHydrated = useProfileStore((state) => state._hasHydrated);
+  const toolsHasHydrated = useToolsHasHydrated();
+  const profile = useProfile();
+  const setProfileStats = useSetProfileStats();
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -24,6 +36,27 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
       setUser(user);
     }
   }, [user, setUser, hasHydrated]);
+
+  // update profile in the store when user changes
+  // useEffect(() => {
+  //   if (user && !hasInitializedRef.current && profile == null) {
+  //     fetchProfile();
+  //   }
+  // }, [user]);
+
+  useEffect(() => {
+    if (profile) {
+      fetchBookings(profile.id);
+      //fetchbookings or other data if needed
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (profile && toolsHasHydrated) {
+      // Update profile stats when tools have hydrated
+      setProfileStats();
+    }
+  }, [profile, toolsHasHydrated]);
 
   return null;
 }

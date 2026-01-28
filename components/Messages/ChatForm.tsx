@@ -4,9 +4,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import {
   Message,
+  ProfileSummary,
   useProfile,
+  useSelectedConversation,
   useSendMessage,
-  useSelectedUserToMessage,
 } from "@/store";
 import EmojiPicker from "emoji-picker-react";
 import CropImage from "@/components/Onboarding/CropImage";
@@ -14,16 +15,24 @@ import CropImage from "@/components/Onboarding/CropImage";
 interface ChatFormProps {
   setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
   setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
+  otherParticipant: ProfileSummary | null;
 }
 
 const MAX_IMAGE_PREVIEWS = 3;
 
-const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
+const ChatForm = ({
+  setIsOnlyEdited,
+  setHasMounted,
+  otherParticipant,
+}: ChatFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [input, setInput] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
+  const [otherParticipantId, setOtherParticipantId] = useState<number | null>(
+    null,
+  );
   const [imageLimitReached, setImageLimitReached] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [showCrop, setShowCrop] = useState(false);
@@ -32,7 +41,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const [sendingImage, setSendingImage] = useState(false);
 
   const sendMessage = useSendMessage();
-  const selectedUserToMessage = useSelectedUserToMessage();
+  const selectedConversation = useSelectedConversation();
   const profile = useProfile();
 
   useEffect(() => {
@@ -115,22 +124,15 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const submitMessage = async (e: React.FormEvent) => {
     setIsOnlyEdited(false);
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !otherParticipant) return;
     const newMsg: Message = {
       id: new Date().toISOString(),
       senderId: Number(profile?.id),
-      receiverId: Number(selectedUserToMessage?.id),
       sender: {
         id: profile?.id!,
         firstName: profile?.firstName || "",
         lastName: profile?.lastName || "",
         avatarUrl: profile?.avatarUrl,
-      },
-      receiver: {
-        id: Number(selectedUserToMessage?.id),
-        firstName: selectedUserToMessage?.firstName!,
-        lastName: selectedUserToMessage?.lastName!,
-        avatarUrl: selectedUserToMessage?.avatarUrl,
       },
       content: input,
       mediaFiles: imagePreviews.length
@@ -140,7 +142,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
       createdAt: new Date().toISOString(),
     };
     setHasMounted(true);
-    sendMessage(newMsg, Number(profile?.id));
+    sendMessage(newMsg, otherParticipant, selectedConversation?.id);
     setInput("");
     setImagePreviews([]);
     setImageFiles([]);
@@ -150,6 +152,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const handleEmojiClick = (emojiData: any) => {
     setInput((prev) => prev + emojiData.emoji);
     setShowEmojiPicker(false);
+    textareaRef.current?.focus();
   };
 
   //handle removing an image preview
@@ -244,11 +247,11 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
             <Icon icon="lsicon:send-filled" width={22} />
           </SpraadaButton>
           <div
-            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition text-[23px] text-primary-600"
             title="Add emoji"
             onClick={() => setShowEmojiPicker((v) => !v)}
           >
-            <Icon icon="emojione:boy-medium-dark-skin-tone" width={24} />
+            <Icon icon="line-md:emoji-grin" />
           </div>
         </div>
 

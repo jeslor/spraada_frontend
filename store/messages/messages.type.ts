@@ -1,10 +1,7 @@
-import { number } from "zod";
-
 export interface Message {
   id: string;
   content: string;
   senderId: number;
-  receiverId: number;
   deletedBySender?: boolean;
   deletedByReceiver?: boolean;
   mediaFiles?: {
@@ -18,33 +15,7 @@ export interface Message {
     lastName: string;
     avatarUrl?: string;
   };
-  receiver: {
-    id: number;
-    firstName: string;
-    lastName: string;
-    avatarUrl?: string;
-  };
   createdAt: string;
-}
-
-export interface UnReadMessagesCounterType {
-  id: number;
-  profileId: number;
-  counters: { [key: number]: number };
-}
-
-export interface MessageState {
-  messages: Message[];
-  isLoading: boolean;
-  error: string | null;
-  profiles: ProfileSummary[];
-  selectedUserToMessage: ProfileSummary | null;
-  selectedUserMessages: Message[];
-  unreadMessagesCount: {
-    id: number;
-    profileId: number;
-    counters: { [key: number]: number };
-  };
 }
 
 export interface ProfileSummary {
@@ -54,31 +25,12 @@ export interface ProfileSummary {
   avatarUrl?: string;
 }
 
-export interface MessageActions {
-  setMessages: (messages: Message[]) => void;
-  setUnreadMessagesCount: (
-    unreadMessagesCount: UnReadMessagesCounterType
-  ) => void;
-  deleteMessage: (messageId: string) => void;
-  fetchUnReadMessagesCount: (profileId: number) => Promise<void>;
-  updateUnreadMessagesCount: (
-    messageCounterId: number,
-    profileId: number,
-    counters: { [key: number]: number }
+export interface MessageStore {
+  // Socket logic
+  initConversationSocketListeners: (profileId: number) => void;
+  sendMessage: (
+    msg: Message,
+    otherParticipant: ProfileSummary,
+    conversationId: number,
   ) => Promise<void>;
-  addIncomingMessage: (message: Message) => void;
-  setSelectedUserToMessage: (profile: ProfileSummary | null) => void;
-  setSelectedUserMessages: (selectedUserId: number) => void;
-  initSocketListeners: (profileId: number) => void;
-  sendMessage: (msg: Message, profileId: number) => void;
-  fetchMessages: (userId: number) => Promise<void>;
-  updateMessages: (updatedMessage: Message, localId?: string) => void;
-  setLoading: (isLoading: boolean) => void;
-  setError: (error: string | null) => void;
-  setProfiles: (profiles: ProfileSummary[]) => void;
-  updateProfiles: (profile: ProfileSummary) => void;
-
-  clearMessages: () => void;
 }
-
-export interface MessageStore extends MessageState, MessageActions {}

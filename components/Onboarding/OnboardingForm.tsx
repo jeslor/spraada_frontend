@@ -31,6 +31,8 @@ import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
 import { uploadResources } from "@/lib/actions/resources.actions";
+import { createProfile } from "@/lib/actions/profile.actions";
+import { useUser } from "@/store";
 
 const steps = [
   {
@@ -65,6 +67,8 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const user = useUser();
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -141,7 +145,10 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
       };
 
       //save the user profile data
-
+      const savedUser = await createProfile(userProfileData);
+      if (!savedUser.success) {
+        throw new Error(savedUser.error || "Failed to create profile");
+      }
       // Move to completed step instead of refreshing immediately
       setCurrentStep(3);
     } catch (err) {

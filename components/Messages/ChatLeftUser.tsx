@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Message,
   UnReadMessagesCounterType,
   useMessageActions,
   useUpdateUnreadMessagesCount,
@@ -82,13 +83,13 @@ const ChatLeftUser = ({
               unreadCount > 0 ? "font-bold text-primary-600" : ""
             }`}
           >
-            {userLastMessage.mediaFiles?.length ? (
+            {userLastMessage && userLastMessage.mediaFiles?.length ? (
               <Icon
                 icon="famicons:camera"
                 className="inline-block mr-1 text-[18px]"
               />
             ) : null}
-            {isDeletedForMe(userLastMessage, profile.id) ? (
+            {userLastMessage && isDeletedForMe(userLastMessage, profile.id) ? (
               <em>Message deleted</em>
             ) : (
               userLastMessage?.content

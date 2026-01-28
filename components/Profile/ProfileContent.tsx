@@ -5,62 +5,60 @@ import { Icon } from "@iconify/react";
 import Image from "next/image";
 import ProfileAvatar from "@/components/Profile/ProfileAvatar";
 import EditProfileModal from "@/components/Profile/EditProfileModal";
-import {
-  useProfile,
-  useUser,
-  useProfileStats,
-  useSetUser,
-  useSetProfile,
-  useHasHydrated,
-  useMyToolsCount,
-} from "@/store";
-import { User, Profile } from "@/store/profile/profile.types";
+import { useProfile, useProfileStats, useUser } from "@/store";
 import { cn } from "@/lib/utils";
 import { SpraadaButton } from "../ui/SpraadaButton";
 
 interface ProfileContentProps {
-  initialUser: User;
-  initialProfile: Profile;
   isOwnProfile: boolean;
 }
 
-export default function ProfileContent({
-  initialUser,
-  initialProfile,
-  isOwnProfile,
-}: ProfileContentProps) {
-  const setUser = useSetUser();
-  const setProfile = useSetProfile();
-  const hasHydrated = useHasHydrated();
+export default function ProfileContent({ isOwnProfile }: ProfileContentProps) {
+  const profile = useProfile();
+  const user = useUser();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const hasSyncedRef = useRef(false);
-
-  // Get data from store (will be hydrated from localStorage or initial data)
-  const storeProfile = useProfile();
-  const storeUser = useUser();
   const stats = useProfileStats();
 
+  if (!profile) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <Icon
+            icon="solar:user-circle-bold"
+            className="text-6xl text-gray-300 mx-auto mb-4"
+          />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+            Profile Not Found
+          </h2>
+          <p className="text-gray-500">This profile is not yet complete.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get data from store (will be hydrated from localStorage or initial data)
+
   // Use store data if viewing own profile and store is hydrated, otherwise use initial data
-  const profile =
-    isOwnProfile && hasHydrated && storeProfile ? storeProfile : initialProfile;
-  const user =
-    isOwnProfile && hasHydrated && storeUser ? storeUser : initialUser;
+  // const profile =
+  //   isOwnProfile && hasHydrated && storeProfile ? storeProfile : initialProfile;
+  // const user =
+  //   isOwnProfile && hasHydrated && storeUser ? storeUser : initialUser;
 
   // Sync initial data to store if viewing own profile (only once after hydration)
-  useEffect(() => {
-    if (isOwnProfile && hasHydrated && !hasSyncedRef.current) {
-      hasSyncedRef.current = true;
-      setUser(initialUser);
-      setProfile(initialProfile);
-    }
-  }, [
-    isOwnProfile,
-    hasHydrated,
-    initialUser,
-    initialProfile,
-    setUser,
-    setProfile,
-  ]);
+  // useEffect(() => {
+  //   if (isOwnProfile && hasHydrated && !hasSyncedRef.current ) {
+  //     hasSyncedRef.current = true;
+  //     setUser(initialUser);
+  //     setProfile(profile);
+  //   }
+  // }, [
+  //   isOwnProfile,
+  //   hasHydrated,
+  //   initialUser,
+  //   initialProfile,
+  //   setUser,
+  //   setProfile,
+  // ]);
 
   //stop windows from scrolling when the edit Modal is open
   useEffect(() => {
@@ -73,25 +71,25 @@ export default function ProfileContent({
     }
   }, [isEditModalOpen]);
 
-  const { myToolsCount, bookingsCount, transactionsCount } = useProfileStats();
-
   const displayStats = [
     {
       label: "My tools",
-      value: isOwnProfile ? myToolsCount : myToolsCount || 0,
+      value: isOwnProfile
+        ? stats?.totalTools || 0
+        : profile.myToolBox?.length || 0,
       icon: "solar:box-bold",
     },
     {
       label: "My Rentals",
       value: isOwnProfile
-        ? stats.bookingsCount
+        ? stats?.totalRentals || 0
         : profile.myRentals?.length || 0,
       icon: "solar:hand-shake-bold",
     },
     {
       label: "Transactions",
       value: isOwnProfile
-        ? stats.transactionsCount
+        ? stats?.totalEarningsCents || 0
         : profile.transactions?.length || 0,
       icon: "solar:card-transfer-bold",
     },
@@ -151,7 +149,7 @@ export default function ProfileContent({
               firstName={profile.firstName}
               lastName={profile.lastName}
               profileId={profile.id}
-              userId={Number(user.id)}
+              userId={Number(user?.id)}
               isEditable={isOwnProfile}
             />
 
@@ -175,7 +173,7 @@ export default function ProfileContent({
               </h1>
               <span className="inline-flex items-center gap-1 px-3 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-full">
                 <Icon icon="solar:shield-check-bold" className="text-sm" />
-                {user.role || "USER"}
+                {user?.role || "USER"}
               </span>
             </div>
             <p className="text-gray-500 text-lg max-w-2xl leading-relaxed truncate">
@@ -303,14 +301,14 @@ export default function ProfileContent({
                       <InfoRow
                         icon="solar:shield-check-bold"
                         label="Account Type"
-                        value={user.role?.toLowerCase() ?? "user"}
+                        value={user?.role?.toLowerCase() ?? "user"}
                       />
                       <InfoRow
                         icon="solar:calendar-bold"
                         label="Member Since"
                         value={
-                          user.createdAt
-                            ? new Date(user.createdAt).toLocaleDateString(
+                          user?.createdAt
+                            ? new Date(user?.createdAt).toLocaleDateString(
                                 "en-US",
                                 {
                                   year: "numeric",
@@ -354,7 +352,7 @@ export default function ProfileContent({
 
       {/* Edit Profile Modal */}
       <EditProfileModal
-        userId={Number(user.id)}
+        userId={Number(user?.id)}
         profile={profile}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}

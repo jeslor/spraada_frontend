@@ -3,20 +3,52 @@ import { formatPrice } from "@/lib/helpers/dateHelpers";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
 
-import { useState } from "react";
-import { Tool } from "@/store";
+import { use, useEffect, useState } from "react";
+import {
+  Tool,
+  useProfile,
+  useToolIsFavorited,
+  useUpdateProfileFavoriteTools,
+} from "@/store";
+import { updateFavoriteTools } from "@/lib/actions/profile.actions";
+import toast from "react-hot-toast";
 
 const CompactCard = ({ tool }: { tool: Tool }) => {
   const [imageIndex, setImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isFavoriteState, setIsFavoriteState] = useState(false);
+  const [favoriteStatus, setFavoriteStatus] = useState(false);
   const photos = tool.toolPhotos || [];
   const hasMultiplePhotos = photos.length > 1;
 
-  const handleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsFavoriteState(!isFavoriteState);
+  const profile = useProfile();
+  const updateProfileFavoriteTools = useUpdateProfileFavoriteTools();
+  const toolIsFavorited = useToolIsFavorited();
+
+  useEffect(() => {
+    if (profile && tool) {
+      const isFavorited = toolIsFavorited(tool.id);
+
+      setFavoriteStatus(isFavorited);
+    }
+  }, [profile, tool]);
+
+  const handleIsFavoritedChange = async (
+    toolId: string,
+    favorited: boolean
+  ) => {
+    setFavoriteStatus(favorited);
+
+    const updatedProfile = await updateFavoriteTools(
+      profile!.id,
+      toolId,
+      favorited ? "add" : "remove"
+    );
+    if (!updatedProfile.success) {
+      toast.error(updatedProfile.error || "Failed to update favorite tools");
+      return;
+    }
+    //updateProfile store state
+    updateProfileFavoriteTools(updatedProfile.data!.favoriteTools || []);
   };
 
   return (
@@ -67,7 +99,11 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
 
           {/* Favorite Button */}
           <button
-            onClick={handleFavorite}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleIsFavoritedChange(tool.id, !favoriteStatus);
+            }}
             className="absolute top-2.5 right-2.5 z-10 hover:scale-110 transition-transform"
           >
             <span className="relative text-[28px] flex items-center justify-center">
@@ -75,7 +111,7 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
               <Icon
                 icon="fe:heart"
                 className={
-                  isFavoriteState ? "text-primary-500" : "text-black/20"
+                  favoriteStatus ? "text-primary-500" : "text-black/20"
                 }
               />
             </span>

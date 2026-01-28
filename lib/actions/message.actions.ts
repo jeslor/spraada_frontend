@@ -1,111 +1,102 @@
+"use server";
 import { Message } from "@/store/messages/messages.type";
 import { ProfileSummary } from "@/store/messages/messages.type";
-import customFetch from "@/lib/customFetch";
+import customFetch, { normalCustomFetch } from "@/lib/customFetch";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
 export const saveMessageAPI = async (
-  message: Partial<Message>
-): Promise<Message> => {
+  message: Partial<Message>,
+  otherProfileId: number,
+  conversationId: number,
+): Promise<
+  { data: Message; success: boolean } | { error: Error; success: false }
+> => {
   try {
-    const response = await customFetch(`${BACKEND_URL}/message`, {
+    const response = await normalCustomFetch(`${BACKEND_URL}/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(message),
+      body: JSON.stringify({ message, otherProfileId, conversationId }),
     });
-
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to save message"
+          "Failed to save message",
       );
     }
-    return response.data;
+
+    return {
+      data: response.data,
+      success: true,
+    };
   } catch (error) {
-    throw error;
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
   }
 };
 
-export const fetchMessagesApi = async (userId: number): Promise<Message[]> => {
-  try {
-    const response = await customFetch(
-      `${BACKEND_URL}/message?userId=${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to fetch messages"
-      );
-    }
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+// export const fetchProfilesApi = async (
+//   userId: number,
+// ): Promise<ProfileSummary[]> => {
+//   try {
+//     const response = await normalCustomFetch(
+//       `${BACKEND_URL}/message/profiles?userId=${userId}`,
+//       {
+//         method: "GET",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//       },
+//     );
+//     if (!response.ok) {
+//       throw new Error(
+//         response.data?.message ||
+//           response.data?.error ||
+//           response.error ||
+//           "Failed to fetch profiles",
+//       );
+//     }
 
-export const fetchProfilesApi = async (
-  userId: number
-): Promise<ProfileSummary[]> => {
-  try {
-    const response = await customFetch(
-      `${BACKEND_URL}/message/profiles?userId=${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    if (!response.ok) {
-      throw new Error(
-        response.data?.message ||
-          response.data?.error ||
-          response.error ||
-          "Failed to fetch profiles"
-      );
-    }
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};
+//     return {
+//       data: response.data,
+//       success: true,
+//     };
+//   } catch (error) {
+//     throw error;
+//   }
+// };
 
 export const fetchUnreadMessagesCountApi = async (
-  userId: number
+  userId: number,
 ): Promise<{
   id: number;
   profileId: number;
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_URL}/message/unreadCount?profileId=${userId}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch unread messages count"
+          "Failed to fetch unread messages count",
       );
     }
     return response.data;
@@ -117,22 +108,22 @@ export const fetchUnreadMessagesCountApi = async (
 export const updateUnreadMessagesCountApi = async (
   unReadMessageId: number,
   profileId: number,
-  counters: { [key: number]: number }
+  counters: { [key: number]: number },
 ): Promise<{
   id: number;
   profileId: number;
   counters: { [key: number]: number };
 }> => {
   try {
-    const response = await customFetch(
+    const response = await normalCustomFetch(
       `${BACKEND_URL}/message/unreadCount/${unReadMessageId}`,
       {
-        method: "PATCH",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ profileId, counters }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -140,10 +131,11 @@ export const updateUnreadMessagesCountApi = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update unread messages count"
+          "Failed to update unread messages count",
       );
     }
-    return response.data;
+    const data = response.data;
+    return data;
   } catch (error) {
     throw error;
   }
@@ -152,7 +144,7 @@ export const updateUnreadMessagesCountApi = async (
 export const deleteMessageApi = async (
   message: Message,
   profileId: number,
-  userId: number
+  userId: number,
 ): Promise<{ success: boolean; message: string }> => {
   try {
     const response = await customFetch(`${BACKEND_URL}/message/delete`, {
@@ -168,7 +160,7 @@ export const deleteMessageApi = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to delete message"
+          "Failed to delete message",
       );
     }
     return {

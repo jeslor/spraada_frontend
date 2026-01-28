@@ -1,6 +1,7 @@
 "use server";
 import { getSession, updateTokensInSession } from "../session/session";
 import { getNewRefreshAndAccessToken } from "../actions/Auth.actions";
+import { url } from "inspector";
 
 export interface CustomFetchOptions extends RequestInit {
   // You can add custom options here if needed
@@ -97,5 +98,40 @@ export default async function customFetch(
     };
   }
 }
+
+export const normalCustomFetch = async (
+  URL: string,
+  options: CustomFetchOptions = {}
+) => {
+  try {
+    let response = await fetch(URL, options);
+    let data;
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      try {
+        data = await response.json();
+      } catch (e) {
+        data = null;
+      }
+    } else {
+      data = await response.text();
+    }
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      data,
+    };
+  } catch (error) {
+    console.log("error from the normal custom fetch", error);
+
+    return {
+      ok: false,
+      status: 500,
+      data: null,
+      error: (error as Error).message || "Internal Server Error",
+    };
+  }
+};
 
 // Update refresh and access tokens via API route

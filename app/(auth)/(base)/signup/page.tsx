@@ -23,6 +23,7 @@ import {
 } from "@/lib/validators/Auth.validators";
 import { useRouter } from "next/navigation";
 import { signUp } from "@/lib/actions/Auth.actions";
+import { Icon } from "@iconify/react";
 
 const SignUpPage = () => {
   const Router = useRouter();
@@ -78,6 +79,18 @@ const SignUpPage = () => {
     <>
       {/* Header */}
       <div className="auth-form-header">
+        <Link
+          className="group self-start underline block mr-auto w-fit text-[13px] text-primary-800 hover:text-primary-600"
+          href="/"
+        >
+          <Icon
+            icon="mdi:arrow-left"
+            className="inline-block mr-1 group-hover:translate-x-0.5 transition-transform"
+            width={16}
+            height={16}
+          />
+          Back To Home
+        </Link>
         <h1 className="auth-form-title">Create your account</h1>
         <p className="auth-form-subtitle">
           Join the community and start renting tools to or from your neighbors

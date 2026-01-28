@@ -2,8 +2,9 @@
 import { formatPrice } from "@/lib/helpers/dateHelpers";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
+import { useRouter } from "next/navigation";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 import { isFavorite, isToolOwnedByUser, Tool } from "@/store";
 
@@ -16,6 +17,7 @@ const DefaultCard = ({
   onDelete?: (toolId: Tool) => void;
   isDeleting?: boolean;
 }) => {
+  const Router = useRouter();
   const isOwnedByUser = isToolOwnedByUser(tool);
   const isFavoriteTool = isFavorite(tool.id);
 
@@ -41,8 +43,41 @@ const DefaultCard = ({
     setIsFavoriteWorking(false);
   };
 
+  const handleNavigatePreviousPhoto = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImageIndex((prev) => (prev - 1 + photos.length) % photos.length);
+  };
+
+  const handleNavigateNextPhoto = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImageIndex((prev) => (prev + 1) % photos.length);
+  };
+
+  const handleTheCurrentPhoto = (e: React.MouseEvent, idx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setImageIndex(idx);
+  };
+
+  const handleNavigateToTool = () => {
+    Router.push(`/toolbox/view/${tool.id}`);
+  };
+
+  useEffect(() => {
+    if (showDeleteConfirm || isDeleting) {
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100vh";
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.height = "auto";
+    }
+  }, [showDeleteConfirm, isDeleting]);
+
   return (
     <div
+      onClick={handleNavigateToTool}
       className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -153,12 +188,7 @@ const DefaultCard = ({
         {hasMultiplePhotos && (
           <>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setImageIndex(
-                  (prev) => (prev - 1 + photos.length) % photos.length
-                );
-              }}
+              onClick={(e) => handleNavigatePreviousPhoto(e)}
               className={`absolute left-2 top-1/2 -translate-y-1/2 size-6 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
                 isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
@@ -170,10 +200,7 @@ const DefaultCard = ({
               />
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setImageIndex((prev) => (prev + 1) % photos.length);
-              }}
+              onClick={(e) => handleNavigateNextPhoto(e)}
               className={`absolute right-2 top-1/2 -translate-y-1/2 size-6 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 ${
                 isHovered ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
@@ -193,10 +220,7 @@ const DefaultCard = ({
             {photos.slice(0, 5).map((_, idx) => (
               <button
                 key={idx}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setImageIndex(idx);
-                }}
+                onClick={(e) => handleTheCurrentPhoto(e, idx)}
                 className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
                   idx === imageIndex
                     ? "w-4 bg-white"

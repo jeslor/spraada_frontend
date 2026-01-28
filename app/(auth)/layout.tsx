@@ -28,7 +28,7 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
         </div> */}
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center items-center text-center text-white p-12 w-full">
+        <div className="relative z-10 flex flex-col justify-center items-center text-center text-white p-12 w-full h-fit">
           <div className="mb-8">
             <div className="flex items-center justify-center mb-6">
               <div className="auth-brand-icon mb-4">
@@ -78,8 +78,8 @@ const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* Right Side - Auth Form */}
-      <div className="auth-form-side">
-        <div className="auth-form-container">{children}</div>
+      <div className="auth-form-side scrollbar-hide">
+        <div className="auth-form-container h-fit mb-8 pb-4">{children}</div>
       </div>
     </div>
   );

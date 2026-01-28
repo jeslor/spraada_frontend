@@ -1,9 +1,13 @@
+"use client";
+
 import React, { useEffect, memo } from "react";
 
 import {
+  Conversation,
   ProfileSummary,
-  useSetSelectedUserToMessage,
-  useUpdateProfiles,
+  useConversations,
+  useSelectedConversation,
+  useSetSelectedConversation,
 } from "@/store";
 import { useSearchParams } from "next/navigation";
 import ChatLeft from "./ChatLeft";
@@ -11,9 +15,12 @@ import ChatRight from "./ChatRight";
 
 const Chat = () => {
   const searchParams = useSearchParams();
+  const [otherParticipant, setOtherParticipant] =
+    React.useState<ProfileSummary | null>(null);
 
-  const updateProfiles = useUpdateProfiles();
-  const setSelectedUserToMessage = useSetSelectedUserToMessage();
+  const selectedConversation = useSelectedConversation();
+  const setSelectedConversation = useSetSelectedConversation();
+  const conversations = useConversations();
 
   /* Handle URL params & localStorage */
   useEffect(() => {
@@ -23,35 +30,42 @@ const Chat = () => {
     const avatarUrl = searchParams.get("avatarUrl") || undefined;
 
     if (userId && firstName && lastName) {
-      const newUser: ProfileSummary = {
+      //check if conversation with this user already exists
+      const existingConversation = conversations.find(
+        (conv: Conversation) => conv.otherParticipant.id === Number(userId),
+      );
+      // If exists, set it as selected conversation
+      if (existingConversation) {
+        setSelectedConversation(existingConversation);
+        return;
+      }
+
+      // If not, create a new conversation object
+      const newParticipant: ProfileSummary = {
         id: Number(userId),
         firstName,
         lastName,
         avatarUrl,
       };
-
-      setSelectedUserToMessage(newUser);
-      localStorage.setItem("spraadaSelectedChatUserId", newUser.id.toString());
-      updateProfiles(newUser);
+      // Set selected conversation to a new conversation with this user
+      setSelectedConversation({
+        id: Math.random() + Date.now(), // Temporary ID, replace with real one when creating conversation
+        otherParticipant: newParticipant,
+        lastMessage: null,
+        messages: [],
+      });
       return;
     }
+  }, [searchParams]);
 
-    const storedId =
-      typeof window !== "undefined"
-        ? localStorage.getItem("spraadaSelectedChatUserId")
-        : null;
-
-    if (storedId) {
-      setSelectedUserToMessage({
-        id: Number(storedId),
-        firstName: "",
-        lastName: "",
-      });
+  useEffect(() => {
+    if (selectedConversation) {
+      const { otherParticipant } = selectedConversation;
+      setOtherParticipant(otherParticipant);
     }
-  }, [searchParams, setSelectedUserToMessage]);
+  }, [selectedConversation]);
 
   const handleSelectedUser = (user: ProfileSummary) => {
-    setSelectedUserToMessage(user);
     localStorage.setItem("spraadaSelectedChatUserId", user.id.toString());
   };
 

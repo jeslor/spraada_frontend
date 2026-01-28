@@ -100,3 +100,27 @@ export const isDateBooked = (
     return checkDate >= rangeStart && checkDate <= rangeEnd;
   });
 };
+
+//created at to time ago
+export function timeAgo(date: Date | string): string {
+  const now = new Date().getTime();
+  const past = new Date(date).getTime();
+  const diff = Math.floor((now - past) / 1000); // seconds
+
+  if (diff < 60) return `${diff} second${diff !== 1 ? "s" : ""} ago`;
+
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} day${days !== 1 ? "s" : ""} ago`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks < 52) return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
+
+  const years = Math.floor(days / 365);
+  return `${years} year${years !== 1 ? "s" : ""} ago`;
+}
