@@ -41,7 +41,6 @@ const ChatRightMessages = ({
   //--- Local State ---//
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-  const [lastMessage, setLastMessage] = useState<Message | null>(null);
   //---Store Hooks---//
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
@@ -51,13 +50,7 @@ const ChatRightMessages = ({
     (state) => state.selectedConversation?.messages,
   );
 
-  useEffect(() => {
-    if (messages?.length) {
-      if (lastMessage !== messages?.[messages.length - 1]) {
-        setLastMessage(messages?.[messages.length - 1] || null);
-      }
-    }
-  }, [messages?.length]);
+  const lastMessage = messages ? messages[messages.length - 1] : null;
 
   // check if component is unmounted
   useEffect(() => {
@@ -191,17 +184,13 @@ const ChatRightMessages = ({
               />
             ) : (
               <MessageBubble
-                animateLastMessage={
-                  lastMessage?.content === msg.content &&
-                  lastMessage.senderId === msg.senderId
-                }
                 handleDeleteMessage={handleDeleteMessage}
                 setChatHeightLocked={setChatHeightLocked}
                 key={msg.id || idx}
                 msg={msg}
                 profileId={profile?.id!}
                 idx={idx}
-                isLast={idx === messages.length - 1}
+                isLastMessage={lastMessage === msg}
               />
             ),
           )}

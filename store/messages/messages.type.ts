@@ -29,6 +29,8 @@ export interface ProfileSummary {
 }
 
 export interface MessageStore {
+  isNewMessage: boolean;
+  setIsNewMessage: (isNew: boolean) => void;
   // Socket logic
   initConversationSocketListeners: (profileId: number) => void;
   sendMessage: (

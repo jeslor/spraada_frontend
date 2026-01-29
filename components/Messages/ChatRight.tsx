@@ -8,7 +8,6 @@ import ChatRightMessages from "./ChatRightMessages";
 
 export default function ChatRight() {
   const [hasMounted, setHasMounted] = useState(true);
-  const [animateLastMessage, setAnimateLastMessage] = useState(false);
   const [isLoadMoreMessages, setIsLoadMoreMessages] = useState(false);
 
   const selectedConversation = useSelectedConversation();

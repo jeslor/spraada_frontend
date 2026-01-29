@@ -13,12 +13,20 @@ import {
 import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
 
-const initialState = {};
+const initialState = {
+  isNewMessage: false,
+};
 
 export const useMessageStore = create<MessageStore>()(
   persist(
     immer((set, get) => ({
       ...initialState,
+
+      setIsNewMessage: (isNew: boolean) => {
+        set((state) => {
+          state.isNewMessage = isNew;
+        });
+      },
 
       // Inside your store
       getOldestMessageId: (conversationId: number) => {
@@ -71,6 +79,7 @@ export const useMessageStore = create<MessageStore>()(
       ) => {
         const { blobFiles, ...msgWithoutBlob } = msg; // Exclude blobFiles from the message object
         try {
+          get().setIsNewMessage(true);
           //add message to conversation store optimistically
           if (conversationId) {
             useConversationStore
@@ -117,6 +126,7 @@ export const useMessageStore = create<MessageStore>()(
             otherParticipant.id,
           );
 
+          get().setIsNewMessage(false);
           if (savedMessage.success) {
             let updatedConversationId = savedMessage.data.conversationId;
             //update message in conversation store with saved message data and also replace conversation id if it was created optimistically
@@ -166,7 +176,6 @@ export const useMessageStore = create<MessageStore>()(
               new Error("Failed to fetch more messages")
             );
           }
-          console.log(result.data, "fetched more messages");
 
           if (result.data.length === 0) {
             //mark all messages as loaded

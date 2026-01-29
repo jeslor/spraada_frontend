@@ -9,7 +9,6 @@ import {
   useFetchConversations,
   useHasHydratedConversations,
   useProfile,
-  useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
 import { useSearchParams } from "next/navigation";
@@ -19,7 +18,6 @@ import ChatRight from "./ChatRight";
 const Chat = () => {
   const searchParams = useSearchParams();
 
-  const selectedConversation = useSelectedConversation();
   const setSelectedConversation = useSetSelectedConversation();
   const conversations = useConversations();
   const fetchConversations = useFetchConversations();

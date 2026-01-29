@@ -9,19 +9,18 @@ import React, {
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
-import { Message } from "@/store";
+import { Message, useMessageStore } from "@/store";
 import { useClickOutside } from "@/Hooks/useClickOutside";
 import { formatMessageTimestamp } from "@/lib/helpers/dateHelpers";
 import MessageBubbleeLightBox from "./MessageBubbleeLightBox";
 
 interface MessageBubbleProps {
   msg: Message;
-  animateLastMessage: boolean;
   setChatHeightLocked?: (locked: boolean) => void;
   handleDeleteMessage: (messageId: string) => void;
   profileId: number | undefined;
   idx: number;
-  isLast: boolean;
+  isLastMessage: boolean;
 }
 
 const getMediaCardStyle = (index: number, total: number) => {
@@ -44,8 +43,7 @@ const MessageBubble = React.memo(
     setChatHeightLocked,
     handleDeleteMessage,
     profileId,
-    animateLastMessage,
-    isLast,
+    isLastMessage,
   }: MessageBubbleProps) => {
     // --- State ---
     const [showActions, setShowActions] = useState(false);
@@ -59,6 +57,9 @@ const MessageBubble = React.memo(
     const openLightbox = useCallback((index: number) => {
       setLightbox({ isOpen: true, index });
     }, []);
+
+    // ----Store Hooks---
+    const isNewMessage = useMessageStore((state) => state.isNewMessage);
 
     const closeLightbox = useCallback(() => {
       setLightbox((prev) => ({ ...prev, isOpen: false }));
@@ -171,7 +172,7 @@ const MessageBubble = React.memo(
               <div
                 key={file.mediaUrl || i}
                 className={`absolute inset-0 cursor-pointer transition-all duration-500 ease-out ${getMediaCardStyle(i, msg.mediaFiles!.length)}`}
-                onClick={() => openLightbox(i)}
+                onClick={() => openLightbox(0)}
               >
                 <img
                   src={file.mediaUrl}
@@ -195,13 +196,13 @@ const MessageBubble = React.memo(
       <div
         className={`flex w-full mb-1 ${isOwnMessage ? "justify-end" : "justify-start"}`}
       >
-        {animateLastMessage ? (
+        {isNewMessage && isLastMessage ? (
           <motion.div
             key={msg.id}
             layout
             initial={{
               opacity: 0,
-              scale: 0.95,
+              scale: 0.4,
               y: 10,
               transformOrigin: isOwnMessage ? "bottom right" : "bottom left",
             }}
