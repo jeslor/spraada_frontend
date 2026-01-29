@@ -10,8 +10,8 @@ import React, {
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import { Message } from "@/store";
-import MessageBubbleeLightBox from "./MessageBubbleeLightBox";
 import { useClickOutside } from "@/Hooks/useClickOutside";
+import { formatMessageTimestamp } from "@/lib/helpers/dateHelpers";
 
 interface MessageBubbleProps {
   msg: Message;
@@ -70,13 +70,10 @@ const MessageBubble = React.memo(
     }, [showActions, setChatHeightLocked]);
 
     // Memoize formatted time
-    const timestamp = useMemo(() => {
-      if (!msg.createdAt) return "";
-      return new Date(msg.createdAt).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    }, [msg.createdAt]);
+    const timestamp = useMemo(
+      () => formatMessageTimestamp(msg.createdAt),
+      [msg.createdAt],
+    );
 
     const toggleActions = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
@@ -104,7 +101,11 @@ const MessageBubble = React.memo(
           {showActions && (
             <motion.div
               ref={actionsRef}
-              style={{ transformOrigin: "top right" }}
+              style={
+                isOwnMessage
+                  ? { transformOrigin: "top right" }
+                  : { transformOrigin: "top left" }
+              }
               // Use "Filter Blur" to simulate motion blur—it hides frame gaps at high speeds
               initial={{ opacity: 0, scale: 0.94, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
@@ -115,7 +116,7 @@ const MessageBubble = React.memo(
                 damping: 55, // High damping to stop the movement instantly
                 mass: 0.2, // Low mass makes the object feel "weightless"
               }}
-              className="absolute top-3 right-0 min-w-[140px] overflow-hidden rounded-xl border border-gray-200/50 bg-white/80 p-1 shadow-[0_20px_50px_rgba(0,0,0,0.15)] backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-950/80 z-50"
+              className={`absolute top-3 ${isOwnMessage ? "right-0" : "left-0"} min-w-[140px] overflow-hidden rounded-xl border border-gray-200/50 bg-white/80 p-1 shadow-[0_20px_50px_rgba(0,0,0,0.15)] backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-950/80 z-50`}
             >
               <div className="flex flex-col">
                 <button
@@ -145,7 +146,7 @@ const MessageBubble = React.memo(
 
         <button
           ref={moreBtnRef}
-          className="opacity-0 group-hover/bubble:opacity-100 absolute -right-2 -top-2 bg-white dark:bg-gray-700 rounded-full shadow-sm border border-gray-200 dark:border-gray-600 p-1 transition-opacity hover:scale-110 z-10"
+          className={`opacity-0 group-hover/bubble:opacity-100 absolute ${isOwnMessage ? "-right-2" : "-left-2"} -top-2 bg-white dark:bg-gray-700 rounded-full shadow-sm border border-gray-200 dark:border-gray-600 p-1 transition-opacity hover:scale-110 z-10`}
           onClick={toggleActions}
         >
           <Icon
