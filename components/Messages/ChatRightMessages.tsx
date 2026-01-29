@@ -6,7 +6,6 @@ import {
   useFetchMoreMessages,
   useProfile,
   useSelectedConversation,
-  useSelectedConversationMessages,
 } from "@/store";
 import EmptyChat from "./EmptyChat";
 import { useEffect, useRef, useState } from "react";
@@ -16,17 +15,21 @@ import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
 import MoreMessagesHereIndicator from "./MoreMessagesHereIndicator";
 import { useInView } from "react-intersection-observer";
 
-const ChatRightMessages = ({
-  setHasMounted,
-  setIsOnlyEdited,
-  isOnlyEdited,
-  hasMounted,
-}: {
+interface ChatRightMessagesProps {
+  setIsOnlyEdited: (isOnlyEdited: boolean) => void;
   hasMounted: boolean;
-  isOnlyEdited: boolean;
-  setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
+  isLoadMoreMessages: boolean;
+  setHasMounted: (hasMounted: boolean) => void;
+  setIsLoadMoreMessages: (isLoadMore: boolean) => void;
+}
+
+const ChatRightMessages = ({
+  setIsOnlyEdited,
+  hasMounted,
+  isLoadMoreMessages,
+  setIsLoadMoreMessages,
+  setHasMounted,
+}: ChatRightMessagesProps) => {
   const { ref, inView, entry } = useInView({
     threshold: 0,
   });
@@ -35,6 +38,7 @@ const ChatRightMessages = ({
   const mainMessageContainerRef = useRef<HTMLDivElement>(null);
 
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
@@ -45,21 +49,53 @@ const ChatRightMessages = ({
 
   // check if component is unmounted
   useEffect(() => {
+    if (hasMounted && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+
+    if (!isLoadMoreMessages && messages?.length && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    }
     setHasMounted(false);
+    return () => {
+      setHasMounted(true);
+    };
+  }, [hasMounted, isLoadMoreMessages, messages?.length]);
+
+  //useEffect to track scroll position
+  useEffect(() => {
+    const container = mainMessageContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+
+      // Show "Scroll to Bottom" button if not near bottom
+      if (scrollHeight - scrollTop - clientHeight > 100) {
+        setShowScrollToBottom(true);
+      } else {
+        setShowScrollToBottom(false);
+      }
+    };
+
+    container.addEventListener("scroll", handleScroll);
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   // Scroll to bottom logic
-  useEffect(() => {
-    // Only scroll if content is taller than container
-    const container = messagesContainerRef.current;
-    if (container && !isOnlyEdited) {
-      if (hasMounted) {
-        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-      } else {
-        messagesEndRef.current?.scrollIntoView();
-      }
-    }
-  }, [selectedConversation?.messages.length]); // Only when messages change
+  // useEffect(() => {
+  //   // Only scroll if content is taller than container
+  //   const container = messagesContainerRef.current;
+  //   if (container && !isOnlyEdited) {
+  //     if (hasMounted) {
+  //       messagesEndRef.current?.scrollIntoView();
+  //     }
+  //   }
+  // }, []); // Only when messages change
 
   //prevent scroll when action menu is open
   useEffect(() => {
@@ -109,6 +145,7 @@ const ChatRightMessages = ({
 
   const handleLoadMoreMessages = () => {
     if (selectedConversation && !isAllLoaded) {
+      setIsLoadMoreMessages(true);
       fetchMoreMessages(selectedConversation.id);
     }
   };
@@ -150,6 +187,16 @@ const ChatRightMessages = ({
                 isLast={idx === messages.length - 1}
               />
             ),
+          )}
+          {showScrollToBottom && (
+            <div
+              className="fixed bottom-20 right-8 bg-primary-600 text-white px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-primary-700 transition-colors z-50"
+              onClick={() =>
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
+              ↓
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>

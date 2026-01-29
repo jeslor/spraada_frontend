@@ -13,17 +13,15 @@ import EmojiPicker from "emoji-picker-react";
 import CropImage from "@/components/Onboarding/CropImage";
 
 interface ChatFormProps {
-  setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
-  setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
   otherParticipant: ProfileSummary | null;
+  setIsLoadMoreMessages: (isLoadMore: boolean) => void;
 }
 
 const MAX_IMAGE_PREVIEWS = 3;
 
 const ChatForm = ({
-  setIsOnlyEdited,
-  setHasMounted,
   otherParticipant,
+  setIsLoadMoreMessages,
 }: ChatFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -97,6 +95,7 @@ const ChatForm = ({
 
       // Trigger sendMessage here if you want Enter to send
       submitMessage(e as unknown as React.FormEvent<HTMLTextAreaElement>);
+      setIsLoadMoreMessages(false);
     }
   };
 
@@ -122,31 +121,34 @@ const ChatForm = ({
 
   // Send message (text or image)
   const submitMessage = async (e: React.FormEvent) => {
-    setIsOnlyEdited(false);
-    e.preventDefault();
-    if (!input.trim() || !otherParticipant) return;
-    const newMsg: Message = {
-      id: new Date().toISOString(),
-      senderId: Number(profile?.id),
-      sender: {
-        id: profile?.id!,
-        firstName: profile?.firstName || "",
-        lastName: profile?.lastName || "",
-        avatarUrl: profile?.avatarUrl,
-      },
-      content: input,
-      mediaFiles: imagePreviews.length
-        ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
-        : [],
-      blobFiles: imageFiles.length ? imageFiles : [],
-      createdAt: new Date().toISOString(),
-    };
-    setHasMounted(true);
+    try {
+      e.preventDefault();
+      if (!input.trim() || !otherParticipant) return;
+      setIsLoadMoreMessages(false);
+      const newMsg: Message = {
+        id: new Date().toISOString(),
+        senderId: Number(profile?.id),
+        sender: {
+          id: profile?.id!,
+          firstName: profile?.firstName || "",
+          lastName: profile?.lastName || "",
+          avatarUrl: profile?.avatarUrl,
+        },
+        content: input,
+        mediaFiles: imagePreviews.length
+          ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
+          : [],
+        blobFiles: imageFiles.length ? imageFiles : [],
+        createdAt: new Date().toISOString(),
+      };
 
-    sendMessage(newMsg, otherParticipant, selectedConversation?.id);
-    setInput("");
-    setImagePreviews([]);
-    setImageFiles([]);
+      sendMessage(newMsg, otherParticipant, selectedConversation?.id);
+      setInput("");
+      setImagePreviews([]);
+      setImageFiles([]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   //load the emoji into the input field

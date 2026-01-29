@@ -35,5 +35,6 @@ export interface MessageStore {
     conversationId: number,
   ) => Promise<void>;
   getOldestMessageId: (conversationId: number) => Message | null;
+  getLatestMessageId: (conversationId: number) => Message | null;
   fetchMoreMessages: (conversationId: number) => Promise<void>;
 }

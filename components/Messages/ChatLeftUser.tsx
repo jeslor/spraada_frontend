@@ -2,7 +2,7 @@
 
 import {
   Conversation,
-  useGetOldestMessageByConversationId,
+  useGetLatestMessageByConversationId,
   useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
@@ -24,11 +24,11 @@ const ChatLeftUser = ({
 }: EachSideUserProps) => {
   const selectedConversation = useSelectedConversation();
   const setSelectedConversation = useSetSelectedConversation();
-  const getOldestMessageByConversationId =
-    useGetOldestMessageByConversationId();
+  const getLatestMessageByConversationId =
+    useGetLatestMessageByConversationId();
 
   const profile = conversation.otherParticipant;
-  const userOldestMessage = getOldestMessageByConversationId(conversation.id);
+  const userLatestMessage = getLatestMessageByConversationId(conversation.id);
 
   const handleSelectConversation = () => {
     setSelectedConversation(conversation);
@@ -61,17 +61,17 @@ const ChatLeftUser = ({
               unreadCount > 0 ? "font-bold text-primary-600" : ""
             }`}
           >
-            {userOldestMessage && userOldestMessage.mediaFiles?.length ? (
+            {userLatestMessage && userLatestMessage.mediaFiles?.length ? (
               <Icon
                 icon="famicons:camera"
                 className="inline-block mr-1 text-[18px]"
               />
             ) : null}
-            {userOldestMessage &&
-            isDeletedForMe(userOldestMessage, profile.id) ? (
+            {userLatestMessage &&
+            isDeletedForMe(userLatestMessage, profile.id) ? (
               <em>Message deleted</em>
             ) : (
-              userOldestMessage?.content
+              userLatestMessage?.content
             )}
           </div>
         </div>

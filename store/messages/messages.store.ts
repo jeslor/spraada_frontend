@@ -30,6 +30,18 @@ export const useMessageStore = create<MessageStore>()(
         return conversation.messages[0];
       },
 
+      getLatestMessageId: (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+
+        if (!conversation || conversation.messages.length === 0) return null;
+
+        // Assuming messages are sorted [oldest...newest]
+        // The message at the last index is the latest one currently in your store
+        return conversation.messages[conversation.messages.length - 1];
+      },
+
       // Socket: listen for new conversation messages
       initConversationSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
@@ -112,8 +124,7 @@ export const useMessageStore = create<MessageStore>()(
         alert("this ran");
         try {
           const lastMessage = get().getOldestMessageId(conversationId);
-          const cursor = lastMessage ? lastMessage.createdAt : undefined;
-
+          const cursor = lastMessage ? lastMessage.id : undefined;
           const result = await fetchMoreMessagesAPI(conversationId, cursor);
           if (!result.success) {
             throw (

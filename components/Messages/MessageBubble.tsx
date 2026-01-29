@@ -93,7 +93,7 @@ const MessageBubble = React.memo(
      */
     const BubbleContent = (
       <div
-        className={`max-w-[70%] px-4 py-2 rounded-2xl shadow text-sm font-medium break-words group/bubble relative ${
+        className={`max-w-[70%] px-4 py-2 rounded-2xl shadow text-sm font-medium wrap-break-word group/bubble relative ${
           isOwnMessage
             ? "bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100 rounded-br-md"
             : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 rounded-bl-md"
@@ -129,7 +129,7 @@ const MessageBubble = React.memo(
                   Delete Message
                 </button>
 
-                <div className="mx-2 h-[1px] bg-gray-200/50 dark:bg-gray-800/50" />
+                <div className="mx-2 h-px bg-gray-200/50 dark:bg-gray-800/50" />
 
                 <button
                   onClick={() => setShowActions(false)}
@@ -195,7 +195,7 @@ const MessageBubble = React.memo(
             initial={{
               opacity: 0,
               scale: 0.8,
-              y: 10,
+              y: 4,
               // Origin ensures the 'pop' starts from the corner tail
               transformOrigin: isOwnMessage ? "bottom right" : "bottom left",
             }}
@@ -207,7 +207,7 @@ const MessageBubble = React.memo(
             transition={{
               // WhatsApp animations are very fast and tight
               type: "spring",
-              stiffness: 600, // Increased for speed
+              stiffness: 1500, // Increased for speed
               damping: 35, // Balanced to prevent too much "bouncing"
               mass: 0.8, // Lighter mass makes it move quicker
             }}

@@ -59,7 +59,7 @@ export const fetchMoreMessagesAPI = async (
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ cursorTo: cursorTo }),
+        body: JSON.stringify({ cursorTo }),
       },
     );
 
