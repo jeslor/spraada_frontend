@@ -15,6 +15,7 @@ import { formatMessageTimestamp } from "@/lib/helpers/dateHelpers";
 
 interface MessageBubbleProps {
   msg: Message;
+  animateLastMessage: boolean;
   setChatHeightLocked?: (locked: boolean) => void;
   handleDeleteMessage: (messageId: string) => void;
   profileId: number | undefined;
@@ -45,11 +46,13 @@ const MessageBubble = React.memo(
     setChatHeightLocked,
     handleDeleteMessage,
     profileId,
+    animateLastMessage,
     idx,
     isLast,
   }: MessageBubbleProps) => {
     const [lightbox, setLightbox] = useState({ open: false, index: 0 });
     const [showActions, setShowActions] = useState(false);
+    const [lastMessage, setLastMessage] = useState<Message | null>(null);
 
     const actionsRef = useRef<HTMLDivElement>(null);
     const moreBtnRef = useRef<HTMLButtonElement>(null);
@@ -62,6 +65,8 @@ const MessageBubble = React.memo(
       () => setShowActions(false),
       moreBtnRef, // We pass this so clicking the button itself doesn't trigger "outside"
     );
+
+    useEffect(() => {}, []);
 
     // Sync scroll lock with parent
     useEffect(() => {
@@ -188,15 +193,15 @@ const MessageBubble = React.memo(
       <div
         className={`flex w-full mb-1 ${isOwnMessage ? "justify-end" : "justify-start"}`}
       >
-        {isLast ? (
+        {animateLastMessage ? (
           <motion.div
             key={msg.id}
             layout
             // WhatsApp style: Pop from the side and slightly from below
             initial={{
               opacity: 0,
-              scale: 0.8,
-              y: 4,
+              scale: 0.95,
+              y: 1,
               // Origin ensures the 'pop' starts from the corner tail
               transformOrigin: isOwnMessage ? "bottom right" : "bottom left",
             }}

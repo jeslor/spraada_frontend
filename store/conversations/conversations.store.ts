@@ -71,8 +71,6 @@ export const useConversationStore = create<ConversationStore>()(
 
       // Add new conversation
       setSelectedConversation: (conversation: Conversation | null) => {
-        console.log(conversation, "in conversation store");
-
         set((state) => {
           if (!conversation) {
             state.selectedConversation = null;

@@ -17,7 +17,6 @@ import MoreMessagesHereIndicator from "./MoreMessagesHereIndicator";
 import { useInView } from "react-intersection-observer";
 
 interface ChatRightMessagesProps {
-  setIsOnlyEdited: (isOnlyEdited: boolean) => void;
   hasMounted: boolean;
   isLoadMoreMessages: boolean;
   setHasMounted: (hasMounted: boolean) => void;
@@ -25,7 +24,6 @@ interface ChatRightMessagesProps {
 }
 
 const ChatRightMessages = ({
-  setIsOnlyEdited,
   hasMounted,
   isLoadMoreMessages,
   setIsLoadMoreMessages,
@@ -43,7 +41,7 @@ const ChatRightMessages = ({
   //--- Local State ---//
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
-
+  const [lastMessage, setLastMessage] = useState<Message | null>(null);
   //---Store Hooks---//
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
@@ -52,6 +50,14 @@ const ChatRightMessages = ({
   const messages = useConversationStore(
     (state) => state.selectedConversation?.messages,
   );
+
+  useEffect(() => {
+    if (messages?.length) {
+      if (lastMessage !== messages?.[messages.length - 1]) {
+        setLastMessage(messages?.[messages.length - 1] || null);
+      }
+    }
+  }, [messages?.length]);
 
   // check if component is unmounted
   useEffect(() => {
@@ -136,7 +142,6 @@ const ChatRightMessages = ({
 
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
-    setIsOnlyEdited(true);
     if (profile && selectedConversation) {
       deleteMessage(messageId, profile);
     }
@@ -157,8 +162,6 @@ const ChatRightMessages = ({
       fetchMoreMessages(selectedConversation.id);
     }
   };
-
-  console.log(messages);
 
   return (
     <div
@@ -188,6 +191,10 @@ const ChatRightMessages = ({
               />
             ) : (
               <MessageBubble
+                animateLastMessage={
+                  lastMessage?.content === msg.content &&
+                  lastMessage.senderId === msg.senderId
+                }
                 handleDeleteMessage={handleDeleteMessage}
                 setChatHeightLocked={setChatHeightLocked}
                 key={msg.id || idx}
