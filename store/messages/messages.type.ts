@@ -3,6 +3,7 @@ import { Profile } from "../profile/profile.types";
 export interface Message {
   id: string;
   content: string;
+  isSpecialNotification?: boolean;
   senderId: number;
   conversationId?: number;
   deletedBySender?: boolean;
@@ -30,7 +31,11 @@ export interface ProfileSummary {
 
 export interface MessageStore {
   isNewMessage: boolean;
+  isFetchingNewMessages: boolean;
+  showUnreadNotification: boolean;
+  setIsFetchingNewMessages: (isFetching: boolean) => void;
   setIsNewMessage: (isNew: boolean) => void;
+  setNewUnreadNotification: (show: boolean) => void;
   // Socket logic
   initConversationSocketListeners: (profileId: number) => void;
   sendMessage: (
@@ -42,5 +47,6 @@ export interface MessageStore {
   getOldestMessageId: (conversationId: number) => Message | null;
   getLatestMessageId: (conversationId: number) => Message | null;
   fetchMoreMessages: (conversationId: number) => Promise<void>;
+  fetchNewMessages: (conversationId: number) => Promise<void>;
   deleteMessage: (messageId: string, profileId: Profile) => Promise<void>;
 }

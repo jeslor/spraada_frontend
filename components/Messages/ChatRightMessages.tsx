@@ -5,11 +5,12 @@ import {
   useConversationStore,
   useDeleteMessage,
   useFetchMoreMessages,
+  useFetchNewMessages,
   useProfile,
   useSelectedConversation,
 } from "@/store";
 import EmptyChat from "./EmptyChat";
-import { useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
@@ -46,18 +47,25 @@ const ChatRightMessages = ({
   const fetchMoreMessages = useFetchMoreMessages();
   const selectedConversation = useSelectedConversation();
   const deleteMessage = useDeleteMessage();
+  const fetchNewMessages = useFetchNewMessages();
   const messages = useConversationStore(
     (state) => state.selectedConversation?.messages,
   );
 
   const lastMessage = messages ? messages[messages.length - 1] : null;
 
+  //LoadNewMessages
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchNewMessages(selectedConversation.id);
+    }
+  }, [selectedConversation?.id]);
+
   // check if component is unmounted
   useEffect(() => {
     if (hasMounted && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-
     if (!isLoadMoreMessages && messages?.length && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "auto" });
     }

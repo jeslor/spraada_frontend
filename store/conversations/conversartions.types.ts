@@ -29,6 +29,10 @@ export interface ConversationActions {
     conversationId: number,
     messages: Message[],
   ) => void;
+  addNewMessagesToConversation: (
+    conversationId: number,
+    messages: Message[],
+  ) => void;
   replaceConversation: (
     oldConversationId: number,
     newConversation: Conversation,
@@ -37,6 +41,10 @@ export interface ConversationActions {
     conversationId: number,
     oldMessageId: string,
     updatedMessage: Message,
+  ) => void;
+  removeMessageFromConversation: (
+    conversationId: number,
+    messageId: string,
   ) => void;
   replaceConversationId: (oldId: number, newId: number) => void;
   fetchConversations: (profileId: number) => Promise<void>;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, memo } from "react";
+import React, { useEffect } from "react";
 
 import {
   Conversation,

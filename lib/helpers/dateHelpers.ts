@@ -159,3 +159,11 @@ export const formatMessageTimestamp = (dateInput: string | Date): string => {
     year: "numeric",
   });
 };
+
+//subtract a millsecond from a date string and return new ISO string
+export const getPreviousMillisecondString = (date: string | Date): string => {
+  const ms = new Date(date).getTime();
+  if (isNaN(ms)) return new Date().toISOString();
+
+  return new Date(ms - 1).toISOString();
+};

@@ -192,7 +192,16 @@ const MessageBubble = React.memo(
       </div>
     );
 
-    return (
+    return msg.isSpecialNotification ? (
+      <div className="w-full flex justify-center my-2">
+        <div
+          className="px-3 py-1.5  bg-primary-200/30 dark:bg-gray-800  dark:text-gray-400 text-xs font-medium  select-none w-full text-center text-semi-bold text-primary-600 shadow-sm "
+          style={{ fontStyle: "italic" }}
+        >
+          {msg.content}
+        </div>
+      </div>
+    ) : (
       <div
         className={`flex w-full mb-1 ${isOwnMessage ? "justify-end" : "justify-start"}`}
       >
@@ -203,14 +212,14 @@ const MessageBubble = React.memo(
             initial={{
               opacity: 0,
               scale: 0.4,
-              y: 10,
+              y: 20,
               transformOrigin: isOwnMessage ? "bottom right" : "bottom left",
             }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{
               type: "spring",
-              stiffness: 1200,
-              damping: 40,
+              stiffness: 800,
+              damping: 30,
               mass: 0.8,
             }}
             className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} w-full`}

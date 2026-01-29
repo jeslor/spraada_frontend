@@ -16,3 +16,6 @@ export const useFetchMoreMessages = () =>
 
 export const useDeleteMessage = () =>
   useMessageStore((state: any) => state.deleteMessage);
+
+export const useFetchNewMessages = () =>
+  useMessageStore((state: any) => state.fetchNewMessages);

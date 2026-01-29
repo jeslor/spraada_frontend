@@ -121,6 +121,30 @@ export const useConversationStore = create<ConversationStore>()(
         });
       },
 
+      //remove message from conversation
+      removeMessageFromConversation: (
+        conversationId: number,
+        messageId: string,
+      ) => {
+        set((state) => {
+          const conversation = state.conversations.find(
+            (c) => c.id === conversationId,
+          );
+          if (!conversation) return;
+          conversation.messages = conversation.messages.filter(
+            (m) => m.id !== messageId,
+          );
+
+          // Also update selectedConversation if it's the one we are viewing
+          if (state.selectedConversation?.id === conversationId) {
+            state.selectedConversation = {
+              ...conversation,
+              messages: conversation.messages,
+            };
+          }
+        });
+      },
+
       //add more messages to conversation
       addMoreMessagesToConversation: (
         conversationId: number,
@@ -153,6 +177,41 @@ export const useConversationStore = create<ConversationStore>()(
             // Re-assigning the whole object ensures the Proxy registers a significant change
             state.selectedConversation = {
               ...state.conversations[idx],
+              messages: sorted,
+            };
+          }
+        });
+      },
+
+      addNewMessagesToConversation: (
+        conversationId: number,
+        messages: Message[],
+      ) => {
+        set((state) => {
+          const conversation = state.conversations.find(
+            (c) => c.id === conversationId,
+          );
+          if (!conversation) return;
+
+          const existingMessages = conversation.messages;
+
+          // Create a Map for deduplication
+          const messageMap = new Map(existingMessages.map((m) => [m.id, m]));
+          messages.forEach((m) => messageMap.set(m.id, m));
+
+          // Sort messages
+          const sorted = Array.from(messageMap.values()).sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+
+          // Update the conversation's messages
+          conversation.messages = sorted;
+
+          // Update selectedConversation if it's the one we are viewing
+          if (state.selectedConversation?.id === conversationId) {
+            state.selectedConversation = {
+              ...conversation,
               messages: sorted,
             };
           }

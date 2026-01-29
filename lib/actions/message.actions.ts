@@ -84,6 +84,45 @@ export const fetchMoreMessagesAPI = async (
   }
 };
 
+export const fetchAllNewMessagesAPI = async (
+  conversationId: number,
+  cursorTo: string | undefined,
+): Promise<
+  { data: Message[]; success: boolean } | { error: Error; success: false }
+> => {
+  try {
+    const response = await normalCustomFetch(
+      `${BACKEND_URL}/message/new/${conversationId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cursorTo }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch new messages",
+      );
+    }
+
+    return {
+      data: response.data,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
+  }
+};
+
 export const fetchUnreadMessagesCountApi = async (
   userId: number,
 ): Promise<{
@@ -115,7 +154,6 @@ export const fetchUnreadMessagesCountApi = async (
     throw error;
   }
 };
-
 export const updateUnreadMessagesCountApi = async (
   unReadMessageId: number,
   profileId: number,

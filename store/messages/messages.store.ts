@@ -7,14 +7,19 @@ import { getSocket } from "@/lib/socket/socket";
 import { useConversationStore } from "../conversations/conversations.store";
 import {
   deleteMessageApi,
+  fetchAllNewMessagesAPI,
   fetchMoreMessagesAPI,
   saveMessageAPI,
 } from "@/lib/actions/message.actions";
 import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
+import toast from "react-hot-toast";
+import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
 
 const initialState = {
   isNewMessage: false,
+  isFetchingNewMessages: false,
+  showUnreadNotification: false,
 };
 
 export const useMessageStore = create<MessageStore>()(
@@ -25,6 +30,16 @@ export const useMessageStore = create<MessageStore>()(
       setIsNewMessage: (isNew: boolean) => {
         set((state) => {
           state.isNewMessage = isNew;
+        });
+      },
+      setIsFetchingNewMessages: (isFetching: boolean) => {
+        set((state) => {
+          state.isFetchingNewMessages = isFetching;
+        });
+      },
+      setNewUnreadNotification: (show: boolean) => {
+        set((state) => {
+          state.showUnreadNotification = show;
         });
       },
 
@@ -151,7 +166,7 @@ export const useMessageStore = create<MessageStore>()(
                 );
             }
 
-            //emit message via socket
+            //emit message via socket, we emphasise a number because we are sending special notification.
             const socket = getSocket(msg.senderId);
             socket.emit("conversation:send_message", {
               conversationId: updatedConversationId,
@@ -197,6 +212,56 @@ export const useMessageStore = create<MessageStore>()(
             .addMoreMessagesToConversation(conversationId, result.data);
         } catch (error) {
           console.error("Failed to fetch more messages:", error);
+        }
+      },
+
+      // Hook to fetch new messages for a conversation
+      fetchNewMessages: async (conversationId: number) => {
+        try {
+          get().setIsFetchingNewMessages(true);
+          const newestMessage = get().getLatestMessageId(conversationId);
+          const cursor = newestMessage ? newestMessage.id : undefined;
+          const result = await fetchAllNewMessagesAPI(conversationId, cursor);
+          if (!result.success) {
+            throw (
+              ("error" in result && result.error) ||
+              new Error("Failed to fetch new messages")
+            );
+          }
+          if (result.data.length > 0) {
+            useConversationStore
+              .getState()
+              .addNewMessagesToConversation(conversationId, result.data);
+            get().setIsFetchingNewMessages(false);
+            useConversationStore
+              .getState()
+              .addNewMessagesToConversation(conversationId, [
+                {
+                  id: `notification`,
+                  content: `${result.data.length} new message(s)`,
+                  isSpecialNotification: true,
+                  senderId: result.data[0].senderId,
+                  createdAt: getPreviousMillisecondString(
+                    result.data[0].createdAt,
+                  ),
+                  sender: {
+                    id: 0,
+                    firstName: "System",
+                    lastName: "",
+                  },
+                },
+              ]);
+          } else {
+            useConversationStore
+              .getState()
+              .removeMessageFromConversation(conversationId, "notification");
+          }
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch new messages",
+          );
         }
       },
 
@@ -250,7 +315,11 @@ export const useMessageStore = create<MessageStore>()(
             socket.emit("conversation:delete_message", updatedMessage);
           }
         } catch (error) {
-          console.error("Failed to delete message:", error);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to delete message on server",
+          );
         }
       },
     })),
