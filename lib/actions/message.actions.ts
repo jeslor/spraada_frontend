@@ -167,6 +167,8 @@ export const deleteMessageApi = async (
     });
 
     if (!response.ok) {
+      console.log(response.data);
+
       throw new Error(
         response.data?.message ||
           response.data?.error ||

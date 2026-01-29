@@ -6,9 +6,12 @@ import { MessageStore, Message, ProfileSummary } from "./messages.type";
 import { getSocket } from "@/lib/socket/socket";
 import { useConversationStore } from "../conversations/conversations.store";
 import {
+  deleteMessageApi,
   fetchMoreMessagesAPI,
   saveMessageAPI,
 } from "@/lib/actions/message.actions";
+import { Profile } from "../profile/profile.types";
+import { uploadResources } from "@/lib/actions/resources.actions";
 
 const initialState = {};
 
@@ -64,13 +67,44 @@ export const useMessageStore = create<MessageStore>()(
         msg: Message,
         otherParticipant: ProfileSummary,
         conversationId: number,
+        userId: number,
       ) => {
+        const { blobFiles, ...msgWithoutBlob } = msg; // Exclude blobFiles from the message object
         try {
           //add message to conversation store optimistically
           if (conversationId) {
             useConversationStore
               .getState()
-              .addMessageToConversation(conversationId, msg, otherParticipant);
+              .addMessageToConversation(
+                conversationId,
+                msgWithoutBlob,
+                otherParticipant,
+              );
+          }
+
+          //saveImages if any and get their URLs
+          if (blobFiles && blobFiles.length > 0) {
+            const formData = new FormData();
+            blobFiles.forEach((file) => {
+              formData.append("images", file);
+            });
+
+            const uploadResponse = await uploadResources(
+              userId,
+              formData,
+              "chat_media",
+            );
+
+            if (uploadResponse.success) {
+              msg.mediaFiles = uploadResponse.data.map(
+                (file: { url: string; key: string }) => ({
+                  mediaUrl: file.url,
+                  mediaUrlKey: file.key,
+                }),
+              );
+            } else {
+              throw new Error("Failed to upload media files");
+            }
           }
 
           //save message to backend
@@ -154,6 +188,60 @@ export const useMessageStore = create<MessageStore>()(
             .addMoreMessagesToConversation(conversationId, result.data);
         } catch (error) {
           console.error("Failed to fetch more messages:", error);
+        }
+      },
+
+      // Delete message
+      deleteMessage: async (messageId: string, profile: Profile) => {
+        if (!profile.id || !messageId) return;
+        //get the selected conversation
+        const selectedConversation =
+          useConversationStore.getState().selectedConversation;
+        if (!selectedConversation) return;
+
+        //get the message by id
+        let updatedMessage = selectedConversation.messages.find(
+          (msg) => msg.id === messageId,
+        );
+
+        if (!updatedMessage) return;
+
+        // set a messages as deleted by both if sender. == profile id
+        updatedMessage = {
+          ...updatedMessage,
+          deletedBySender:
+            updatedMessage.senderId === profile.id
+              ? true
+              : updatedMessage.deletedBySender,
+          deletedByReceiver: true,
+        };
+
+        //update the store optimistically
+        useConversationStore
+          .getState()
+          .replaceMessageInConversation(
+            selectedConversation.id,
+            messageId,
+            updatedMessage,
+          );
+
+        // send it to the backend
+        try {
+          const result = await deleteMessageApi(
+            updatedMessage,
+            profile.id,
+            profile.userId,
+          );
+          if (!result.success) {
+            throw result.message || new Error("Failed to delete message");
+          }
+          //emit via socket if sender deleted
+          if (updatedMessage.deletedBySender) {
+            const socket = getSocket(profile.id);
+            socket.emit("conversation:delete_message", updatedMessage);
+          }
+        } catch (error) {
+          console.error("Failed to delete message:", error);
         }
       },
     })),

@@ -3,6 +3,7 @@
 import {
   Message,
   useConversationStore,
+  useDeleteMessage,
   useFetchMoreMessages,
   useProfile,
   useSelectedConversation,
@@ -33,16 +34,21 @@ const ChatRightMessages = ({
   const { ref, inView, entry } = useInView({
     threshold: 0,
   });
+
+  //--- Refs ---//
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const mainMessageContainerRef = useRef<HTMLDivElement>(null);
 
+  //--- Local State ---//
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
+  //---Store Hooks---//
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
   const selectedConversation = useSelectedConversation();
+  const deleteMessage = useDeleteMessage();
   const messages = useConversationStore(
     (state) => state.selectedConversation?.messages,
   );
@@ -131,7 +137,9 @@ const ChatRightMessages = ({
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
     setIsOnlyEdited(true);
-    // deleteMessage(messageId);
+    if (profile && selectedConversation) {
+      deleteMessage(messageId, profile);
+    }
   };
 
   const isAllLoaded = useConversationStore(
@@ -149,6 +157,8 @@ const ChatRightMessages = ({
       fetchMoreMessages(selectedConversation.id);
     }
   };
+
+  console.log(messages);
 
   return (
     <div

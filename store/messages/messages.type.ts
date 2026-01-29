@@ -1,3 +1,5 @@
+import { Profile } from "../profile/profile.types";
+
 export interface Message {
   id: string;
   content: string;
@@ -33,8 +35,10 @@ export interface MessageStore {
     msg: Message,
     otherParticipant: ProfileSummary,
     conversationId: number,
+    userId: number,
   ) => Promise<void>;
   getOldestMessageId: (conversationId: number) => Message | null;
   getLatestMessageId: (conversationId: number) => Message | null;
   fetchMoreMessages: (conversationId: number) => Promise<void>;
+  deleteMessage: (messageId: string, profileId: Profile) => Promise<void>;
 }

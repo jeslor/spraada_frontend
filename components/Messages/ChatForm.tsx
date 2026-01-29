@@ -125,6 +125,12 @@ const ChatForm = ({
       e.preventDefault();
       if (!input.trim() || !otherParticipant) return;
       setIsLoadMoreMessages(false);
+
+      //save images to database first before sending message
+      const formData = new FormData();
+      imageFiles.forEach((file) => {
+        formData.append("images", file);
+      });
       const newMsg: Message = {
         id: new Date().toISOString(),
         senderId: Number(profile?.id),
@@ -142,7 +148,12 @@ const ChatForm = ({
         createdAt: new Date().toISOString(),
       };
 
-      sendMessage(newMsg, otherParticipant, selectedConversation?.id);
+      sendMessage(
+        newMsg,
+        otherParticipant,
+        selectedConversation?.id,
+        profile?.userId,
+      );
       setInput("");
       setImagePreviews([]);
       setImageFiles([]);

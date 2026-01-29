@@ -191,19 +191,32 @@ export const useConversationStore = create<ConversationStore>()(
         oldMessageId: string,
         updatedMessage: Message,
       ) => {
-        set((state) => {
-          const conversation = state.conversations.find(
-            (c) => c.id === conversationId,
-          );
-          if (conversation) {
-            const messageIdx = conversation.messages.findIndex(
-              (m) => m.id === oldMessageId,
-            );
-            if (messageIdx !== -1) {
-              conversation.messages[messageIdx] = updatedMessage;
-            }
-          }
-        });
+        set((state) => ({
+          conversations: state.conversations.map((cv) => {
+            // 1. Find the correct conversation
+            if (cv.id !== conversationId) return cv;
+
+            // 2. Return a new conversation object with updated messages array
+            return {
+              ...cv,
+              messages: cv.messages.map((m) =>
+                // 3. Replace only the specific message, keep others as they are
+                m.id === oldMessageId ? updatedMessage : m,
+              ),
+            };
+          }),
+          // 4. Also update the 'selectedConversation' if it matches,
+          // to ensure the active chat window reflects the change immediately.
+          selectedConversation:
+            state.selectedConversation?.id === conversationId
+              ? {
+                  ...state.selectedConversation,
+                  messages: state.selectedConversation.messages.map((m) =>
+                    m.id === oldMessageId ? updatedMessage : m,
+                  ),
+                }
+              : state.selectedConversation,
+        }));
       },
 
       clearConversations: () => {

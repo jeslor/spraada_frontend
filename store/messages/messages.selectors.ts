@@ -13,3 +13,6 @@ export const useGetLatestMessageByConversationId = () =>
 
 export const useFetchMoreMessages = () =>
   useMessageStore((state: any) => state.fetchMoreMessages);
+
+export const useDeleteMessage = () =>
+  useMessageStore((state: any) => state.deleteMessage);
