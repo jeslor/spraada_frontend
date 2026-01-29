@@ -13,7 +13,19 @@ export const useAddMessageToConversation = () =>
 export const useSetSelectedConversation = () =>
   useConversationStore((state: any) => state.setSelectedConversation);
 export const useSelectedConversation = () =>
-  useConversationStore((state: any) => state.selectedConversation);
+  useConversationStore((state: any) => {
+    const selected = state.selectedConversation;
+    if (!selected) return null;
+    // Always resolve the latest reference from the array
+    return (
+      state.conversations.find((c: any) => c.id === selected.id) || selected
+    );
+  });
+export const useSelectedConversationMessages = () =>
+  useConversationStore((state: any) => {
+    const selectedConversation = state.selectedConversation;
+    return selectedConversation ? selectedConversation.messages : [];
+  });
 
 export const useClearConversations = () =>
   useConversationStore((state: any) => state.clearConversations);

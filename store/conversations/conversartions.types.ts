@@ -6,6 +6,7 @@ export interface Conversation {
   otherParticipant: ProfileSummary;
   messages: Message[];
   currentPage: number;
+  isAllMessagesLoaded?: boolean;
 }
 
 export interface ConversationState {
@@ -23,6 +24,10 @@ export interface ConversationActions {
     conversationId: number,
     message: Message,
     otherParticipant?: ProfileSummary,
+  ) => void;
+  addMoreMessagesToConversation: (
+    conversationId: number,
+    messages: Message[],
   ) => void;
   replaceConversation: (
     oldConversationId: number,

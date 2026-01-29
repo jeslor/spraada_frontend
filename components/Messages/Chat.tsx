@@ -16,7 +16,7 @@ import { useSearchParams } from "next/navigation";
 import ChatLeft from "./ChatLeft";
 import ChatRight from "./ChatRight";
 
-const Chat = memo(() => {
+const Chat = () => {
   const searchParams = useSearchParams();
 
   const selectedConversation = useSelectedConversation();
@@ -67,7 +67,7 @@ const Chat = memo(() => {
       });
       return;
     }
-  }, [searchParams, selectedConversation]);
+  }, [searchParams]);
 
   return (
     <div className="flex h-dvh min-h-0 fixed w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
@@ -80,6 +80,6 @@ const Chat = memo(() => {
       </div>
     </div>
   );
-});
+};
 
 export default Chat;

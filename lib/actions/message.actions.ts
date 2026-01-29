@@ -2,10 +2,12 @@
 import { Message } from "@/store/messages/messages.type";
 import { ProfileSummary } from "@/store/messages/messages.type";
 import customFetch, { normalCustomFetch } from "@/lib/customFetch";
+import { cursorTo } from "readline";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
+//save message to backend and attach it to the conversation or create a new conversation and attach the message to it
 export const saveMessageAPI = async (
   message: Partial<Message>,
   otherProfileId: number,
@@ -42,36 +44,45 @@ export const saveMessageAPI = async (
   }
 };
 
-// export const fetchProfilesApi = async (
-//   userId: number,
-// ): Promise<ProfileSummary[]> => {
-//   try {
-//     const response = await normalCustomFetch(
-//       `${BACKEND_URL}/message/profiles?userId=${userId}`,
-//       {
-//         method: "GET",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       },
-//     );
-//     if (!response.ok) {
-//       throw new Error(
-//         response.data?.message ||
-//           response.data?.error ||
-//           response.error ||
-//           "Failed to fetch profiles",
-//       );
-//     }
+//fetch more messages for a conversation
+export const fetchMoreMessagesAPI = async (
+  conversationId: number,
+  cursorTo: string | undefined,
+): Promise<
+  { data: Message[]; success: boolean } | { error: Error; success: false }
+> => {
+  try {
+    const response = await normalCustomFetch(
+      `${BACKEND_URL}/message/more/${conversationId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cursorTo: cursorTo }),
+      },
+    );
 
-//     return {
-//       data: response.data,
-//       success: true,
-//     };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch more messages",
+      );
+    }
+
+    return {
+      data: response.data,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
+  }
+};
 
 export const fetchUnreadMessagesCountApi = async (
   userId: number,

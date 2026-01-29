@@ -5,24 +5,29 @@ import { immer } from "zustand/middleware/immer";
 import { MessageStore, Message, ProfileSummary } from "./messages.type";
 import { getSocket } from "@/lib/socket/socket";
 import { useConversationStore } from "../conversations/conversations.store";
-import { saveMessageAPI } from "@/lib/actions/message.actions";
+import {
+  fetchMoreMessagesAPI,
+  saveMessageAPI,
+} from "@/lib/actions/message.actions";
 
-const initialState = {
-  messages: [] as Message[],
-};
+const initialState = {};
 
 export const useMessageStore = create<MessageStore>()(
   persist(
     immer((set, get) => ({
       ...initialState,
 
-      getLastMessageByConversationId: (conversationId: number) => {
-        return (
-          useConversationStore
-            .getState()
-            .conversations.find((c) => c.id === conversationId)
-            ?.messages.slice(-1)[0] || null
-        );
+      // Inside your store
+      getOldestMessageId: (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+
+        if (!conversation || conversation.messages.length === 0) return null;
+
+        // Assuming messages are sorted [oldest...newest]
+        // The message at index 0 is the oldest one currently in your store
+        return conversation.messages[0];
       },
 
       // Socket: listen for new conversation messages
@@ -48,53 +53,96 @@ export const useMessageStore = create<MessageStore>()(
         otherParticipant: ProfileSummary,
         conversationId: number,
       ) => {
-        //add message to conversation store optimistically
-        if (conversationId) {
-          useConversationStore
-            .getState()
-            .addMessageToConversation(conversationId, msg, otherParticipant);
+        try {
+          //add message to conversation store optimistically
+          if (conversationId) {
+            useConversationStore
+              .getState()
+              .addMessageToConversation(conversationId, msg, otherParticipant);
+          }
+
+          //save message to backend
+          const savedMessage = await saveMessageAPI(
+            {
+              mediaFiles: msg.mediaFiles,
+              content: msg.content,
+              senderId: msg.senderId,
+            },
+            otherParticipant.id,
+          );
+
+          if (savedMessage.success) {
+            let updatedConversationId = savedMessage.data.conversationId;
+            //update message in conversation store with saved message data and also replace conversation id if it was created optimistically
+
+            if (updatedConversationId !== conversationId) {
+              useConversationStore
+                .getState()
+                .replaceConversation(conversationId, {
+                  id: updatedConversationId!,
+                  otherParticipant: otherParticipant,
+                  messages: [savedMessage.data],
+                  currentPage: 1,
+                });
+            } else {
+              //update only the message in the conversations
+              useConversationStore
+                .getState()
+                .replaceMessageInConversation(
+                  updatedConversationId,
+                  msg.id,
+                  savedMessage.data,
+                );
+            }
+
+            //emit message via socket
+            const socket = getSocket(msg.senderId);
+            socket.emit("conversation:send_message", {
+              conversationId: updatedConversationId,
+              message: savedMessage.data,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to send message:", error);
         }
+      },
 
-        //save message to backend
-        const savedMessage = await saveMessageAPI(
-          {
-            mediaFiles: msg.mediaFiles,
-            content: msg.content,
-            senderId: msg.senderId,
-          },
-          otherParticipant.id,
-        );
+      // Hook to fetch more messages for a conversation
+      fetchMoreMessages: async (conversationId: number) => {
+        alert("this ran");
+        try {
+          const lastMessage = get().getOldestMessageId(conversationId);
+          const cursor = lastMessage ? lastMessage.createdAt : undefined;
 
-        if (savedMessage.success) {
-          let updatedConversationId = savedMessage.data.conversationId;
-          //update message in conversation store with saved message data and also replace conversation id if it was created optimistically
+          const result = await fetchMoreMessagesAPI(conversationId, cursor);
+          if (!result.success) {
+            throw (
+              ("error" in result && result.error) ||
+              new Error("Failed to fetch more messages")
+            );
+          }
+          console.log(result.data, "fetched more messages");
 
-          if (updatedConversationId !== conversationId) {
+          if (result.data.length === 0) {
+            //mark all messages as loaded
             useConversationStore
               .getState()
-              .replaceConversation(conversationId, {
-                id: updatedConversationId!,
-                otherParticipant: otherParticipant,
-                messages: [savedMessage.data],
-                currentPage: 1,
-              });
-          } else {
-            //update only the message in the conversations
-            useConversationStore
-              .getState()
-              .replaceMessageInConversation(
-                updatedConversationId,
-                msg.id,
-                savedMessage.data,
+              .setConversations(
+                useConversationStore
+                  .getState()
+                  .conversations.map((conv) =>
+                    conv.id === conversationId
+                      ? { ...conv, isAllMessagesLoaded: true }
+                      : conv,
+                  ),
               );
           }
 
-          //emit message via socket
-          const socket = getSocket(msg.senderId);
-          socket.emit("conversation:send_message", {
-            conversationId: updatedConversationId,
-            message: savedMessage.data,
-          });
+          useConversationStore
+            .getState()
+            .addMoreMessagesToConversation(conversationId, result.data);
+        } catch (error) {
+          console.error("Failed to fetch more messages:", error);
         }
       },
     })),

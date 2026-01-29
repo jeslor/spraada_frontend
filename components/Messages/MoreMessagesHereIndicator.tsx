@@ -1,9 +1,21 @@
-import React from "react";
+import React, { Ref } from "react";
 import { Icon } from "@iconify/react";
 
-const MoreMessagesHereIndicator = () => {
+type MoreMessagesHereIndicatorProps = {
+  ref?: React.PropsWithoutRef<{}> & React.RefAttributes<HTMLDivElement>;
+  handleLoadMoreMessages: () => void;
+};
+
+const MoreMessagesHereIndicator = ({
+  ref,
+  handleLoadMoreMessages,
+}: MoreMessagesHereIndicatorProps) => {
   return (
-    <div className="flex flex-col items-center justify-center my-4 select-none">
+    <div
+      onClick={handleLoadMoreMessages}
+      //   ref={ref}
+      className="flex flex-col items-center justify-center my-4 select-none"
+    >
       <span className="block text-[10px] animate-pulse font-semibold mb-2">
         {" "}
         loading more messages...

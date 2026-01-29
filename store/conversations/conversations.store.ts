@@ -71,8 +71,22 @@ export const useConversationStore = create<ConversationStore>()(
 
       // Add new conversation
       setSelectedConversation: (conversation: Conversation | null) => {
+        console.log(conversation, "in conversation store");
+
         set((state) => {
-          state.selectedConversation = conversation;
+          if (!conversation) {
+            state.selectedConversation = null;
+            return;
+          }
+          // Always use the reference from the array if it exists
+          const found = state.conversations.find(
+            (c) => c.otherParticipant.id === conversation.otherParticipant.id,
+          );
+          state.selectedConversation = found || conversation;
+          // add the conversation to the conversations array if it doesn't exist
+          if (!found) {
+            state.conversations.unshift(conversation);
+          }
         });
       },
 
@@ -83,24 +97,66 @@ export const useConversationStore = create<ConversationStore>()(
         otherParticipant?: ProfileSummary,
       ) => {
         set((state) => {
-          const conversation = state.conversations.find(
+          let conversation = state.conversations.find(
             (c) => c.id === conversationId,
           );
-
           if (conversation) {
-            // Deduplicate messages within the conversation
             const exists = conversation.messages.some(
               (m) => m.id === message.id,
             );
             if (!exists) conversation.messages.push(message);
+            // Always sync selectedConversation reference
+            if (state.selectedConversation?.id === conversationId) {
+              state.selectedConversation = conversation;
+            }
           } else if (otherParticipant) {
             // New conversation: add to the beginning of the list
-            state.conversations.unshift({
+            const newConv = {
               id: conversationId,
               otherParticipant,
               messages: [message],
               currentPage: 1,
-            });
+            };
+            state.conversations.unshift(newConv);
+            state.selectedConversation = newConv;
+          }
+        });
+      },
+
+      //add more messages to conversation
+      addMoreMessagesToConversation: (
+        conversationId: number,
+        messages: Message[],
+      ) => {
+        set((state) => {
+          // Find the index so we can update the array directly
+          const idx = state.conversations.findIndex(
+            (c) => c.id === conversationId,
+          );
+          if (idx === -1) return;
+
+          const existingMessages = state.conversations[idx].messages;
+
+          // Create a Map for deduplication
+          const messageMap = new Map(existingMessages.map((m) => [m.id, m]));
+          messages.forEach((m) => messageMap.set(m.id, m));
+
+          // Sort messages
+          const sorted = Array.from(messageMap.values()).sort(
+            (a, b) =>
+              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          );
+
+          // Update the conversation in the array
+          state.conversations[idx].messages = sorted;
+
+          // Update selectedConversation if it's the one we are viewing
+          if (state.selectedConversation?.id === conversationId) {
+            // Re-assigning the whole object ensures the Proxy registers a significant change
+            state.selectedConversation = {
+              ...state.conversations[idx],
+              messages: sorted,
+            };
           }
         });
       },
@@ -124,7 +180,8 @@ export const useConversationStore = create<ConversationStore>()(
           );
           if (conversationIdx !== -1) {
             state.conversations[conversationIdx] = newConversation;
-            state.selectedConversation = newConversation;
+            // Always set selectedConversation to the new reference from the array
+            state.selectedConversation = state.conversations[conversationIdx];
           }
         });
       },
@@ -161,6 +218,7 @@ export const useConversationStore = create<ConversationStore>()(
       partialize: (state) => ({
         conversations: state.conversations,
         currentConversationPage: state.currentConversationPage,
+        selectedConversation: state.selectedConversation,
       }),
       onRehydrateStorage: () => (state) => {
         state!._hasHydratedConversations = true;

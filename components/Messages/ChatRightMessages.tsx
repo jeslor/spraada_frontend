@@ -1,12 +1,20 @@
 "use client";
 
-import { Message, useProfile, useSelectedConversation } from "@/store";
+import {
+  Message,
+  useConversationStore,
+  useFetchMoreMessages,
+  useProfile,
+  useSelectedConversation,
+  useSelectedConversationMessages,
+} from "@/store";
 import EmptyChat from "./EmptyChat";
 import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
 import MoreMessagesHereIndicator from "./MoreMessagesHereIndicator";
+import { useInView } from "react-intersection-observer";
 
 const ChatRightMessages = ({
   setHasMounted,
@@ -19,6 +27,9 @@ const ChatRightMessages = ({
   setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
   setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const { ref, inView, entry } = useInView({
+    threshold: 0,
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const mainMessageContainerRef = useRef<HTMLDivElement>(null);
@@ -26,9 +37,13 @@ const ChatRightMessages = ({
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
 
   const profile = useProfile();
+  const fetchMoreMessages = useFetchMoreMessages();
   const selectedConversation = useSelectedConversation();
-  // const resetUserUnreadMessagesCount = useResetUserUnreadMessagesCount();
+  const messages = useConversationStore(
+    (state) => state.selectedConversation?.messages,
+  );
 
+  // check if component is unmounted
   useEffect(() => {
     setHasMounted(false);
   }, []);
@@ -70,13 +85,35 @@ const ChatRightMessages = ({
     }
   }, [selectedConversation]);
 
+  // Load more messages when in view
+  // useEffect(() => {
+  //   if (inView && !selectedConversation.isAllMessagesLoaded) {
+  //     fetchMoreMessages(selectedConversation.id);
+  //   }
+  // }, [inView, entry, selectedConversation]);
+
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
     setIsOnlyEdited(true);
     // deleteMessage(messageId);
   };
 
+  const isAllLoaded = useConversationStore(
+    (state) => state.selectedConversation?.isAllMessagesLoaded,
+  );
+
+  // Update scroll effect to watch the actual messages array reference
+  //  // Now watching the array itself
+
   const isLoadingChatSkeleton = false;
+
+  const handleLoadMoreMessages = () => {
+    if (selectedConversation && !isAllLoaded) {
+      fetchMoreMessages(selectedConversation.id);
+    }
+  };
+
+  console.log(messages);
 
   return (
     <div
@@ -85,16 +122,19 @@ const ChatRightMessages = ({
     >
       {isLoadingChatSkeleton ? (
         <MessageChatRightSkeleton />
-      ) : !selectedConversation ||
-        selectedConversation.messages.length === 0 ? (
+      ) : !selectedConversation || messages?.length === 0 ? (
         <EmptyChat />
       ) : (
         <div
           ref={messagesContainerRef}
           className="flex flex-col gap-4 scrollbar-hide "
         >
-          <MoreMessagesHereIndicator />
-          {selectedConversation.messages.map((msg: Message, idx: number) =>
+          {!isAllLoaded && (
+            <MoreMessagesHereIndicator
+              handleLoadMoreMessages={handleLoadMoreMessages}
+            />
+          )}
+          {messages?.map((msg: Message, idx: number) =>
             (profile?.id && msg.deletedBySender) ||
             (profile?.id && msg.deletedByReceiver) ? (
               <ChatMessageDeletedBubble
@@ -109,6 +149,7 @@ const ChatRightMessages = ({
                 msg={msg}
                 profileId={profile?.id!}
                 idx={idx}
+                isLast={idx === messages.length - 1}
               />
             ),
           )}

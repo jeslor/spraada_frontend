@@ -34,5 +34,6 @@ export interface MessageStore {
     otherParticipant: ProfileSummary,
     conversationId: number,
   ) => Promise<void>;
-  getLastMessageByConversationId: (conversationId: number) => Message | null;
+  getOldestMessageId: (conversationId: number) => Message | null;
+  fetchMoreMessages: (conversationId: number) => Promise<void>;
 }
