@@ -44,7 +44,7 @@ export default function BookingModal({
   const [bookingLoading, setBookingLoading] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [bookedDates, setBookedDates] = useState<{ start: Date; end: Date }[]>(
-    []
+    [],
   );
   const [loadingBookedDates, setLoadingBookedDates] = useState(false);
   const [sameDay, setSameDay] = useState(false);
@@ -63,7 +63,7 @@ export default function BookingModal({
           // Filter only confirmed or pending bookings
           const activeBookings = bookings.filter(
             (booking: any) =>
-              booking.status === "CONFIRMED" || booking.status === "PENDING"
+              booking.status === "CONFIRMED" || booking.status === "PENDING",
           );
 
           const bookedRanges = activeBookings.map((booking: any) => ({
@@ -162,13 +162,13 @@ export default function BookingModal({
 
   const previousMonth = () => {
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
     );
   };
 
   const nextMonth = () => {
     setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
     );
   };
 
@@ -207,7 +207,7 @@ export default function BookingModal({
               isRead: false,
               link: `/rentals?scrollId=${bookingResponse.data.id}`,
             },
-            profile.id
+            profile.id,
           );
         }
         toast.success("Booking request sent successfully!");
@@ -220,13 +220,13 @@ export default function BookingModal({
       } else {
         toast.error(
           bookingResponse.data ||
-            "Failed to create booking. Please try different dates."
+            "Failed to create booking. Please try different dates.",
         );
       }
     } catch (error) {
       console.error("Booking failed:", error);
       toast.error(
-        "Failed to create booking. The selected dates may no longer be available."
+        "Failed to create booking. The selected dates may no longer be available.",
       );
     } finally {
       setBookingLoading(false);
@@ -238,6 +238,16 @@ export default function BookingModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
+      {bookingLoading && (
+        <div className="fixed inset-0 bg-black/20 bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-primary-900 p-6 rounded-lg shadow-lg flex items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
+            <span className="text-primary-900 dark:text-primary-100 font-medium">
+              Processing your booking...
+            </span>
+          </div>
+        </div>
+      )}
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
@@ -321,12 +331,12 @@ export default function BookingModal({
                               })
                             : "Add date"
                           : returnDate
-                          ? returnDate.toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
-                          : "Add date"}
+                            ? returnDate.toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : "Add date"}
                       </p>
                     </div>
                   </div>
