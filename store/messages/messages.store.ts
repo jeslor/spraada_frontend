@@ -254,7 +254,6 @@ export const useMessageStore = create<MessageStore>()(
 
       // Hook to fetch more messages for a conversation
       fetchMoreMessages: async (conversationId: number) => {
-        alert("this ran");
         try {
           const lastMessage = get().getOldestMessageId(conversationId);
           const cursor = lastMessage ? lastMessage.id : undefined;
