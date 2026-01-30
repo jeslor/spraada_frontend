@@ -41,7 +41,7 @@ export default function BookingModal({
   const Router = useRouter();
   const [pickUpDate, setPickUpDate] = useState<Date | null>(null);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
-  const [bookingLoading, setBookingLoading] = useState<boolean>(true);
+  const [bookingLoading, setBookingLoading] = useState<boolean>(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [bookedDates, setBookedDates] = useState<{ start: Date; end: Date }[]>(
     [],
