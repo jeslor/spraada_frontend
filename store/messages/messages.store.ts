@@ -1,32 +1,27 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+
 import { MessageStore, Message, ProfileSummary } from "./messages.type";
-import {
-  fetchMessagesApi,
-  fetchUnreadMessagesCountApi,
-  saveMessageAPI,
-  deleteMessageApi,
-  updateUnreadMessagesCountApi,
-} from "@/lib/actions/message.actions";
 import { getSocket } from "@/lib/socket/socket";
-import { useProfileStore } from "../profile/profile.store";
+import { useConversationStore } from "../conversations/conversations.store";
+import {
+  deleteMessageApi,
+  fetchAllNewMessagesAPI,
+  fetchMoreMessagesAPI,
+  saveMessageAPI,
+} from "@/lib/actions/message.actions";
+import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
+import toast from "react-hot-toast";
+import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
+import { useProfileStore } from "../profile/profile.store";
+import { useConversationExists } from "../conversations/conversations.selectors";
 
 const initialState = {
-  messages: [],
-  isMessagePage: false,
-  isLoading: false,
-  loadingProfiles: false,
-  error: null,
-  profiles: [],
-  selectedUserToMessage: null,
-  selectedUserMessages: [],
-  unreadMessagesCount: {
-    id: 0,
-    profileId: 0,
-    counters: {},
-  },
+  isNewMessage: false,
+  isFetchingNewMessages: false,
+  showUnreadNotification: false,
 };
 
 export const useMessageStore = create<MessageStore>()(
@@ -34,392 +29,377 @@ export const useMessageStore = create<MessageStore>()(
     immer((set, get) => ({
       ...initialState,
 
-      setIsMessagePage: (isMessagePage: boolean) => {
+      setIsNewMessage: (isNew: boolean) => {
         set((state) => {
-          state.isMessagePage = isMessagePage;
+          state.isNewMessage = isNew;
         });
       },
-      setMessages: (messages: Message[]) => {
-        set((state) => {
-          state.messages = messages;
-          state.error = null;
-        });
-      },
-      setSelectedUserMessages: (selectedUserId: number) => {
-        const messages = useMessageStore.getState().messages;
 
-        const filteredMessages = messages.filter(
-          (msg) =>
-            msg.senderId === selectedUserId || msg.receiverId === selectedUserId
+      setIsFetchingNewMessages: (isFetching: boolean) => {
+        set((state) => {
+          state.isFetchingNewMessages = isFetching;
+        });
+      },
+      setNewUnreadNotification: (show: boolean) => {
+        set((state) => {
+          state.showUnreadNotification = show;
+        });
+      },
+
+      // Inside your store
+      getOldestMessageId: (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+
+        if (!conversation || conversation.messages.length === 0) return null;
+
+        // Assuming messages are sorted [oldest...newest]
+        // The message at index 0 is the oldest one currently in your store
+        return conversation.messages[0];
+      },
+
+      getLatestMessageId: (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+
+        if (!conversation || conversation.messages.length === 0) return null;
+
+        // Assuming messages are sorted [oldest...newest]
+        // The message at the last index is the latest one currently in your store
+        return conversation.messages[conversation.messages.length - 1];
+      },
+
+      // Socket: listen for new conversation messages
+      initConversationSocketListeners: (profileId: number) => {
+        const socket = getSocket(profileId);
+        socket.off("conversation");
+        socket.on(
+          "conversation",
+          (payload: {
+            conversationId: number;
+            otherParticipant: ProfileSummary;
+            message: Message;
+          }) => {
+            const messageExists = useConversationStore
+              .getState()
+              .conversations.some((conv) =>
+                conv.messages.some((msg) => msg.id === payload.message.id),
+              );
+            if (messageExists) {
+              // just update the message in the conversation
+              useConversationStore
+                .getState()
+                .replaceMessageInConversation(
+                  payload.conversationId,
+                  payload.message.id,
+                  payload.message,
+                );
+              return;
+            }
+
+            get().setIsNewMessage(true);
+            const conversationExists = useConversationStore
+              .getState()
+              .conversations.some((c) => c.id === payload.conversationId);
+            //if conversation exists, add message to it
+            if (conversationExists) {
+              useConversationStore
+                .getState()
+                .addMessageToConversation(
+                  payload.conversationId,
+                  payload.message,
+                  payload.otherParticipant,
+                );
+              const isSelected =
+                useConversationStore.getState().selectedConversation?.id ===
+                payload.conversationId;
+              const isMessagePage =
+                useConversationStore.getState().isMessagePage;
+              //only show unread notification if we are not on message page or conversation is not selected
+              if (!isSelected || !isMessagePage) {
+                //increment unread count
+                const conversation = useConversationStore
+                  .getState()
+                  .conversations.find((c) => c.id === payload.conversationId);
+                const currentUnread = conversation?.unreadCount || 0;
+                useConversationStore
+                  .getState()
+                  .updateUnreadCount(payload.conversationId, currentUnread + 1);
+              }
+            } else {
+              //create a new conversation in the store
+              useConversationStore.getState().setConversations([
+                {
+                  id: payload.conversationId,
+                  otherParticipant: payload.otherParticipant,
+                  messages: [payload.message],
+                  currentPage: 1,
+                },
+                ...useConversationStore.getState().conversations,
+              ]);
+              useConversationStore
+                .getState()
+                .updateUnreadCount(payload.conversationId, 1);
+            }
+          },
         );
-
-        set((state) => {
-          state.selectedUserMessages = filteredMessages;
-        });
       },
 
-      setUnreadMessagesCount: async (unreadMessagesCount: {
-        id: number;
-        profileId: number;
-        counters: { [key: number]: number };
-      }) => {
-        set((state) => {
-          state.unreadMessagesCount = unreadMessagesCount;
-        });
-      },
-
-      setProfiles: (profiles: ProfileSummary[]) => {
-        set((state) => {
-          state.profiles = profiles;
-        });
-      },
-      updateProfiles: (profile: ProfileSummary) => {
-        set((state) => {
-          const index = state.profiles.findIndex((p) => p.id === profile.id);
-          if (index !== -1) {
-            state.profiles[index] = profile;
-          } else {
-            state.profiles.push(profile);
-          }
-        });
-      },
-      setSelectedUserToMessage: (profile: ProfileSummary | null) => {
-        set((state) => {
-          state.selectedUserToMessage = profile;
-        });
-      },
-      setLoading: (isLoading: boolean) => {
-        set((state) => {
-          state.isLoading = isLoading;
-        });
-      },
-      setIsLoadingProfiles: (isLoading: boolean) => {
-        set((state) => {
-          state.loadingProfiles = isLoading;
-        });
-      },
-      setError: (error: string | null) => {
-        set((state) => {
-          state.error = error;
-        });
-      },
-
-      // ------------------ UNREAD MESSAGES COUNT ------------------ //
-      fetchUnReadMessagesCount: async (profileId: number) => {
-        try {
-          const unReadMessages = await fetchUnreadMessagesCountApi(profileId);
-          if (unReadMessages) {
-            get().setUnreadMessagesCount(unReadMessages);
-          }
-        } catch (error) {
-          throw error;
-        }
-      },
-      updateUnreadMessagesCount: async (
-        messageCounterId: number,
-        profileId: number,
-        counters: { [key: number]: number }
+      // Send message: save, emit, and handoff to conversation store
+      sendMessage: async (
+        msg: Message,
+        otherParticipant: ProfileSummary,
+        conversationId: number,
+        userId: number,
       ) => {
+        const { blobFiles, ...msgWithoutBlob } = msg; // Exclude blobFiles from the message object
         try {
-          if (!profileId) return;
-          const updatedCount = await updateUnreadMessagesCountApi(
-            messageCounterId,
-            profileId,
-            counters
+          get().setIsNewMessage(true);
+          //add message to conversation store optimistically
+          if (conversationId) {
+            useConversationStore
+              .getState()
+              .addMessageToConversation(
+                conversationId,
+                msgWithoutBlob,
+                otherParticipant,
+              );
+          }
+
+          //saveImages if any and get their URLs
+          if (blobFiles && blobFiles.length > 0) {
+            const formData = new FormData();
+            blobFiles.forEach((file) => {
+              formData.append("images", file);
+            });
+
+            const uploadResponse = await uploadResources(
+              userId,
+              formData,
+              "chat_media",
+            );
+
+            if (uploadResponse.success) {
+              msg.mediaFiles = uploadResponse.data.map(
+                (file: { url: string; key: string }) => ({
+                  mediaUrl: file.url,
+                  mediaUrlKey: file.key,
+                }),
+              );
+            } else {
+              throw new Error("Failed to upload media files");
+            }
+          }
+
+          //save message to backend
+          const savedMessage = await saveMessageAPI(
+            {
+              mediaFiles: msg.mediaFiles,
+              content: msg.content,
+              senderId: msg.senderId,
+            },
+            otherParticipant.id,
           );
-          if (updatedCount) {
-            get().setUnreadMessagesCount(updatedCount);
+
+          get().setIsNewMessage(false);
+          if (savedMessage.success) {
+            let updatedConversationId = savedMessage.data.conversationId;
+            //update message in conversation store with saved message data and also replace conversation id if it was created optimistically
+
+            if (updatedConversationId !== conversationId) {
+              useConversationStore
+                .getState()
+                .replaceConversation(conversationId, {
+                  id: updatedConversationId!,
+                  otherParticipant: otherParticipant,
+                  messages: [savedMessage.data],
+                  currentPage: 1,
+                });
+            } else {
+              //update only the message in the conversations
+              useConversationStore
+                .getState()
+                .replaceMessageInConversation(
+                  updatedConversationId,
+                  msg.id,
+                  savedMessage.data,
+                );
+            }
+
+            //emit message via socket, we emphasise a number because we are sending special notification.
+            // const profile = useProfileStore.getState().profile;
+            // if (profile && profile.id) {
+            //   const socket = getSocket(profile.id);
+            //   const conversationToEmit = {
+            //     receiverId: otherParticipant.id,
+            //     conversationId: updatedConversationId,
+            //     otherParticipant: {
+            //       id: profile.id,
+            //       firstName: profile.firstName,
+            //       lastName: profile.lastName,
+            //       avatarUrl: profile.avatarUrl,
+            //     },
+            //     message: savedMessage.data,
+            //   };
+
+            //   socket.emit("conversation", conversationToEmit);
+            // }
           }
         } catch (error) {
-          throw error;
+          console.error("Failed to send message:", error);
         }
       },
 
-      resetUserUnreadMessagesCount: (selectedUserId: number) => {
-        get().updateUnreadMessagesCount(
-          get().unreadMessagesCount.id,
-          get().unreadMessagesCount.profileId,
-          {
-            ...get().unreadMessagesCount.counters,
-            [selectedUserId]: 0,
-          }
-        );
-      },
-
-      /* ------------------ FETCH MESSAGES ------------------ */
-      fetchMessages: async (profileId: number) => {
-        set((state) => {
-          state.isLoading = true;
-          state.error = null;
-        });
+      // Hook to fetch more messages for a conversation
+      fetchMoreMessages: async (conversationId: number) => {
         try {
-          const messages = await fetchMessagesApi(profileId);
+          const lastMessage = get().getOldestMessageId(conversationId);
+          const cursor = lastMessage ? lastMessage.id : undefined;
+          const result = await fetchMoreMessagesAPI(conversationId, cursor);
+          if (!result.success) {
+            throw (
+              ("error" in result && result.error) ||
+              new Error("Failed to fetch more messages")
+            );
+          }
 
-          set((state) => {
-            state.messages = messages || [];
-            state.isLoading = false;
-          });
+          if (result.data.length === 0) {
+            //mark all messages as loaded
+            useConversationStore
+              .getState()
+              .setConversations(
+                useConversationStore
+                  .getState()
+                  .conversations.map((conv) =>
+                    conv.id === conversationId
+                      ? { ...conv, isAllMessagesLoaded: true }
+                      : conv,
+                  ),
+              );
+          }
+
+          useConversationStore
+            .getState()
+            .addMoreMessagesToConversation(conversationId, result.data);
         } catch (error) {
-          set((state) => {
-            state.error =
-              error instanceof Error
-                ? error.message
-                : "Failed to fetch messages";
-            state.isLoading = false;
-          });
+          console.error("Failed to fetch more messages:", error);
         }
       },
 
-      /* ------------------ UPDATE MESSAGES ------------------ */
-      updateMessages: (updatedMessage: Message, localId?: string) => {
-        set((state) => {
-          const index = state.messages.findIndex((msg) =>
-            localId ? msg.id === localId : msg.id === updatedMessage.id
-          );
-
-          if (index !== -1) {
-            state.messages[index] = updatedMessage;
+      // Hook to fetch new messages for a conversation
+      fetchNewMessages: async (conversationId: number) => {
+        try {
+          get().setIsFetchingNewMessages(true);
+          const newestMessage = get().getLatestMessageId(conversationId);
+          const cursor = newestMessage ? newestMessage.id : undefined;
+          const result = await fetchAllNewMessagesAPI(conversationId, cursor);
+          if (!result.success) {
+            throw (
+              ("error" in result && result.error) ||
+              new Error("Failed to fetch new messages")
+            );
+          }
+          if (result.data.length > 0) {
+            useConversationStore
+              .getState()
+              .addNewMessagesToConversation(conversationId, result.data);
+            get().setIsFetchingNewMessages(false);
+            useConversationStore
+              .getState()
+              .addNewMessagesToConversation(conversationId, [
+                {
+                  id: `notification`,
+                  content: `${result.data.length} new message(s)`,
+                  isSpecialNotification: true,
+                  senderId: result.data[0].senderId,
+                  createdAt: getPreviousMillisecondString(
+                    result.data[0].createdAt,
+                  ),
+                  sender: {
+                    id: 0,
+                    firstName: "System",
+                    lastName: "",
+                  },
+                },
+              ]);
           } else {
-            state.messages.push(updatedMessage);
-          }
-        });
-      },
-
-      /* ------------------ RECEIVE MESSAGE ------------------ */
-
-      addIncomingMessage: (message: Message) => {
-        set((state) => {
-          const exists = state.messages.some((m) => m.id === message.id);
-          if (!exists) {
-            state.messages.push(message);
-          }
-          // --- Always add sender/receiver to profiles if missing (even if message exists) ---
-          const addProfileIfMissing = (profileObj: any) => {
-            if (!profileObj || !profileObj.id) return;
-            const alreadyExists = state.profiles.some(
-              (p) => p.id === profileObj.id
-            );
-            if (!alreadyExists) {
-              state.profiles.push({
-                id: profileObj.id,
-                firstName: profileObj.firstName || "",
-                lastName: profileObj.lastName || "",
-                avatarUrl: profileObj.avatarUrl,
-              });
-            }
-          };
-          addProfileIfMissing(message.sender);
-          addProfileIfMissing(message.receiver);
-        });
-
-        // --- Always update selectedUserMessages if the selected user matches ---
-        const selectedUser = get().selectedUserToMessage;
-        if (
-          selectedUser &&
-          (message.senderId === selectedUser.id ||
-            message.receiverId === selectedUser.id)
-        ) {
-          get().setSelectedUserMessages(selectedUser.id);
-        }
-      },
-
-      /* ------------------ SOCKET CHATS INIT ------------------ */
-      initSChatSocketListeners: (profileId: number) => {
-        const socket = getSocket(profileId);
-
-        socket.off("chats"); // prevent duplicate listeners
-
-        socket.on("chats", (incomingMessage: Message) => {
-          // Check if message already exists and just update deletion status
-          const messages = get().messages;
-          let existingMessageIndex;
-          const exists = messages.some((msg, idx) => {
-            if (msg.id === incomingMessage.id) {
-              existingMessageIndex = idx;
-              return true;
-            }
-            return false;
-          });
-          const existingMessage =
-            existingMessageIndex !== undefined
-              ? messages[existingMessageIndex]
-              : null;
-
-          if (exists) {
-            if (existingMessage && typeof existingMessage.id === "string") {
-              get().updateMessages({
-                ...existingMessage,
-                deletedByReceiver: incomingMessage.deletedByReceiver,
-                deletedBySender: incomingMessage.deletedBySender,
-                id: existingMessage.id!, // ensure id is always present and string
-              } as Message);
-            }
-            return;
-          }
-
-          // New incoming message that doesn't exist yet
-          const activeChatUser = get().selectedUserToMessage;
-          const isMessagePage = get().isMessagePage;
-          get().addIncomingMessage(incomingMessage);
-
-          //update the message counter only if not on message page or chatting with another user
-          if (
-            !isMessagePage ||
-            (activeChatUser && incomingMessage.senderId !== activeChatUser.id)
-          ) {
-            // Update unread messages count
-            const unReadMessagesCounter = get().unreadMessagesCount;
-            const profile = useProfileStore.getState().profile;
-            const currentCounters = unReadMessagesCounter.counters || {};
-            const senderId = incomingMessage.senderId;
-            const newCount = (currentCounters[senderId] || 0) + 1;
-            const updatedCounters = {
-              ...currentCounters,
-              [senderId]: newCount,
-            };
-
-            get().updateUnreadMessagesCount(
-              unReadMessagesCounter.id,
-              profile ? profile.id : profileId,
-              updatedCounters
-            );
-          }
-        });
-      },
-
-      /* ------------------ SEND MESSAGE ------------------ */
-      sendMessage: async (msg: Message, profileId: number) => {
-        const userId = useProfileStore.getState().profile?.userId;
-
-        // Optimistically add the message locally
-        set((state) => {
-          const localMessage = { ...msg, id: msg.id };
-          delete localMessage.blobFiles;
-          state.messages.push(localMessage);
-        });
-
-        //Upload images to server/cloud here in real app
-        let uploadedImages;
-        const formData = new FormData();
-        if (msg.blobFiles && msg.blobFiles.length) {
-          msg.blobFiles.forEach((file) => {
-            formData.append("images", file);
-          });
-        }
-        try {
-          uploadedImages = await uploadResources(
-            userId!,
-            formData,
-            "chat_media"
-          );
-
-          if (!uploadedImages.success) {
-            throw new Error(uploadedImages.error || "Image upload failed");
+            useConversationStore
+              .getState()
+              .removeMessageFromConversation(conversationId, "notification");
           }
         } catch (error) {
-          console.error("Image upload failed:", error);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to fetch new messages",
+          );
         }
-
-        //save the message to database here in real app
-        const savedMessage: Message = await saveMessageAPI({
-          senderId: msg.senderId,
-          receiverId: msg.receiverId,
-          content: msg.content,
-          mediaFiles:
-            uploadedImages?.data.map((img: any) => ({
-              mediaUrl: img.url,
-              mediaUrlKey: img.key,
-            })) || [],
-        });
-
-        // Update the message in the store with the saved message
-        get().updateMessages(savedMessage, msg.id);
-
-        //emit the message to socket server
-        const socket = getSocket(profileId);
-        socket.emit("chats", savedMessage);
       },
 
-      /* ------------------ DELETE MESSAGE ------------------ */
-      deleteMessage: async (messageId: string) => {
-        const profile = useProfileStore.getState().profile;
-        if (!profile) return;
+      // Delete message
+      deleteMessage: async (messageId: string, profile: Profile) => {
+        if (!profile.id || !messageId) return;
+        //get the selected conversation
+        const selectedConversation =
+          useConversationStore.getState().selectedConversation;
+        if (!selectedConversation) return;
 
-        // 1. Get a clean, non-proxy copy of the message BEFORE the update
-        const currentMessages = get().messages;
-        const messageToUpdate = currentMessages.find(
-          (msg) => msg.id === messageId
+        //get the message by id
+        let updatedMessage = selectedConversation.messages.find(
+          (msg) => msg.id === messageId,
         );
 
-        if (!messageToUpdate) return;
+        if (!updatedMessage) return;
 
-        // Create a plain object copy to send to the API and Socket
-        const messageCopy = { ...messageToUpdate };
+        // set a messages as deleted by both if sender. == profile id
+        updatedMessage = {
+          ...updatedMessage,
+          deletedBySender:
+            updatedMessage.senderId === profile.id
+              ? true
+              : updatedMessage.deletedBySender,
+          deletedByReceiver: true,
+        };
 
-        // 2. Perform the state update
-        set((state) => {
-          const msg = state.messages.find((m) => m.id === messageId);
-          if (!msg) return;
-          //update message immediately in the store
-          if (msg.senderId === profile.id) {
-            msg.deletedBySender = true;
-            msg.deletedByReceiver = true;
-            state.updateMessages(msg);
-          } else if (msg.receiverId === profile.id) {
-            msg.deletedByReceiver = true;
-            state.updateMessages(msg);
-          }
-        });
-
-        // 3. Use the clean copy for Async/API calls
-        try {
-          // Update the local copy's status to match what was sent to DB
-          messageCopy.deletedByReceiver = true;
-          if (messageCopy.senderId === profile.id)
-            messageCopy.deletedBySender = true;
-
-          const messageDeleted = await deleteMessageApi(
-            messageCopy,
-            profile.id,
-            profile.userId
+        //update the store optimistically
+        useConversationStore
+          .getState()
+          .replaceMessageInConversation(
+            selectedConversation.id,
+            messageId,
+            updatedMessage,
           );
 
-          if (messageDeleted.success && messageCopy.deletedBySender) {
+        // send it to the backend
+        try {
+          const result = await deleteMessageApi(
+            updatedMessage,
+            profile.id,
+            profile.userId,
+          );
+          if (!result.success) {
+            throw result.message || new Error("Failed to delete message");
+          }
+          //emit via socket if sender deleted
+          if (updatedMessage.deletedBySender) {
             const socket = getSocket(profile.id);
-            socket.emit("chats", messageCopy);
+            socket.emit("conversation", updatedMessage);
           }
         } catch (error) {
-          console.error("Failed to delete message:", error);
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to delete message on server",
+          );
         }
-      },
-
-      // ==================== Additional Actions ====================
-      clearMessages: () => {
-        localStorage.removeItem("spraadaSelectedChatUserId");
-        set((state) => {
-          state.messages = [];
-          state.profiles = [];
-          state.isLoading = false;
-          state.selectedUserToMessage = null;
-          state.selectedUserMessages = [];
-          state.unreadMessagesCount = {
-            id: 0,
-            profileId: 0,
-            counters: {},
-          };
-          state.loadingProfiles = false;
-          state.error = null;
-        });
       },
     })),
-
     {
       name: "messages-storage",
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        messages: state.messages,
-        profiles: state.profiles,
-      }),
-    }
-  )
+      partialize: (state: MessageStore) => ({}),
+    },
+  ),
 );

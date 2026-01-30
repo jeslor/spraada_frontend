@@ -22,3 +22,8 @@ export * from "./messages/messages.selectors";
 export { useNotificationStore } from "./notifications/notification.store";
 export * from "./notifications/notification.type";
 export * from "./notifications/notification.selectors";
+
+// Conversation store exports
+export { useConversationStore } from "./conversations/conversations.store";
+export * from "./conversations/conversartions.types";
+export * from "./conversations/conversations.selectors";

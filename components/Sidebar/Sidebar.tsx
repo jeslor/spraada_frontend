@@ -5,27 +5,27 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { NavItem, navItems } from "@/lib/constants/navigation";
 import {
   useProfile,
-  useUser,
   useShowNotifications,
   useHasHydrated,
   useClearProfile,
   useProfileInitials,
   useClearTools,
   useClearBookings,
-  useClearMessages,
   useSetShowNotifications,
-  useFetchUnreadMessagesCount,
-  useSetIsMessagePage,
   useGetNotificationCounter,
   useClearNotifications,
+  useClearConversations,
+  useUser,
 } from "@/store";
 import { useAppSocket } from "@/Hooks/InitializeAppSocket";
-// Import EachSidebar component (adjust the path as needed)
 import EachSidebar from "./EachSidebar";
+
+import SignOutOverlay from "./SignoutOverlay";
+import MobileBottomBar from "./MobileBottomBar";
 
 interface SidebarProps {
   session: Session | null;
@@ -33,16 +33,13 @@ interface SidebarProps {
 
 const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false);
-
   useEffect(() => {
     const media = window.matchMedia(query);
     setMatches(media.matches);
-
     const listener = (e: MediaQueryListEvent) => setMatches(e.matches);
     media.addEventListener("change", listener);
     return () => media.removeEventListener("change", listener);
   }, [query]);
-
   return matches;
 };
 
@@ -52,49 +49,35 @@ const Sidebar = ({ session }: SidebarProps) => {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [showLabels, setShowLabels] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1280px)");
+  const isMobile = useMediaQuery("(max-width: 768px)"); // Adjusted for better mobile/tablet toggle
 
-  // Get profile from Zustand store
   const profile = useProfile();
-
-  /* ✅ Hooks must be called at top-level */
   useAppSocket(profile?.id!);
   const setShowNotifications = useSetShowNotifications();
   const showNotifications = useShowNotifications();
 
-  const setIsMessagePage = useSetIsMessagePage();
   const clearProfile = useClearProfile();
   const clearTools = useClearTools();
   const clearBookings = useClearBookings();
-  const clearMessages = useClearMessages();
   const clearNotifications = useClearNotifications();
+  const clearConversationStore = useClearConversations();
   const initials = useProfileInitials();
   const hasHydrated = useHasHydrated();
-  const fetchUnreadMessagesCount = useFetchUnreadMessagesCount();
   const getNotificationCounter = useGetNotificationCounter();
 
-  // On desktop, always expanded. On smaller screens, expand on hover.
   const isExpanded = isDesktop || isHovered;
 
   useEffect(() => {
-    let isMessagePage = pathname.startsWith("/messages");
-    setIsMessagePage(isMessagePage);
-  }, [pathname]);
-
-  useEffect(() => {
-    if (profile) {
-      fetchUnreadMessagesCount(profile.id);
-      getNotificationCounter(profile.id);
-    }
+    if (profile) getNotificationCounter(profile.id);
   }, [profile]);
 
   useEffect(() => {
     if (isExpanded) {
       setTimeout(() => setShowLabels(true), 100);
     } else {
-      // Delay hiding labels for smooth transition
-      const timeout = setTimeout(() => setShowLabels(false), 200);
-      return () => clearTimeout(timeout);
+      setShowLabels(false);
     }
   }, [isExpanded]);
 
@@ -103,12 +86,10 @@ const Sidebar = ({ session }: SidebarProps) => {
     clearProfile();
     clearTools();
     clearBookings();
-    clearMessages();
-    clearNotifications;
+    clearNotifications();
+    clearConversationStore();
     await deleteSession();
     window.location.href = "/signin";
-
-    // const response = fetch("/api/auth/signout", { method: "GET" });
   };
 
   const isActive = (href: string) => {
@@ -117,52 +98,52 @@ const Sidebar = ({ session }: SidebarProps) => {
   };
 
   const handleRouteToPage = (href: string) => {
+    setIsHovered(false);
+    setIsDrawerOpen(false);
     router.push(href);
   };
+
   const handleShowNotifications = () => {
-    showNotifications
-      ? setShowNotifications(false)
-      : setShowNotifications(true);
+    setShowNotifications(!showNotifications);
   };
 
   useEffect(() => {
     if (isSigningOut) {
       document.body.style.overflow = "hidden";
-      document.body.style.height = "100vh";
     } else {
       document.body.style.overflow = "auto";
-      document.body.style.height = "auto";
     }
   }, [isSigningOut]);
 
+  // --- UI COMPONENTS ---
+
+  // MOBILE BOTTOM BAR
+  if (isMobile)
+    return (
+      <MobileBottomBar
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+        session={session}
+        isSigningOut={isSigningOut}
+        isActive={isActive}
+        handleSignOut={handleSignOut}
+        handleShowNotifications={handleShowNotifications}
+        handleRouteToPage={handleRouteToPage}
+      />
+    );
+
+  // DESKTOP ASIDE
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 flex flex-col justify-between",
-        isExpanded ? "w-64" : "w-20"
+        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 md:flex flex-col justify-between hidden ",
+        isExpanded ? "w-64" : "w-20",
       )}
       onMouseEnter={() => !isDesktop && setIsHovered(true)}
       onMouseLeave={() => !isDesktop && setIsHovered(false)}
     >
-      {isSigningOut && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4 rounded-2xl bg-white px-8 py-6 shadow-xl">
-            {/* Spinner */}
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600 " />
+      {isSigningOut && <SignOutOverlay />}
 
-            {/* Text */}
-            <div className="text-center">
-              <p className="text-base font-semibold text-gray-900">
-                Signing you out
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                See you again soon <span className="text-[20px]">👋🏾</span>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Logo */}
       <div className="h-20 flex items-center px-6 border-b border-gray-100">
         <Link href="/" className="flex items-center gap-3">
           <img
@@ -178,7 +159,6 @@ const Sidebar = ({ session }: SidebarProps) => {
         </Link>
       </div>
 
-      {/* Navigation */}
       <nav className="flex flex-col justify-start py-4 px-3 space-y-2 overflow-y-auto">
         {navItems.map((item: NavItem) => (
           <EachSidebar
@@ -194,7 +174,6 @@ const Sidebar = ({ session }: SidebarProps) => {
         ))}
       </nav>
 
-      {/* Bottom Section */}
       <div className="border-t border-gray-100 p-3 space-y-2">
         <Link
           href="/settings"
@@ -202,7 +181,7 @@ const Sidebar = ({ session }: SidebarProps) => {
             "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200",
             pathname === "/settings"
               ? "bg-gray-100 text-gray-900 font-semibold"
-              : "text-gray-700 hover:bg-gray-50"
+              : "text-gray-700 hover:bg-gray-50",
           )}
         >
           <Icon
@@ -221,7 +200,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         {session ? (
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             <Icon icon="solar:logout-2-linear" className="text-2xl shrink-0" />
             {isExpanded && (
@@ -231,7 +210,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         ) : (
           <button
             onClick={() => router.push("/signin")}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50"
           >
             <Icon icon="solar:login-2-linear" className="text-2xl shrink-0" />
             {showLabels && (

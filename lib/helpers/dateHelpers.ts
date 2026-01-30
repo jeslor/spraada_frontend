@@ -44,7 +44,7 @@ export const generateCalendarDays = (date: Date) => {
 // Calculate days remaining
 export const calculateDaysRemaining = (
   returnDate: string,
-  returnLess: boolean = false
+  returnLess: boolean = false,
 ): number => {
   const today = new Date();
   const returnDay = new Date(returnDate);
@@ -86,7 +86,7 @@ export const formatDateWithDay = (dateString: string): string => {
 // Check if a date is already booked
 export const isDateBooked = (
   date: Date,
-  bookedDates: { start: Date; end: Date }[]
+  bookedDates: { start: Date; end: Date }[],
 ) => {
   return bookedDates.some((range) => {
     const checkDate = new Date(date);
@@ -124,3 +124,46 @@ export function timeAgo(date: Date | string): string {
   const years = Math.floor(days / 365);
   return `${years} year${years !== 1 ? "s" : ""} ago`;
 }
+
+//Generate message timestamp
+export const formatMessageTimestamp = (dateInput: string | Date): string => {
+  const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+  const now = new Date();
+
+  // Check if date is today
+  const isToday = date.toDateString() === now.toDateString();
+
+  // Check if date is yesterday
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  if (isYesterday) {
+    return "Yesterday";
+  }
+
+  // If within the last 7 days, show the day name (e.g., "Tuesday")
+  const diffInDays = (now.getTime() - date.getTime()) / (1000 * 3600 * 24);
+  if (diffInDays < 7) {
+    return date.toLocaleDateString([], { weekday: "long" });
+  }
+
+  // Default to short date for older messages
+  return date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+//subtract a millsecond from a date string and return new ISO string
+export const getPreviousMillisecondString = (date: string | Date): string => {
+  const ms = new Date(date).getTime();
+  if (isNaN(ms)) return new Date().toISOString();
+
+  return new Date(ms - 1).toISOString();
+};

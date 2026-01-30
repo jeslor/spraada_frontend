@@ -1,121 +1,21 @@
-import { useProfileStore } from "../profile/profile.store";
 import { useMessageStore } from "./messages.store";
-import {
-  Message,
-  ProfileSummary,
-  UnReadMessagesCounterType,
-} from "./messages.type";
 
-// ==================== Basic Selectors ====================
+export const useInitConversationSocketListeners = () =>
+  useMessageStore((state: any) => state.initConversationSocketListeners);
+export const useSendMessage = () =>
+  useMessageStore((state: any) => state.sendMessage);
 
-export const useInitializeChatSocket = () =>
-  useMessageStore((state) => state.initSChatSocketListeners);
-export const useIsMessagePage = (): boolean =>
-  useMessageStore((state) => state.isMessagePage);
-export const useSetIsMessagePage = () =>
-  useMessageStore((state) => state.setIsMessagePage);
-export const useSetSelectedUserToMessage = () =>
-  useMessageStore((state) => state.setSelectedUserToMessage);
-export const useSelectedUserToMessage = (): ProfileSummary | null =>
-  useMessageStore((state) => state.selectedUserToMessage);
+export const useGetOldestMessageByConversationId = () =>
+  useMessageStore((state: any) => state.getOldestMessageId);
 
-export const useSetSelectedUserMessages = () =>
-  useMessageStore((state) => state.setSelectedUserMessages);
-export const useSelectedUserMessages = (): Message[] =>
-  useMessageStore((state) => state.selectedUserMessages);
+export const useGetLatestMessageByConversationId = () =>
+  useMessageStore((state: any) => state.getLatestMessageId);
 
-export const useSetMessages = () =>
-  useMessageStore((state) => state.setMessages);
-export const useMessages = (): Message[] =>
-  useMessageStore((state) => state.messages);
+export const useFetchMoreMessages = () =>
+  useMessageStore((state: any) => state.fetchMoreMessages);
 
 export const useDeleteMessage = () =>
-  useMessageStore((state) => state.deleteMessage);
+  useMessageStore((state: any) => state.deleteMessage);
 
-export const useUnreadMessagesCount = (): UnReadMessagesCounterType =>
-  useMessageStore((state) => state.unreadMessagesCount);
-export const useSetUnreadMessagesCount = () =>
-  useMessageStore((state) => state.setUnreadMessagesCount);
-export const useFetchUnreadMessagesCount = () =>
-  useMessageStore((state) => state.fetchUnReadMessagesCount);
-export const useUpdateUnreadMessagesCount = () =>
-  useMessageStore((state) => state.updateUnreadMessagesCount);
-export const useResetUserUnreadMessagesCount = () =>
-  useMessageStore((state) => state.resetUserUnreadMessagesCount);
-export const useSendMessage = () =>
-  useMessageStore((state) => state.sendMessage);
-export const useMessagesLoading = (): boolean =>
-  useMessageStore((state) => state.isLoading);
-export const useMessagesError = (): string | null =>
-  useMessageStore((state) => state.error);
-export const useFetchMessages = () =>
-  useMessageStore((state) => state.fetchMessages);
-export const useUpdateMessages = () =>
-  useMessageStore((state) => state.updateMessages);
-
-export const useLoadingProfiles = (): boolean =>
-  useMessageStore((state) => state.loadingProfiles);
-export const useProfiles = (): ProfileSummary[] =>
-  useMessageStore((state) => state.profiles);
-export const useSetProfiles = () =>
-  useMessageStore((state) => state.setProfiles);
-export const useUpdateProfiles = () =>
-  useMessageStore((state) => state.updateProfiles);
-
-export const useClearMessages = () =>
-  useMessageStore((state) => state.clearMessages);
-
-// ==================== Derived Selectors ====================
-
-//get the profiles of users who have messaged or been messaged by the current user
-export const useUserProfiles = () => {
-  useMessageStore.getState().setIsLoadingProfiles(true);
-  const messages = useMessageStore.getState().messages;
-  const profileId = useProfileStore.getState().profile?.id;
-  const profiles: ProfileSummary[] = messages.reduce((acc, message) => {
-    if (!message.sender || !message.sender.id || !message.receiver) return acc;
-    const otherProfile =
-      message.sender.id === profileId ? message.receiver : message.sender;
-
-    if (!acc.some((p) => p.id === otherProfile.id)) {
-      acc.push({
-        id: otherProfile.id,
-        firstName: otherProfile.firstName,
-        lastName: otherProfile.lastName,
-        avatarUrl: otherProfile.avatarUrl,
-      });
-    }
-
-    return acc;
-  }, [] as ProfileSummary[]);
-
-  useMessageStore.getState().setProfiles(profiles);
-  useMessageStore.getState().setIsLoadingProfiles(false);
-};
-
-export const getLastMessagePreview = (profileId: number): Message => {
-  const messages = useMessageStore.getState().messages;
-  const lastMessage = messages
-    .filter((msg) => msg.senderId === profileId || msg.receiverId === profileId)
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )[0];
-  return lastMessage;
-};
-
-export const useAllUnReadMessagesCount = (): number => {
-  const unreadMessagesCount = useMessageStore(
-    (state) => state.unreadMessagesCount.counters
-  );
-  return Object.values(unreadMessagesCount).reduce(
-    (total, count) => total + count,
-    0
-  );
-};
-
-// ==================== Combined Selectors ====================
-export const useMessageActions = () => ({
-  getLastMessage: getLastMessagePreview,
-  userProfiles: useUserProfiles,
-});
+export const useFetchNewMessages = () =>
+  useMessageStore((state: any) => state.fetchNewMessages);

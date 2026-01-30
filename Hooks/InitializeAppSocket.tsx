@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import {
-  useInitializeChatSocket,
+  useInitConversationSocketListeners,
   useInitializeNotificationSocket,
 } from "@/store";
 import { getSocket } from "@/lib/socket/socket";
 
 export const useAppSocket = (profileId: number) => {
-  const initChatSocketListeners = useInitializeChatSocket();
+  const initChatSocketListeners = useInitConversationSocketListeners();
   const initNotificationSocketListeners = useInitializeNotificationSocket();
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export const useAppSocket = (profileId: number) => {
     initNotificationSocketListeners(profileId);
     return () => {
       const socket = getSocket(profileId);
-      socket.off("chats");
+      socket.off("conversation");
       socket.off("notifications");
     };
   }, [profileId, initChatSocketListeners, initNotificationSocketListeners]);

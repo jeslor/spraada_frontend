@@ -114,7 +114,7 @@ const ToolContent = ({
   // Handle approve booking
   const handleUpdateBookingStatus = async (
     bookingId: string,
-    status: BookStatus
+    status: BookStatus,
   ) => {
     alert(`Change booking ${bookingId} to status: ${status}`);
     try {
@@ -149,22 +149,20 @@ const ToolContent = ({
   const tools = isExternalMode
     ? propTools || []
     : type === "owned"
-    ? myTools
-    : type === "rented"
-    ? rentedTools
-    : borrowedTools;
-
-  console.log(rentedTools, borrowedTools, bookingsLoading, !bookingsHydrated);
+      ? myTools
+      : type === "rented"
+        ? rentedTools
+        : borrowedTools;
 
   // Determine loading state
   const isLoading =
     externalLoading !== undefined
       ? externalLoading
       : type === "owned"
-      ? !toolsHydrated ||
-        toolsLoading ||
-        (profile?.id && tools.length === 0 && !hasFetchedTools)
-      : !bookingsHydrated || bookingsLoading;
+        ? !toolsHydrated ||
+          toolsLoading ||
+          (profile?.id && tools.length === 0 && !hasFetchedTools)
+        : !bookingsHydrated || bookingsLoading;
 
   // Show skeleton while loading
   if (isLoading || bookingsHydrated === false) {
@@ -200,8 +198,8 @@ const ToolContent = ({
     (variant === "compact"
       ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6"
       : variant === "default"
-      ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-3 gap-y-6"
-      : "");
+        ? "grid sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-x-3 gap-y-6"
+        : "");
 
   // Determine card variant based on type
   const getCardVariant = () => {

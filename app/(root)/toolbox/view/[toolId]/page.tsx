@@ -102,7 +102,7 @@ export default function ViewToolPage() {
       const statusUpdated = await updateToolAvailabilityStatus(
         tool.id,
         !tool.available,
-        Number(profile?.id)
+        Number(profile?.id),
       );
       if (!statusUpdated.success) {
         throw new Error("Failed to update availability status");
@@ -115,13 +115,13 @@ export default function ViewToolPage() {
       toast.success(
         statusUpdated.data
           ? "Tool marked as available"
-          : "Tool marked as unavailable"
+          : "Tool marked as unavailable",
       );
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to update availability status"
+          : "Failed to update availability status",
       );
     }
   };
@@ -134,10 +134,10 @@ export default function ViewToolPage() {
 
     router.push(
       `/messages/?userId=${id}&firstName=${encodeURIComponent(
-        firstName ?? ""
+        firstName ?? "",
       )}&lastName=${encodeURIComponent(
-        lastName ?? ""
-      )}&avatarUrl=${encodeURIComponent(avatarUrl ?? "")}`
+        lastName ?? "",
+      )}&avatarUrl=${encodeURIComponent(avatarUrl ?? "")}`,
     );
   };
 
@@ -161,14 +161,14 @@ export default function ViewToolPage() {
 
   const handleIsFavoritedChange = async (
     toolId: string,
-    favorited: boolean
+    favorited: boolean,
   ) => {
     setFavoriteStatus(favorited);
 
     const updatedProfile = await updateFavoriteTools(
       profile!.id,
       toolId,
-      favorited ? "add" : "remove"
+      favorited ? "add" : "remove",
     );
     if (!updatedProfile.success) {
       toast.error(updatedProfile.error || "Failed to update favorite tools");

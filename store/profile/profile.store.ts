@@ -51,7 +51,7 @@ export const useProfileStore = create<ProfileStore>()(
 
         const totalEarningsCents = myRentals.reduce(
           (sum, rental) => sum + (rental.bookingDetails?.totalPrice || 0),
-          0
+          0,
         );
 
         set((state) => {
@@ -209,6 +209,6 @@ export const useProfileStore = create<ProfileStore>()(
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
-    }
-  )
+    },
+  ),
 );

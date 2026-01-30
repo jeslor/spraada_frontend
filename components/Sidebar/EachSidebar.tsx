@@ -3,9 +3,11 @@ import { NavItem } from "@/lib/constants/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import {
-  useAllUnReadMessagesCount,
+  useAllUnreadMessagesCount,
+  useConversationStore,
   useNotificationCounter,
   useProfile,
+  useSetIsMessagePage,
   useUser,
 } from "@/store";
 import { useEffect, useState } from "react";
@@ -31,9 +33,16 @@ const EachSidebar = ({
 }: EachSidebarProps) => {
   const [animateBubble, setAnimateBubble] = useState(false);
   const notificationCounter = useNotificationCounter();
-  const allUnreadMessagesCount = useAllUnReadMessagesCount();
   const profile = useProfile();
   const user = useUser();
+  const allUnreadMessagesCount = useAllUnreadMessagesCount();
+  const setIsMessagePage = useSetIsMessagePage();
+  const selectedConversation = useConversationStore(
+    (state) => state.selectedConversation,
+  );
+  const setSelectedConversation = useConversationStore(
+    (state) => state.setSelectedConversation,
+  );
 
   useEffect(() => {
     // Animate bubble every time notification count changes
@@ -41,6 +50,17 @@ const EachSidebar = ({
     const timeout = setTimeout(() => setAnimateBubble(false), 350);
     return () => clearTimeout(timeout);
   }, [notificationCounter.count, allUnreadMessagesCount]);
+
+  useEffect(() => {
+    //check page we are on to stop animation
+
+    if (window.location.pathname === "/messages") {
+      setIsMessagePage(true);
+      setSelectedConversation(selectedConversation);
+    } else {
+      setIsMessagePage(false);
+    }
+  }, [isActive]);
 
   const href = item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
   const active = isActive(href);
@@ -56,7 +76,7 @@ const EachSidebar = ({
         "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium relative cursor-pointer",
         active
           ? "bg-gray-100 text-gray-900 font-bold"
-          : "text-gray-700 hover:bg-gray-50"
+          : "text-gray-700 hover:bg-gray-50",
       )}
     >
       {((item.name.toLowerCase() === "messages" &&
@@ -72,7 +92,9 @@ const EachSidebar = ({
             ? allUnreadMessagesCount > 99
               ? "99+"
               : allUnreadMessagesCount
-            : notificationCounter.count}
+            : notificationCounter.count > 99
+              ? "99+"
+              : notificationCounter.count}
         </span>
       )}
       <Icon
@@ -92,7 +114,7 @@ const EachSidebar = ({
           "flex items-center justify-start gap-4 px-3 py-3 rounded-xl transition-all duration-200 font-medium cursor-pointer",
           active
             ? "bg-gray-100 text-gray-900 font-bold"
-            : "text-gray-700 hover:bg-gray-50"
+            : "text-gray-700 hover:bg-gray-50",
         )}
       >
         {profile?.avatarUrl ? (

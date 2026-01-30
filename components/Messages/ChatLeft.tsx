@@ -1,38 +1,42 @@
 "use client";
 
 import {
-  ProfileSummary,
-  useLoadingProfiles,
-  useProfiles,
-  useSelectedUserToMessage,
-  useUnreadMessagesCount,
+  Conversation,
+  useConversations,
+  useIsLoadingConversations,
+  useSelectedConversation,
 } from "@/store";
 import ChatLeftUser from "./ChatLeftUser";
+import MessageLeftChatSkeleton from "./MessageLeftChatSkeleton";
+import { useInView } from "react-intersection-observer";
 
-const ChatLeft = ({
-  onSelectUser,
-}: {
-  onSelectUser: (user: ProfileSummary) => void;
-}) => {
-  const profiles = useProfiles();
-  const loadingProfiles = useLoadingProfiles();
-  const selectedUserToMessage = useSelectedUserToMessage();
-  const unreadMessagesCounters = useUnreadMessagesCount();
+const ChatLeft = () => {
+  const { ref, inView, entry } = useInView({
+    /* Optional options */
+    threshold: 0,
+  });
 
-  return loadingProfiles ? (
-    <div className="p-4 text-center text-gray-500">Loading...</div>
+  const conversations = useConversations();
+  const selectedConversation = useSelectedConversation();
+  const isConversationsLoading = useIsLoadingConversations();
+
+  // useEffect(() => {
+  //   if (inView && !isConversationsLoading && profile?.id) {
+  //     fetchConversations(profile.id);
+  //   }
+  // }, [inView, entry]);
+
+  const selectedChatLeftUser = selectedConversation?.otherParticipant || null;
+
+  return isConversationsLoading ? (
+    <MessageLeftChatSkeleton attachRef={false} />
   ) : (
     <div>
-      {profiles.map((profile) => (
-        <ChatLeftUser
-          unreadMessagesCounters={unreadMessagesCounters}
-          unreadCount={unreadMessagesCounters.counters[profile.id] || 0}
-          key={profile.id}
-          profile={profile}
-          selectedUser={selectedUserToMessage}
-          onSelectUser={onSelectUser}
-        />
-      ))}
+      {conversations.length > 0 &&
+        conversations.map((conversation: Conversation) => (
+          <ChatLeftUser key={conversation.id} conversation={conversation} />
+        ))}
+      {/* <MessageLeftChatSkeleton attachRef={true} ref={ref} /> */}
     </div>
   );
 };

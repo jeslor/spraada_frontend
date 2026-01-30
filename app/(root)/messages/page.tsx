@@ -1,4 +1,4 @@
-import Messages from "@/components/Messages/Messages";
+import Chat from "@/components/Messages/Chat";
 import { getSession } from "@/lib/session/session";
 import { redirect } from "next/navigation";
 
@@ -8,7 +8,7 @@ const page = async () => {
   if (!session.user?.isOnboarded) {
     redirect(`/profile/${session.user?.id}`);
   }
-  return <Messages />;
+  return <Chat />;
 };
 
 export default page;

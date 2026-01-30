@@ -1,206 +1,249 @@
-import React, { useEffect, useRef, useState } from "react";
-import MessageBubbleeLightBox from "./MessageBubbleeLightBox";
-import { Icon } from "@iconify/react";
-import { Message } from "@/store";
+"use client";
 
-interface messageBubbleProps {
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Icon } from "@iconify/react";
+import { Message, useMessageStore } from "@/store";
+import { useClickOutside } from "@/Hooks/useClickOutside";
+import { formatMessageTimestamp } from "@/lib/helpers/dateHelpers";
+import MessageBubbleeLightBox from "./MessageBubbleeLightBox";
+
+interface MessageBubbleProps {
   msg: Message;
-  setChatHeightLocked?: React.Dispatch<React.SetStateAction<boolean>>;
+  setChatHeightLocked?: (locked: boolean) => void;
   handleDeleteMessage: (messageId: string) => void;
   profileId: number | undefined;
   idx: number;
+  isLastMessage: boolean;
 }
 
-const MessageBubble = ({
-  msg,
-  setChatHeightLocked,
-  handleDeleteMessage,
-  profileId,
-  idx,
-}: messageBubbleProps) => {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [messageActions, setMessageActions] = useState(false);
-  const actionsRef = useRef<HTMLDivElement | null>(null);
-  const moreBtnRef = useRef<HTMLButtonElement | null>(null);
+const getMediaCardStyle = (index: number, total: number) => {
+  if (total <= 1) return "";
+  switch (index) {
+    case 0:
+      return "rotate-[-8deg] translate-x-[-6px] translate-y-[6px] group-hover:rotate-[-14deg] group-hover:translate-x-[-22px] group-hover:translate-y-[10px]";
+    case 1:
+      return "z-20 group-hover:-translate-y-1 group-hover:scale-105";
+    case 2:
+      return "rotate-[8deg] translate-x-[6px] translate-y-[6px] group-hover:rotate-[14deg] group-hover:translate-x-[22px] group-hover:translate-y-[10px] z-10";
+    default:
+      return "";
+  }
+};
 
-  // Lightbox handlers
-  const openLightbox = (index: number) => {
-    setLightboxIndex(index);
-    setLightboxOpen(true);
-  };
-  const closeLightbox = () => setLightboxOpen(false);
-  const nextImage = () =>
-    setLightboxIndex((prev) =>
-      msg.mediaFiles && prev < msg.mediaFiles.length - 1 ? prev + 1 : prev
+const MessageBubble = React.memo(
+  ({
+    msg,
+    setChatHeightLocked,
+    handleDeleteMessage,
+    profileId,
+    isLastMessage,
+  }: MessageBubbleProps) => {
+    // --- State ---
+    const [showActions, setShowActions] = useState(false);
+    const [lightbox, setLightbox] = useState({ isOpen: false, index: 0 });
+
+    const actionsRef = useRef<HTMLDivElement>(null);
+    const moreBtnRef = useRef<HTMLButtonElement>(null);
+    const isOwnMessage = msg.senderId === profileId;
+
+    // --- Handlers ---
+    const openLightbox = useCallback((index: number) => {
+      setLightbox({ isOpen: true, index });
+    }, []);
+
+    // ----Store Hooks---
+    const isNewMessage = useMessageStore((state) => state.isNewMessage);
+
+    const closeLightbox = useCallback(() => {
+      setLightbox((prev) => ({ ...prev, isOpen: false }));
+    }, []);
+
+    const navigateLightbox = useCallback(
+      (direction: "next" | "prev") => {
+        const count = msg.mediaFiles?.length || 0;
+        if (count <= 1) return;
+        setLightbox((prev) => {
+          let nextIndex =
+            direction === "next" ? prev.index + 1 : prev.index - 1;
+          if (nextIndex >= count) nextIndex = 0;
+          if (nextIndex < 0) nextIndex = count - 1;
+          return { ...prev, index: nextIndex };
+        });
+      },
+      [msg.mediaFiles],
     );
-  const prevImage = () =>
-    setLightboxIndex((prev) => (prev > 0 ? prev - 1 : prev));
 
-  const bubbleClass = `flex ${
-    msg.senderId === profileId ? "justify-end" : "justify-start"
-  }`;
+    const toggleActions = useCallback((e: React.MouseEvent) => {
+      e.stopPropagation();
+      setShowActions((prev) => !prev);
+    }, []);
 
-  const getCardStyle = (index: number) => {
-    switch (index) {
-      case 0:
-        return `
-        rotate-[-8deg] translate-x-[-6px] translate-y-[6px]
-        group-hover:rotate-[-14deg]
-        group-hover:translate-x-[-22px]
-        group-hover:translate-y-[10px]
-      `;
-      case 1:
-        return `
-        z-20
-        group-hover:-translate-y-1
-        group-hover:scale-105
-      `;
-      case 2:
-        return `
-        rotate-[8deg] translate-x-[6px] translate-y-[6px]
-        group-hover:rotate-[14deg]
-        group-hover:translate-x-[22px]
-        group-hover:translate-y-[10px]
-        z-10
-      `;
-      default:
-        return "";
-    }
-  };
+    const onDelete = useCallback(() => {
+      if (msg.id) handleDeleteMessage(msg.id);
+      setShowActions(false);
+    }, [msg.id, handleDeleteMessage]);
 
-  // Message Actions Handlers
-  const handleOpenMessageActions = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setMessageActions(true);
-  };
+    // --- Hooks ---
+    useClickOutside(actionsRef, () => setShowActions(false), moreBtnRef);
 
-  const handleCloseMessageActions = () => {
-    setMessageActions(false);
-  };
+    useEffect(() => {
+      setChatHeightLocked?.(showActions);
+      return () => setChatHeightLocked?.(false);
+    }, [showActions, setChatHeightLocked]);
 
-  // Close message actions when clicking outside
-  useEffect(() => {
-    if (!messageActions) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (
-        actionsRef.current &&
-        !actionsRef.current.contains(target) &&
-        moreBtnRef.current &&
-        !moreBtnRef.current.contains(target)
-      ) {
-        setMessageActions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [messageActions]);
+    const timestamp = useMemo(
+      () => formatMessageTimestamp(msg.createdAt),
+      [msg.createdAt],
+    );
 
-  //prevent scroll when more actions is active
-  useEffect(() => {
-    if (setChatHeightLocked) {
-      if (messageActions) {
-        setChatHeightLocked(true);
-      } else {
-        setChatHeightLocked(false);
-      }
-    }
-  }, [messageActions, setChatHeightLocked]);
-
-  return (
-    <div key={msg.id || idx} className={`${bubbleClass}`}>
-      <pre
+    const BubbleContent = (
+      <div
         className={`max-w-[70%] px-4 py-2 rounded-2xl shadow text-sm font-medium wrap-break-word group/bubble relative ${
-          msg.senderId === profileId
+          isOwnMessage
             ? "bg-primary-100 text-primary-900 dark:bg-primary-900 dark:text-primary-100 rounded-br-md"
             : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100 rounded-bl-md"
         }`}
       >
-        {messageActions && (
-          <div
-            ref={actionsRef}
-            className="absolute top-6 right-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md shadow-md z-30 text-[12px] flex flex-col gap-y-0.5 py-2"
-          >
-            <button
-              className="block w-full text-left px-4 py-0.5   text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700 whitespace-nowrap"
-              onClick={() => {
-                handleDeleteMessage(msg.id!);
-                handleCloseMessageActions();
+        <AnimatePresence>
+          {showActions && (
+            <motion.div
+              ref={actionsRef}
+              style={{
+                transformOrigin: isOwnMessage ? "top right" : "top left",
               }}
+              initial={{ opacity: 0, scale: 0.94, y: -4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: -2, filter: "blur(2px)" }}
+              transition={{
+                type: "spring",
+                stiffness: 1500,
+                damping: 55,
+                mass: 0.2,
+              }}
+              className={`absolute top-3 ${isOwnMessage ? "right-0" : "left-0"} min-w-[140px] overflow-hidden rounded-xl border border-gray-200/50 bg-white/80 p-1 shadow-xl backdrop-blur-xl dark:border-gray-700/50 dark:bg-gray-950/80 z-50`}
             >
-              Delete Message
-            </button>
-          </div>
-        )}
+              <div className="flex flex-col">
+                <button
+                  onClick={onDelete}
+                  className="group flex items-center gap-3 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 whitespace-nowrap"
+                >
+                  <Icon
+                    icon="heroicons:trash"
+                    className="text-sm transition-transform group-hover:scale-110"
+                  />
+                  Delete Message
+                </button>
+                <div className="mx-2 h-px bg-gray-200/50 dark:bg-gray-800/50" />
+                <button
+                  onClick={() => setShowActions(false)}
+                  className="flex items-center gap-3 px-3 py-2 text-[11px] font-semibold text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                >
+                  <Icon icon="heroicons:x-mark" className="text-sm" />
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <button
           ref={moreBtnRef}
-          className="hidden bg-white group-hover/bubble:block absolute right-1 top-1 rounded text-[14px] p-0.5 hover:text-primary-50 hover:bg-primary-400 dark:hover:bg-primary-700"
-          onClick={
-            messageActions
-              ? handleCloseMessageActions
-              : handleOpenMessageActions
-          }
-          type="button"
+          className={`opacity-0 group-hover/bubble:opacity-100 absolute ${isOwnMessage ? "-right-2" : "-left-2"} -top-2 bg-white dark:bg-gray-700 rounded-full shadow-sm border border-gray-200 dark:border-gray-600 p-1 transition-all hover:scale-110 z-10`}
+          onClick={toggleActions}
         >
-          <Icon icon="fa7-solid:angle-down" />
+          <Icon
+            icon="fa7-solid:angle-down"
+            className="text-gray-500 dark:text-gray-300 text-[11px]"
+          />
         </button>
-        {msg.content}
+
+        <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+
         {msg.mediaFiles && msg.mediaFiles.length > 0 && (
-          <div
-            style={{ maxWidth: 180, maxHeight: 180 }}
-            className="mt-2  relative w-44 h-44 group"
-          >
-            {msg.mediaFiles.map((file: any, index: number) => (
+          <div className="mt-3 relative w-40 h-40 group/media">
+            {msg.mediaFiles.map((file, i) => (
               <div
-                key={index}
-                className="absolute inset-0 cursor-pointer transition-all duration-500 ease-out"
-                style={{ zIndex: index === 1 ? 20 : 10 }}
-                onClick={() => openLightbox(index)}
+                key={file.mediaUrl || i}
+                className={`absolute inset-0 cursor-pointer transition-all duration-500 ease-out ${getMediaCardStyle(i, msg.mediaFiles!.length)}`}
+                onClick={() => openLightbox(0)}
               >
                 <img
                   src={file.mediaUrl}
-                  alt="media"
-                  className={`w-40 h-40 object-cover rounded-2xl 
-                    border border-gray-200 dark:border-gray-700 
-                    shadow-md transition-all duration-500 ease-out
-                    ${msg.mediaFiles!.length > 1 ? getCardStyle(index) : ""}
-                  `}
-                  style={{ boxShadow: "0 6px 16px rgba(0,0,0,0.15)" }}
+                  alt="attachment"
+                  className="w-full h-full object-cover rounded-xl border border-white/20 shadow-lg"
                 />
-
-                <span
-                  className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded
-      opacity-0 group-hover:opacity-100 transition duration-300"
-                >
-                  View
-                </span>
               </div>
             ))}
           </div>
         )}
-        <div className="text-[10px] text-right text-gray-400 mt-1">
-          {msg.createdAt &&
-            new Date(msg.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+
+        <div
+          className={`text-[10px] mt-1 opacity-60 ${isOwnMessage ? "text-right" : "text-left"}`}
+        >
+          {timestamp}
         </div>
-      </pre>
-      {/* Lightbox */}
-      {lightboxOpen && msg.mediaFiles && msg.mediaFiles.length > 0 && (
-        <MessageBubbleeLightBox
-          closeLightbox={closeLightbox}
-          msg={msg}
-          lightboxIndex={lightboxIndex}
-          nextImage={nextImage}
-          prevImage={prevImage}
-        />
-      )}
-    </div>
-  );
-};
+      </div>
+    );
+
+    return msg.isSpecialNotification ? (
+      <div className="w-full flex justify-center my-2">
+        <div
+          className="px-3 py-1.5  bg-primary-200/30 dark:bg-gray-800  dark:text-gray-400 text-xs font-medium  select-none w-full text-center text-semi-bold text-primary-600 shadow-sm "
+          style={{ fontStyle: "italic" }}
+        >
+          {msg.content}
+        </div>
+      </div>
+    ) : (
+      <div
+        className={`flex w-full mb-1 ${isOwnMessage ? "justify-end" : "justify-start"}`}
+      >
+        {isNewMessage && isLastMessage ? (
+          <motion.div
+            key={msg.id}
+            layout
+            initial={{
+              opacity: 0,
+              scale: 0.4,
+              y: 20,
+              transformOrigin: isOwnMessage ? "bottom right" : "bottom left",
+            }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 800,
+              damping: 30,
+              mass: 0.8,
+            }}
+            className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} w-full`}
+          >
+            {BubbleContent}
+          </motion.div>
+        ) : (
+          BubbleContent
+        )}
+
+        {lightbox.isOpen && msg.mediaFiles && (
+          <MessageBubbleeLightBox
+            msg={msg}
+            lightboxIndex={lightbox.index}
+            closeLightbox={closeLightbox}
+            nextImage={() => navigateLightbox("next")}
+            prevImage={() => navigateLightbox("prev")}
+          />
+        )}
+      </div>
+    );
+  },
+);
+
+MessageBubble.displayName = "MessageBubble";
 
 export default MessageBubble;

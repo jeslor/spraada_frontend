@@ -1,92 +1,130 @@
+"use server";
 import { Message } from "@/store/messages/messages.type";
 import { ProfileSummary } from "@/store/messages/messages.type";
 import customFetch, { normalCustomFetch } from "@/lib/customFetch";
+import { cursorTo } from "readline";
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
+//save message to backend and attach it to the conversation or create a new conversation and attach the message to it
 export const saveMessageAPI = async (
-  message: Partial<Message>
-): Promise<Message> => {
+  message: Partial<Message>,
+  otherProfileId: number,
+): Promise<
+  { data: Message; success: boolean } | { error: Error; success: false }
+> => {
   try {
     const response = await normalCustomFetch(`${BACKEND_URL}/message`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(message),
+      body: JSON.stringify({ message, otherProfileId }),
     });
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to save message"
+          "Failed to save message",
       );
     }
 
-    return response.data;
+    return {
+      data: response.data,
+      success: true,
+    };
   } catch (error) {
-    throw error;
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
   }
 };
 
-export const fetchMessagesApi = async (userId: number): Promise<Message[]> => {
+//fetch more messages for a conversation
+export const fetchMoreMessagesAPI = async (
+  conversationId: number,
+  cursorTo: string | undefined,
+): Promise<
+  { data: Message[]; success: boolean } | { error: Error; success: false }
+> => {
   try {
     const response = await normalCustomFetch(
-      `${BACKEND_URL}/message?userId=${userId}`,
+      `${BACKEND_URL}/message/more/${conversationId}`,
       {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-      }
+        body: JSON.stringify({ cursorTo }),
+      },
     );
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch messages"
+          "Failed to fetch more messages",
       );
     }
 
-    return response.data;
+    return {
+      data: response.data,
+      success: true,
+    };
   } catch (error) {
-    throw error;
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
   }
 };
 
-export const fetchProfilesApi = async (
-  userId: number
-): Promise<ProfileSummary[]> => {
+export const fetchAllNewMessagesAPI = async (
+  conversationId: number,
+  cursorTo: string | undefined,
+): Promise<
+  { data: Message[]; success: boolean } | { error: Error; success: false }
+> => {
   try {
     const response = await normalCustomFetch(
-      `${BACKEND_URL}/message/profiles?userId=${userId}`,
+      `${BACKEND_URL}/message/new/${conversationId}`,
       {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-      }
+        body: JSON.stringify({ cursorTo }),
+      },
     );
+
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch profiles"
+          "Failed to fetch new messages",
       );
     }
 
-    return response.data;
+    return {
+      data: response.data,
+      success: true,
+    };
   } catch (error) {
-    throw error;
+    return {
+      error: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
   }
 };
 
 export const fetchUnreadMessagesCountApi = async (
-  userId: number
+  userId: number,
 ): Promise<{
   id: number;
   profileId: number;
@@ -100,7 +138,7 @@ export const fetchUnreadMessagesCountApi = async (
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -108,7 +146,7 @@ export const fetchUnreadMessagesCountApi = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch unread messages count"
+          "Failed to fetch unread messages count",
       );
     }
     return response.data;
@@ -116,11 +154,10 @@ export const fetchUnreadMessagesCountApi = async (
     throw error;
   }
 };
-
 export const updateUnreadMessagesCountApi = async (
   unReadMessageId: number,
   profileId: number,
-  counters: { [key: number]: number }
+  counters: { [key: number]: number },
 ): Promise<{
   id: number;
   profileId: number;
@@ -135,7 +172,7 @@ export const updateUnreadMessagesCountApi = async (
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ profileId, counters }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -143,7 +180,7 @@ export const updateUnreadMessagesCountApi = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update unread messages count"
+          "Failed to update unread messages count",
       );
     }
     const data = response.data;
@@ -156,7 +193,7 @@ export const updateUnreadMessagesCountApi = async (
 export const deleteMessageApi = async (
   message: Message,
   profileId: number,
-  userId: number
+  userId: number,
 ): Promise<{ success: boolean; message: string }> => {
   try {
     const response = await customFetch(`${BACKEND_URL}/message/delete`, {
@@ -168,11 +205,13 @@ export const deleteMessageApi = async (
     });
 
     if (!response.ok) {
+      console.log(response.data);
+
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to delete message"
+          "Failed to delete message",
       );
     }
     return {

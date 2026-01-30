@@ -4,26 +4,33 @@ import React, { useEffect, useRef, useState } from "react";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import {
   Message,
+  ProfileSummary,
   useProfile,
+  useSelectedConversation,
   useSendMessage,
-  useSelectedUserToMessage,
 } from "@/store";
 import EmojiPicker from "emoji-picker-react";
 import CropImage from "@/components/Onboarding/CropImage";
 
 interface ChatFormProps {
-  setIsOnlyEdited: React.Dispatch<React.SetStateAction<boolean>>;
-  setHasMounted: React.Dispatch<React.SetStateAction<boolean>>;
+  otherParticipant: ProfileSummary | null;
+  setIsLoadMoreMessages: (isLoadMore: boolean) => void;
 }
 
 const MAX_IMAGE_PREVIEWS = 3;
 
-const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
+const ChatForm = ({
+  otherParticipant,
+  setIsLoadMoreMessages,
+}: ChatFormProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [input, setInput] = useState("");
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [pickedImageFile, setPickedImageFile] = useState<File | null>(null);
+  const [otherParticipantId, setOtherParticipantId] = useState<number | null>(
+    null,
+  );
   const [imageLimitReached, setImageLimitReached] = useState(false);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [showCrop, setShowCrop] = useState(false);
@@ -32,7 +39,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
   const [sendingImage, setSendingImage] = useState(false);
 
   const sendMessage = useSendMessage();
-  const selectedUserToMessage = useSelectedUserToMessage();
+  const selectedConversation = useSelectedConversation();
   const profile = useProfile();
 
   useEffect(() => {
@@ -88,6 +95,7 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
 
       // Trigger sendMessage here if you want Enter to send
       submitMessage(e as unknown as React.FormEvent<HTMLTextAreaElement>);
+      setIsLoadMoreMessages(false);
     }
   };
 
@@ -113,37 +121,45 @@ const ChatForm = ({ setIsOnlyEdited, setHasMounted }: ChatFormProps) => {
 
   // Send message (text or image)
   const submitMessage = async (e: React.FormEvent) => {
-    setIsOnlyEdited(false);
-    e.preventDefault();
-    if (!input.trim()) return;
-    const newMsg: Message = {
-      id: new Date().toISOString(),
-      senderId: Number(profile?.id),
-      receiverId: Number(selectedUserToMessage?.id),
-      sender: {
-        id: profile?.id!,
-        firstName: profile?.firstName || "",
-        lastName: profile?.lastName || "",
-        avatarUrl: profile?.avatarUrl,
-      },
-      receiver: {
-        id: Number(selectedUserToMessage?.id),
-        firstName: selectedUserToMessage?.firstName!,
-        lastName: selectedUserToMessage?.lastName!,
-        avatarUrl: selectedUserToMessage?.avatarUrl,
-      },
-      content: input,
-      mediaFiles: imagePreviews.length
-        ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
-        : [],
-      blobFiles: imageFiles.length ? imageFiles : [],
-      createdAt: new Date().toISOString(),
-    };
-    setHasMounted(true);
-    sendMessage(newMsg, Number(profile?.id));
-    setInput("");
-    setImagePreviews([]);
-    setImageFiles([]);
+    try {
+      e.preventDefault();
+      if (!input.trim() || !otherParticipant) return;
+      setIsLoadMoreMessages(false);
+
+      //save images to database first before sending message
+      const formData = new FormData();
+      imageFiles.forEach((file) => {
+        formData.append("images", file);
+      });
+      const newMsg: Message = {
+        id: new Date().toISOString(),
+        senderId: Number(profile?.id),
+        sender: {
+          id: profile?.id!,
+          firstName: profile?.firstName || "",
+          lastName: profile?.lastName || "",
+          avatarUrl: profile?.avatarUrl,
+        },
+        content: input,
+        mediaFiles: imagePreviews.length
+          ? imagePreviews.map((url) => ({ mediaUrl: url, mediaUrlKey: "" }))
+          : [],
+        blobFiles: imageFiles.length ? imageFiles : [],
+        createdAt: new Date().toISOString(),
+      };
+
+      sendMessage(
+        newMsg,
+        otherParticipant,
+        selectedConversation?.id,
+        profile?.userId,
+      );
+      setInput("");
+      setImagePreviews([]);
+      setImageFiles([]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
   };
 
   //load the emoji into the input field
