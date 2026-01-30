@@ -99,6 +99,7 @@ export const useConversationStore = create<ConversationStore>()(
             state.conversations.unshift(conversation);
           }
         });
+        if (!conversation) return;
         get().updateUnreadCount(conversation!.id, 0);
       },
 
