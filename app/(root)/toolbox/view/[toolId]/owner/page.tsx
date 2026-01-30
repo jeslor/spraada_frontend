@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool, useProfile } from "@/store";
@@ -126,6 +131,24 @@ export default function ToolOwnerPage() {
   const profile = bookingId
     ? (borrower as ToolOwnerProfile)
     : (tool.profile as ToolOwnerProfile);
+
+  //Message tool owner
+  const handleMessageOwner = () => {
+    if (!tool?.profile) return;
+    if (!profile) {
+      redirect("/signin");
+    }
+
+    const { id, firstName, lastName, avatarUrl } = tool.profile;
+
+    redirect(
+      `/messages/?userId=${id}&firstName=${encodeURIComponent(
+        firstName ?? "",
+      )}&lastName=${encodeURIComponent(
+        lastName ?? "",
+      )}&avatarUrl=${encodeURIComponent(avatarUrl ?? "")}`,
+    );
+  };
 
   if (!profile) {
     return (
@@ -374,7 +397,7 @@ export default function ToolOwnerPage() {
                                   year: "numeric",
                                   month: "long",
                                   day: "numeric",
-                                }
+                                },
                               )
                             : "N/A"
                         }
@@ -385,7 +408,10 @@ export default function ToolOwnerPage() {
 
                 {/* Message Owner Button */}
                 <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                  <button className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors">
+                  <button
+                    onClick={handleMessageOwner}
+                    className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-medium transition-colors"
+                  >
                     <Icon icon="solar:chat-round-line-bold" width={20} />
                     Message {profile.firstName}
                   </button>
