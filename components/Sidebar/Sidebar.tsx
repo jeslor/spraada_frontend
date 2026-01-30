@@ -2,7 +2,7 @@
 
 import { deleteSession, Session } from "@/lib/session/session";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -89,7 +89,7 @@ const Sidebar = ({ session }: SidebarProps) => {
     clearNotifications();
     clearConversationStore();
     await deleteSession();
-    window.location.href = "/signin";
+    redirect("/signin");
   };
 
   const isActive = (href: string) => {
