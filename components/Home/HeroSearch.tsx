@@ -21,8 +21,6 @@ interface SearchState {
 export const HeroSearch = () => {
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activeField, setActiveField] = useState<string | null>(null);
   const [searchState, setSearchState] = useState<SearchState>({
     searchTerm: "",
     category: "",
@@ -184,7 +182,7 @@ export const HeroSearch = () => {
                 {/* Search Button */}
                 <button
                   onClick={handleSearch}
-                  className="flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto"
+                  className="hidden  md:flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto"
                 >
                   <Icon
                     icon="ic:baseline-search"
