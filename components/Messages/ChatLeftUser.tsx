@@ -42,10 +42,6 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
     return isDeleted;
   };
 
-  console.log(
-    "Rendering ChatLeftUser after deleting the message:",
-    userLatestMessage,
-  );
   return (
     <div
       onClick={handleSelectConversation}
