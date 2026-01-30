@@ -2,7 +2,9 @@
 
 import {
   Conversation,
+  Message,
   useGetLatestMessageByConversationId,
+  useProfile,
   useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
@@ -17,6 +19,7 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
   const setSelectedConversation = useSetSelectedConversation();
   const getLatestMessageByConversationId =
     useGetLatestMessageByConversationId();
+  const mainProfile = useProfile();
 
   const profile = conversation.otherParticipant;
   const userLatestMessage = getLatestMessageByConversationId(conversation.id);
@@ -25,10 +28,24 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
     setSelectedConversation(conversation);
   };
 
-  const isDeletedForMe = (message: any, userId: number) => {
-    return message.deletedFor?.includes(userId);
+  const isDeletedForMe = (
+    message: Partial<Message>,
+    currentProfileId: number,
+  ) => {
+    let isDeleted = false;
+    if (currentProfileId === message.senderId) {
+      isDeleted = message.deletedBySender || false;
+    } else {
+      isDeleted = message.deletedByReceiver || message.deletedBySender || false;
+    }
+
+    return isDeleted;
   };
 
+  console.log(
+    "Rendering ChatLeftUser after deleting the message:",
+    userLatestMessage,
+  );
   return (
     <div
       onClick={handleSelectConversation}
@@ -61,7 +78,7 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
               />
             ) : null}
             {userLatestMessage &&
-            isDeletedForMe(userLatestMessage, profile.id) ? (
+            isDeletedForMe(userLatestMessage, mainProfile?.id!) ? (
               <em>Message deleted</em>
             ) : (
               userLatestMessage?.content
