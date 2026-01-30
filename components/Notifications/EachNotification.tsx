@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { SpraadaButton } from "../ui/SpraadaButton";
 import { Notification, useSetShowNotifications } from "@/store";
 import { timeAgo } from "@/lib/helpers/dateHelpers";
@@ -10,7 +10,7 @@ const EachNotification = ({ notification }: { notification: Notification }) => {
   const setShowNotifications = useSetShowNotifications();
   const handleNotificationClick = (e: React.MouseEvent<HTMLDivElement>) => {
     setShowNotifications(false);
-    Router.push(`${notification.link}`);
+    redirect(`${notification.link}`);
   };
 
   const handleIsRead = (e: React.MouseEvent<HTMLButtonElement>) => {
