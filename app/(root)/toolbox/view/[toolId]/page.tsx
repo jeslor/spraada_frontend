@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import {
@@ -129,6 +129,9 @@ export default function ViewToolPage() {
   //Message tool owner
   const handleMessageOwner = () => {
     if (!tool?.profile) return;
+    if (!profile) {
+      redirect("/signin");
+    }
 
     const { id, firstName, lastName, avatarUrl } = tool.profile;
 
@@ -139,6 +142,14 @@ export default function ViewToolPage() {
         lastName ?? "",
       )}&avatarUrl=${encodeURIComponent(avatarUrl ?? "")}`,
     );
+  };
+
+  //Handle Booking
+  const handleBooking = () => {
+    if (!profile) {
+      redirect("/signin");
+    }
+    setIsBookingModalOpen(true);
   };
 
   useEffect(() => {
@@ -537,7 +548,7 @@ export default function ViewToolPage() {
                     <>
                       {/* Non-Owner Actions */}
                       <SpraadaButton
-                        onClick={() => setIsBookingModalOpen(true)}
+                        onClick={handleBooking}
                         disabled={!tool.available}
                         className={`flex items-center justify-center gap-2 w-full py-3 text-sm font-semibold ${
                           tool.available
