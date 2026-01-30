@@ -53,7 +53,7 @@ export default function BrowsePage() {
       newSearchTerm: string,
       newCategory: string,
       newSort?: string,
-      newAvailability?: string
+      newAvailability?: string,
     ) => {
       const params = new URLSearchParams();
       if (newSearchTerm) params.set("searchTerm", newSearchTerm);
@@ -63,7 +63,7 @@ export default function BrowsePage() {
         params.set("availability", newAvailability);
       router.push(`/browse?${params.toString()}`, { scroll: false });
     },
-    [router]
+    [router],
   );
 
   // Fetch tools
@@ -95,7 +95,7 @@ export default function BrowsePage() {
         setIsLoading(false);
       }
     },
-    [searchTerm, category, sortBy, availability]
+    [searchTerm, category, sortBy, availability],
   );
 
   // Fetch on mount and when filters change
@@ -267,7 +267,7 @@ export default function BrowsePage() {
               {/* Search Button */}
               <button
                 onClick={handleSearch}
-                className="flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto cursor-pointer"
+                className="hidden md:flex items-center justify-center gap-1.5 sm:gap-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg sm:rounded-xl md:rounded-full px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 transition-colors w-full md:w-auto cursor-pointer"
               >
                 <Icon
                   icon="ic:baseline-search"
@@ -329,15 +329,15 @@ export default function BrowsePage() {
                           option.id === "available"
                             ? "solar:check-circle-bold-duotone"
                             : option.id === "unavailable"
-                            ? "solar:close-circle-bold-duotone"
-                            : "solar:widget-bold-duotone"
+                              ? "solar:close-circle-bold-duotone"
+                              : "solar:widget-bold-duotone"
                         }
                         className={`w-4 h-4 ${
                           option.id === "available"
                             ? "text-green-500"
                             : option.id === "unavailable"
-                            ? "text-gray-400"
-                            : "text-primary-500"
+                              ? "text-gray-400"
+                              : "text-primary-500"
                         }`}
                       />
                       <span>{option.label}</span>
@@ -370,11 +370,11 @@ export default function BrowsePage() {
               {searchTerm
                 ? `Results for "${searchTerm}"`
                 : category
-                ? `${
-                    toolCategories.find((c) => c.id === category)?.label ||
-                    "Tools"
-                  }`
-                : "Browse All Tools"}
+                  ? `${
+                      toolCategories.find((c) => c.id === category)?.label ||
+                      "Tools"
+                    }`
+                  : "Browse All Tools"}
             </h1>
             {!isLoading && (
               <p className="text-gray-500 text-sm mt-1">
