@@ -41,7 +41,7 @@ export default function BookingModal({
   const Router = useRouter();
   const [pickUpDate, setPickUpDate] = useState<Date | null>(null);
   const [returnDate, setReturnDate] = useState<Date | null>(null);
-  const [bookingLoading, setBookingLoading] = useState<boolean>(false);
+  const [bookingLoading, setBookingLoading] = useState<boolean>(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [bookedDates, setBookedDates] = useState<{ start: Date; end: Date }[]>(
     [],
@@ -159,6 +159,20 @@ export default function BookingModal({
     if (returnDate && date.getTime() === returnDate.getTime()) return true;
     return false;
   };
+
+  useEffect(() => {
+    if (bookingLoading) {
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "15px"; // Prevent layout shift
+      document.body.style.height = "100vh";
+      document.body.style.touchAction = "none"; // Disable touch actions like scrolling
+    } else {
+      document.body.style.overflow = "auto";
+      document.body.style.paddingRight = "0px";
+      document.body.style.touchAction = "auto"; // Re-enable touch actions
+      document.body.style.height = "auto";
+    }
+  }, [bookingLoading]);
 
   const previousMonth = () => {
     setCurrentMonth(
