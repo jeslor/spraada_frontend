@@ -2,11 +2,17 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import { ConversationStore, Conversation } from "./conversartions.types";
-import { fetchConversationsAPI } from "@/lib/actions/conversations.actions";
+import {
+  fetchConversationsAPI,
+  updateUnreadCountAPI,
+} from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
+import { useProfileStore } from "../profile/profile.store";
+import toast from "react-hot-toast";
 
 const initialState = {
   conversations: [] as Conversation[],
+  isMessagePage: false,
   isLoadingConversations: false,
   error: null as string | null,
   currentConversationPage: 1,
@@ -18,6 +24,13 @@ export const useConversationStore = create<ConversationStore>()(
   persist(
     immer((set, get) => ({
       ...initialState,
+
+      // set whether we are on message page or not
+      setIsMessagePage: (isMessagePage: boolean) => {
+        set((state) => {
+          state.isMessagePage = isMessagePage;
+        });
+      },
 
       // Logic: Merge new data with old data, prioritizing new data for duplicates
       setConversations: (incoming: Conversation[]) => {
@@ -69,7 +82,7 @@ export const useConversationStore = create<ConversationStore>()(
         }
       },
 
-      // Add new conversation
+      // Add new conversation or set existing conversation as selected
       setSelectedConversation: (conversation: Conversation | null) => {
         set((state) => {
           if (!conversation) {
@@ -86,6 +99,7 @@ export const useConversationStore = create<ConversationStore>()(
             state.conversations.unshift(conversation);
           }
         });
+        get().updateUnreadCount(conversation!.id, 0);
       },
 
       //Add message to conversation
@@ -274,6 +288,36 @@ export const useConversationStore = create<ConversationStore>()(
                 }
               : state.selectedConversation,
         }));
+      },
+
+      updateUnreadCount: (conversationId: number, count: number) => {
+        set((state) => {
+          const conversation = state.conversations.find(
+            (c) => c.id === conversationId,
+          );
+          if (conversation) {
+            conversation.unreadCount = count;
+          }
+        });
+        //Also update the counters on the backend if needed
+        const profile = useProfileStore.getState().profile;
+        if (!profile) return;
+        try {
+          const updatedConversationCount = updateUnreadCountAPI(
+            conversationId,
+            count,
+            profile.id,
+          );
+          if (!updatedConversationCount) {
+            throw new Error("Failed to update unread count on server");
+          }
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Unknown error updating unread count",
+          );
+        }
       },
 
       clearConversations: () => {

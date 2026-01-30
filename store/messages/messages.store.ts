@@ -15,6 +15,8 @@ import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
 import toast from "react-hot-toast";
 import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
+import { useProfileStore } from "../profile/profile.store";
+import { useConversationExists } from "../conversations/conversations.selectors";
 
 const initialState = {
   isNewMessage: false,
@@ -32,6 +34,7 @@ export const useMessageStore = create<MessageStore>()(
           state.isNewMessage = isNew;
         });
       },
+
       setIsFetchingNewMessages: (isFetching: boolean) => {
         set((state) => {
           state.isFetchingNewMessages = isFetching;
@@ -71,16 +74,60 @@ export const useMessageStore = create<MessageStore>()(
       // Socket: listen for new conversation messages
       initConversationSocketListeners: (profileId: number) => {
         const socket = getSocket(profileId);
-        socket.off("conversation:new_message");
+        socket.off("conversation");
         socket.on(
-          "conversation:new_message",
-          (payload: { conversationId: number; message: Message }) => {
-            useConversationStore
+          "conversation",
+          (payload: {
+            conversationId: number;
+            otherParticipant: ProfileSummary;
+            message: Message;
+          }) => {
+            get().setIsNewMessage(true);
+            const isExisting = useConversationStore
               .getState()
-              .addMessageToConversation(
-                payload.conversationId,
-                payload.message,
-              );
+              .conversations.some((c) => c.id === payload.conversationId);
+            //if conversation exists, add message to it
+            if (isExisting) {
+              useConversationStore
+                .getState()
+                .addMessageToConversation(
+                  payload.conversationId,
+                  payload.message,
+                  payload.otherParticipant,
+                );
+              const isSelected =
+                useConversationStore.getState().selectedConversation?.id ===
+                payload.conversationId;
+              const isMessagePage =
+                useConversationStore.getState().isMessagePage;
+              console.log(isMessagePage);
+
+              //only show unread notification if we are not on message page or conversation is not selected
+              if (!isSelected || !isMessagePage) {
+                //increment unread count
+                const conversation = useConversationStore
+                  .getState()
+                  .conversations.find((c) => c.id === payload.conversationId);
+                const currentUnread = conversation?.unreadCount || 0;
+                useConversationStore
+                  .getState()
+                  .updateUnreadCount(payload.conversationId, currentUnread + 1);
+              }
+            } else {
+              //create a new conversation in the store
+              useConversationStore.getState().setConversations([
+                {
+                  id: payload.conversationId,
+                  otherParticipant: payload.otherParticipant,
+                  messages: [payload.message],
+                  currentPage: 1,
+                },
+                ...useConversationStore.getState().conversations,
+              ]);
+              useConversationStore
+                .getState()
+                .updateUnreadCount(payload.conversationId, 1);
+            }
           },
         );
       },
@@ -167,11 +214,23 @@ export const useMessageStore = create<MessageStore>()(
             }
 
             //emit message via socket, we emphasise a number because we are sending special notification.
-            const socket = getSocket(msg.senderId);
-            socket.emit("conversation:send_message", {
-              conversationId: updatedConversationId,
-              message: savedMessage.data,
-            });
+            const profile = useProfileStore.getState().profile;
+            if (profile && profile.id) {
+              const socket = getSocket(profile.id);
+              const conversationToEmit = {
+                receiverId: otherParticipant.id,
+                conversationId: updatedConversationId,
+                otherParticipant: {
+                  id: profile.id,
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  avatarUrl: profile.avatarUrl,
+                },
+                message: savedMessage.data,
+              };
+
+              socket.emit("conversation", conversationToEmit);
+            }
           }
         } catch (error) {
           console.error("Failed to send message:", error);
@@ -312,7 +371,7 @@ export const useMessageStore = create<MessageStore>()(
           //emit via socket if sender deleted
           if (updatedMessage.deletedBySender) {
             const socket = getSocket(profile.id);
-            socket.emit("conversation:delete_message", updatedMessage);
+            socket.emit("conversation", updatedMessage);
           }
         } catch (error) {
           toast.error(

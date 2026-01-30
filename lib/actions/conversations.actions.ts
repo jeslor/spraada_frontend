@@ -50,3 +50,53 @@ export const fetchConversationsAPI = async (
     };
   }
 };
+
+export const updateUnreadCountAPI = async (
+  conversationId: number,
+  count: number,
+  profileId: number,
+): Promise<
+  | {
+      success: boolean;
+      data: { conversationId: number; unreadCount: number };
+    }
+  | {
+      data: Error;
+      success: false;
+    }
+> => {
+  try {
+    const response = await normalCustomFetch(
+      `${BACKEND_URL}/conversation/${conversationId}/unread-count`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          unreadCount: count,
+          profileId: profileId,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to update unread count",
+      );
+    }
+
+    return {
+      data: response.data,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      data: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
+  }
+};

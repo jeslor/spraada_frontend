@@ -16,7 +16,7 @@ export const useAppSocket = (profileId: number) => {
     initNotificationSocketListeners(profileId);
     return () => {
       const socket = getSocket(profileId);
-      socket.off("conversation:new_message");
+      socket.off("conversation");
       socket.off("notifications");
     };
   }, [profileId, initChatSocketListeners, initNotificationSocketListeners]);

@@ -7,9 +7,11 @@ export interface Conversation {
   messages: Message[];
   currentPage: number;
   isAllMessagesLoaded?: boolean;
+  unreadCount?: number;
 }
 
 export interface ConversationState {
+  isMessagePage: boolean;
   conversations: Conversation[];
   isLoadingConversations: boolean;
   error: string | null;
@@ -19,6 +21,7 @@ export interface ConversationState {
 }
 
 export interface ConversationActions {
+  setIsMessagePage: (isMessagePage: boolean) => void;
   setConversations: (conversations: Conversation[]) => void;
   addMessageToConversation: (
     conversationId: number,
@@ -49,6 +52,8 @@ export interface ConversationActions {
   replaceConversationId: (oldId: number, newId: number) => void;
   fetchConversations: (profileId: number) => Promise<void>;
   setSelectedConversation: (conversation: Conversation | null) => void;
+  updateUnreadCount: (conversationId: number, count: number) => void;
+
   clearConversations: () => void;
 }
 

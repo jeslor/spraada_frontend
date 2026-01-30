@@ -8,7 +8,6 @@ import {
 } from "@/store";
 import ChatLeftUser from "./ChatLeftUser";
 import MessageLeftChatSkeleton from "./MessageLeftChatSkeleton";
-import { memo, useEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 
 const ChatLeft = () => {
@@ -35,13 +34,7 @@ const ChatLeft = () => {
     <div>
       {conversations.length > 0 &&
         conversations.map((conversation: Conversation) => (
-          <ChatLeftUser
-            unreadMessagesCounters={{}}
-            unreadCount={0}
-            key={conversation.id}
-            conversation={conversation}
-            selectedUser={selectedChatLeftUser}
-          />
+          <ChatLeftUser key={conversation.id} conversation={conversation} />
         ))}
       {/* <MessageLeftChatSkeleton attachRef={true} ref={ref} /> */}
     </div>

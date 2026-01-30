@@ -9,19 +9,10 @@ import {
 import { Icon } from "@iconify/react";
 
 interface EachSideUserProps {
-  unreadCount: number;
   conversation: Conversation;
-  selectedUser: {
-    id: number;
-  } | null;
-  unreadMessagesCounters: Record<number, number>;
 }
 
-const ChatLeftUser = ({
-  unreadCount,
-  conversation,
-  unreadMessagesCounters,
-}: EachSideUserProps) => {
+const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
   const selectedConversation = useSelectedConversation();
   const setSelectedConversation = useSetSelectedConversation();
   const getLatestMessageByConversationId =
@@ -58,7 +49,9 @@ const ChatLeftUser = ({
           <p className="m-0 p-0 font-semibold text-[12px]">{`${profile.firstName} ${profile.lastName}`}</p>
           <div
             className={`m-0 p-0 text-[11px] text-gray-500 font-medium truncate max-w-[180px] ${
-              unreadCount > 0 ? "font-bold text-primary-600" : ""
+              conversation.unreadCount && conversation.unreadCount > 0
+                ? "font-bold text-primary-600"
+                : ""
             }`}
           >
             {userLatestMessage && userLatestMessage.mediaFiles?.length ? (
@@ -76,11 +69,11 @@ const ChatLeftUser = ({
           </div>
         </div>
         <div className="ml-auto">
-          {unreadCount > 0 && (
+          {conversation.unreadCount && conversation.unreadCount > 0 ? (
             <div className="bg-primary-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-              {unreadCount}
+              {conversation.unreadCount > 0 ? conversation.unreadCount : ""}
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

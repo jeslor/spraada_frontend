@@ -2,7 +2,14 @@
 import { NavItem } from "@/lib/constants/navigation";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { useNotificationCounter, useProfile, useUser } from "@/store";
+import {
+  useAllUnreadMessagesCount,
+  useConversationStore,
+  useNotificationCounter,
+  useProfile,
+  useSetIsMessagePage,
+  useUser,
+} from "@/store";
 import { useEffect, useState } from "react";
 
 interface EachSidebarProps {
@@ -28,7 +35,14 @@ const EachSidebar = ({
   const notificationCounter = useNotificationCounter();
   const profile = useProfile();
   const user = useUser();
-  const allUnreadMessagesCount = 0;
+  const allUnreadMessagesCount = useAllUnreadMessagesCount();
+  const setIsMessagePage = useSetIsMessagePage();
+  const selectedConversation = useConversationStore(
+    (state) => state.selectedConversation,
+  );
+  const setSelectedConversation = useConversationStore(
+    (state) => state.setSelectedConversation,
+  );
 
   useEffect(() => {
     // Animate bubble every time notification count changes
@@ -36,6 +50,17 @@ const EachSidebar = ({
     const timeout = setTimeout(() => setAnimateBubble(false), 350);
     return () => clearTimeout(timeout);
   }, [notificationCounter.count, allUnreadMessagesCount]);
+
+  useEffect(() => {
+    //check page we are on to stop animation
+
+    if (window.location.pathname === "/messages") {
+      setIsMessagePage(true);
+      setSelectedConversation(selectedConversation);
+    } else {
+      setIsMessagePage(false);
+    }
+  }, [isActive]);
 
   const href = item.isProfile && user?.id ? `/profile/${user.id}` : item.href;
   const active = isActive(href);
@@ -67,7 +92,9 @@ const EachSidebar = ({
             ? allUnreadMessagesCount > 99
               ? "99+"
               : allUnreadMessagesCount
-            : notificationCounter.count}
+            : notificationCounter.count > 99
+              ? "99+"
+              : notificationCounter.count}
         </span>
       )}
       <Icon

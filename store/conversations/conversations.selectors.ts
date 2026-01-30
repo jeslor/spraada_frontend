@@ -1,5 +1,12 @@
+import {
+  Conversation,
+  ConversationState,
+  ConversationStore,
+} from "./conversartions.types";
 import { useConversationStore } from "./conversations.store";
 
+export const useSetIsMessagePage = () =>
+  useConversationStore((state: ConversationStore) => state.setIsMessagePage);
 export const useConversations = () =>
   useConversationStore((state: any) => state.conversations);
 export const useIsLoadingConversations = () =>
@@ -18,17 +25,38 @@ export const useSelectedConversation = () =>
     if (!selected) return null;
     // Always resolve the latest reference from the array
     return (
-      state.conversations.find((c: any) => c.id === selected.id) || selected
+      state.conversations.find((c: Conversation) => c.id === selected.id) ||
+      selected
     );
   });
 export const useSelectedConversationMessages = () =>
-  useConversationStore((state: any) => {
+  useConversationStore((state: ConversationState) => {
     const selectedConversation = state.selectedConversation;
     return selectedConversation ? selectedConversation.messages : [];
   });
 
 export const useClearConversations = () =>
-  useConversationStore((state: any) => state.clearConversations);
+  useConversationStore((state: ConversationStore) => state.clearConversations);
 
 export const useHasHydratedConversations = () =>
-  useConversationStore((state: any) => state._hasHydratedConversations);
+  useConversationStore(
+    (state: ConversationState) => state._hasHydratedConversations,
+  );
+
+// =======================Drives Hooks =============================
+export const useConversationExists = (conversationId: number) => {
+  return useConversationStore((state: ConversationState) => {
+    return state.conversations.some(
+      (c: Conversation) => c.id === conversationId,
+    );
+  });
+};
+
+export const useAllUnreadMessagesCount = () => {
+  return useConversationStore((state: ConversationState) => {
+    return state.conversations.reduce(
+      (total: number, conv: Conversation) => total + (conv.unreadCount || 0),
+      0,
+    );
+  });
+};
