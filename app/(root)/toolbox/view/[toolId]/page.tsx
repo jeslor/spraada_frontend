@@ -152,6 +152,14 @@ export default function ViewToolPage() {
     setIsBookingModalOpen(true);
   };
 
+  //handle open booking modal
+  const handleOpenBookingModal = () => {
+    if (!profile) {
+      redirect("/signin");
+    }
+    setIsBookingModalOpen(true);
+  };
+
   useEffect(() => {
     if (toolId) fetchTool();
   }, [toolId]);
@@ -745,7 +753,7 @@ export default function ViewToolPage() {
                 <span className="hidden sm:inline">Message</span>
               </SpraadaButton>
               <SpraadaButton
-                onClick={() => setIsBookingModalOpen(true)}
+                onClick={handleOpenBookingModal}
                 disabled={!tool.available}
                 className={`flex-1 px-5 py-2.5 text-sm font-semibold ${
                   tool.available
