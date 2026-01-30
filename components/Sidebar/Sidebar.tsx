@@ -88,7 +88,7 @@ const Sidebar = ({ session }: SidebarProps) => {
     clearBookings();
     clearNotifications();
     clearConversationStore();
-    await deleteSession();
+    deleteSession();
     window.location.href = "/signin";
   };
 
