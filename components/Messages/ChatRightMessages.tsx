@@ -38,6 +38,9 @@ const ChatRightMessages = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const mainMessageContainerRef = useRef<HTMLDivElement>(null);
+  const previousScrollHeightRef = useRef<number>(0);
+  const previousMessageCountRef = useRef<number>(0);
+  const skipScrollToBottomRef = useRef<boolean>(false);
 
   //--- Local State ---//
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
@@ -66,14 +69,52 @@ const ChatRightMessages = ({
     if (hasMounted && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-    if (!isLoadMoreMessages && messages?.length && messagesEndRef.current) {
+    if (
+      !isLoadMoreMessages &&
+      messages?.length &&
+      messagesEndRef.current &&
+      !skipScrollToBottomRef.current
+    ) {
       messagesEndRef.current.scrollIntoView({ behavior: "auto" });
     }
+    skipScrollToBottomRef.current = false;
     setHasMounted(false);
     return () => {
       setHasMounted(true);
     };
   }, [hasMounted, isLoadMoreMessages, messages?.length]);
+
+  // Handle scroll position preservation when loading more messages
+  useEffect(() => {
+    const container = mainMessageContainerRef.current;
+    if (!container) return;
+
+    // Store scroll height when load more is initiated
+    if (isLoadMoreMessages && previousMessageCountRef.current === 0) {
+      previousScrollHeightRef.current = container.scrollHeight;
+      previousMessageCountRef.current = messages?.length || 0;
+    }
+
+    // Restore scroll position when new messages are added
+    if (
+      isLoadMoreMessages &&
+      messages &&
+      messages.length > previousMessageCountRef.current
+    ) {
+      const newScrollHeight = container.scrollHeight;
+      const scrollHeightDifference =
+        newScrollHeight - previousScrollHeightRef.current;
+      container.scrollTop += scrollHeightDifference;
+
+      // Mark that we handled load more and should skip auto scroll to bottom
+      skipScrollToBottomRef.current = true;
+
+      // Reset refs and stop load more
+      previousScrollHeightRef.current = 0;
+      previousMessageCountRef.current = 0;
+      setIsLoadMoreMessages(false);
+    }
+  }, [isLoadMoreMessages, messages?.length, setIsLoadMoreMessages]);
 
   //useEffect to track scroll position
   useEffect(() => {
