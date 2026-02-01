@@ -15,8 +15,7 @@ import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
 import toast from "react-hot-toast";
 import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
-import { useProfileStore } from "../profile/profile.store";
-import { useConversationExists } from "../conversations/conversations.selectors";
+import { updateUnreadCountAPI } from "@/lib/actions/conversations.actions";
 
 const initialState = {
   isNewMessage: false,
@@ -127,6 +126,24 @@ export const useMessageStore = create<MessageStore>()(
                 useConversationStore
                   .getState()
                   .updateUnreadCount(payload.conversationId, currentUnread + 1);
+              } else {
+                //mark messages as read in the database using a specific user's id if we are on the conversation
+                try {
+                  const updatedConversationCount = updateUnreadCountAPI(
+                    payload.conversationId,
+                    0,
+                    payload.otherParticipant.id,
+                  );
+                  if (!updatedConversationCount) {
+                    throw new Error("Failed to update unread count on server");
+                  }
+                } catch (error) {
+                  toast.error(
+                    error instanceof Error
+                      ? error.message
+                      : "Unknown error updating unread count",
+                  );
+                }
               }
             } else {
               //create a new conversation in the store

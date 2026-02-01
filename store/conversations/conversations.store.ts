@@ -7,7 +7,6 @@ import {
   updateUnreadCountAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
-import { useProfileStore } from "../profile/profile.store";
 import toast from "react-hot-toast";
 
 const initialState = {
@@ -101,6 +100,25 @@ export const useConversationStore = create<ConversationStore>()(
         });
         if (!conversation) return;
         get().updateUnreadCount(conversation!.id, 0);
+        // update unread count in backend
+        if (conversation.unreadCount && conversation.unreadCount > 0) {
+          try {
+            const updatedConversationCount = updateUnreadCountAPI(
+              conversation.id,
+              0,
+              conversation.otherParticipant.id,
+            );
+            if (!updatedConversationCount) {
+              throw new Error("Failed to update unread count on server");
+            }
+          } catch (error) {
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : "Unknown error updating unread count",
+            );
+          }
+        }
       },
 
       //Add message to conversation
@@ -300,25 +318,6 @@ export const useConversationStore = create<ConversationStore>()(
             conversation.unreadCount = count;
           }
         });
-        //Also update the counters on the backend if needed
-        const profile = useProfileStore.getState().profile;
-        if (!profile) return;
-        try {
-          const updatedConversationCount = updateUnreadCountAPI(
-            conversationId,
-            count,
-            profile.id,
-          );
-          if (!updatedConversationCount) {
-            throw new Error("Failed to update unread count on server");
-          }
-        } catch (error) {
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : "Unknown error updating unread count",
-          );
-        }
       },
 
       clearConversations: () => {
