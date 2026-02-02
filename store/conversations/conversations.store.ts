@@ -78,7 +78,7 @@ export const useConversationStore = create<ConversationStore>()(
         }
       },
 
-      //fetch conversations from backend
+      //fetch more conversations from backend
       fetchConversations: async (profileId: number) => {
         // Guard: Prevent double-fetching the same page
         if (get().isLoadingConversations) return;

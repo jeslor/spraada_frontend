@@ -6,6 +6,7 @@ import {
   useConversations,
   useFetchConversations,
   useIsAllConversationsLoaded,
+  useIsLoadingConversations,
   useIsLoadingUnreadConversations,
   useProfile,
 } from "@/store";
@@ -23,19 +24,23 @@ const ChatLeft = () => {
   const profile = useProfile();
   const fetchConversations = useFetchConversations();
   const isLoadingUnreadConversations = useIsLoadingUnreadConversations();
+  const isLoadingConversations = useIsLoadingConversations();
   const isAllConversationsLoaded = useIsAllConversationsLoaded();
 
+  // Load more conversations when the skeleton comes into view
   useEffect(() => {
-    if (inView) {
-      console.log("this ran");
-
-      // Load more conversations when the sentinel comes into view
+    if (inView && !isLoadingConversations && !isAllConversationsLoaded) {
       if (profile) {
         fetchConversations(profile.id);
       }
-      // You can call your load more function here
     }
-  }, [inView, entry]);
+  }, [
+    inView,
+    entry,
+    isLoadingConversations,
+    isAllConversationsLoaded,
+    profile,
+  ]);
 
   return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
