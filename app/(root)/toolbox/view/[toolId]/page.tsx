@@ -182,6 +182,10 @@ export default function ViewToolPage() {
     toolId: string,
     favorited: boolean,
   ) => {
+    if (!profile) {
+      toast.error("You must be logged in to favorite tools");
+      return redirect("/signin");
+    }
     setFavoriteStatus(favorited);
 
     const updatedProfile = await updateFavoriteTools(
