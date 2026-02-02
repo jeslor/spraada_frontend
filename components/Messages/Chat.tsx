@@ -20,16 +20,19 @@ const Chat = () => {
 
   const setSelectedConversation = useSetSelectedConversation();
   const conversations = useConversations();
-  const fetchConversations = useFetchConversations();
-  const hasHydratedConversations = useHasHydratedConversations();
-  const profile = useProfile();
 
-  /* Fetch conversations on mount if not already fetched */
-  useEffect(() => {
-    if (hasHydratedConversations && profile?.id && conversations.length === 0) {
-      fetchConversations(profile.id);
-    }
-  }, [hasHydratedConversations, profile?.id, conversations.length]);
+  // ====================consider removing this since we load the conversations with unread first
+  // const fetchConversations = useFetchConversations();
+  // const hasHydratedConversations = useHasHydratedConversations();
+  // const profile = useProfile();
+
+  // /* Fetch conversations on mount if not already fetched */
+  // useEffect(() => {
+  //   if (hasHydratedConversations && profile?.id && conversations.length === 0) {
+  //     fetchConversations(profile.id);
+  //   }
+  // }, [hasHydratedConversations, profile?.id, conversations.length]);
+  // ===================================================================================================
 
   /* Handle URL params & localStorage */
   useEffect(() => {

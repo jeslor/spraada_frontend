@@ -45,34 +45,27 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
     }
   }, [user, setUser, hasHydrated]);
 
-  // update profile in the store when user changes
-  // useEffect(() => {
-  //   if (user && !hasInitializedRef.current && profile == null) {
-  //     fetchProfile();
-  //   }
-  // }, [user]);
-
+  //fetchbookings or other data if needed
   useEffect(() => {
     if (profile) {
       fetchBookings(profile.id);
-      //fetchbookings or other data if needed
     }
   }, [profile]);
 
+  // Update profile stats when tools have hydrated
   useEffect(() => {
     if (profile && toolsHasHydrated) {
-      // Update profile stats when tools have hydrated
       setProfileStats();
     }
   }, [profile, toolsHasHydrated]);
 
-  /* Fetch casync onversations on mount if not already fetched */
+  /* Fetch conversations with unread messages first on mount if not already fetched */
   useEffect(() => {
-    if (hasHydratedConversations && profile?.id && conversations.length === 0) {
+    if (profile?.id) {
       //fetch conversations with unread messages first
       fetchConversationsWithUnreadFirst(profile.id);
     }
-  }, [hasHydratedConversations, profile?.id, conversations.length]);
+  }, [profile?.id]);
 
   return null;
 }
