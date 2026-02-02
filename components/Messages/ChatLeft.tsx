@@ -1,10 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Conversation,
   useConversations,
-  useIsLoadingConversations,
-  useSelectedConversation,
+  useFetchConversations,
+  useIsAllConversationsLoaded,
+  useIsLoadingUnreadConversations,
+  useProfile,
 } from "@/store";
 import ChatLeftUser from "./ChatLeftUser";
 import MessageLeftChatSkeleton from "./MessageLeftChatSkeleton";
@@ -17,18 +20,24 @@ const ChatLeft = () => {
   });
 
   const conversations = useConversations();
-  const selectedConversation = useSelectedConversation();
-  const isConversationsLoading = useIsLoadingConversations();
+  const profile = useProfile();
+  const fetchConversations = useFetchConversations();
+  const isLoadingUnreadConversations = useIsLoadingUnreadConversations();
+  const isAllConversationsLoaded = useIsAllConversationsLoaded();
 
-  // useEffect(() => {
-  //   if (inView && !isConversationsLoading && profile?.id) {
-  //     fetchConversations(profile.id);
-  //   }
-  // }, [inView, entry]);
+  useEffect(() => {
+    if (inView) {
+      console.log("this ran");
 
-  const selectedChatLeftUser = selectedConversation?.otherParticipant || null;
+      // Load more conversations when the sentinel comes into view
+      if (profile) {
+        fetchConversations(profile.id);
+      }
+      // You can call your load more function here
+    }
+  }, [inView, entry]);
 
-  return isConversationsLoading ? (
+  return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
     <div>
@@ -36,7 +45,9 @@ const ChatLeft = () => {
         conversations.map((conversation: Conversation) => (
           <ChatLeftUser key={conversation.id} conversation={conversation} />
         ))}
-      {/* <MessageLeftChatSkeleton attachRef={true} ref={ref} /> */}
+      {!isAllConversationsLoaded && (
+        <MessageLeftChatSkeleton attachRef={true} ref={ref} />
+      )}
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { immer } from "zustand/middleware/immer";
 import { ConversationStore, Conversation } from "./conversartions.types";
 import {
   fetchConversationsAPI,
+  fetchConversationsWithUnreadFirstAPI,
   updateUnreadCountAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
@@ -13,10 +14,13 @@ const initialState = {
   conversations: [] as Conversation[],
   isMessagePage: false,
   isLoadingConversations: false,
+  isLoadingUnreadConversations: false,
   error: null as string | null,
   currentConversationPage: 1,
   selectedConversation: null as Conversation | null,
+  isAllConversationsLoaded: false,
   _hasHydratedConversations: false,
+  _hasFetchedConversationsWithUnreadFirst: false,
 };
 
 export const useConversationStore = create<ConversationStore>()(
@@ -46,6 +50,34 @@ export const useConversationStore = create<ConversationStore>()(
         });
       },
 
+      //fetch conversations with unread first
+      fetchConversationsWithUnreadFirst: async (profileId: number) => {
+        // Guard: Prevent double-fetching
+        if (get().isLoadingConversations) return;
+
+        set((state) => {
+          state.isLoadingUnreadConversations = true;
+          state.error = null;
+        });
+
+        const result = await fetchConversationsWithUnreadFirstAPI(profileId);
+
+        if (result.success) {
+          set((state) => {
+            const incoming = result.data;
+            state.conversations = incoming;
+            state.isLoadingUnreadConversations = false;
+            state._hasFetchedConversationsWithUnreadFirst = true;
+          });
+        } else {
+          set((state) => {
+            state.isLoadingUnreadConversations = false;
+            state.error =
+              result.data instanceof Error ? result.data.message : "Failed";
+          });
+        }
+      },
+
       //fetch conversations from backend
       fetchConversations: async (profileId: number) => {
         // Guard: Prevent double-fetching the same page
@@ -61,16 +93,22 @@ export const useConversationStore = create<ConversationStore>()(
           get().currentConversationPage,
         );
 
+        console.log(result);
+
         if (result.success) {
           set((state) => {
-            const incoming = result.data;
-            // Filter out any items that already exist in state to avoid duplicates
-            const existingIds = new Set(state.conversations.map((c) => c.id));
-            const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
+            if (result.data.length === 0) {
+              state.isAllConversationsLoaded = true;
+            } else {
+              const incoming = result.data;
+              // Filter out any items that already exist in state to avoid duplicates
+              const existingIds = new Set(state.conversations.map((c) => c.id));
+              const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
 
-            state.conversations.push(...uniqueNew);
-            state.currentConversationPage += 1;
-            state.isLoadingConversations = false;
+              state.conversations.push(...uniqueNew);
+              state.currentConversationPage += 1;
+              state.isLoadingConversations = false;
+            }
           });
         } else {
           set((state) => {

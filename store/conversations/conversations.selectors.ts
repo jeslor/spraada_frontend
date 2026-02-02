@@ -7,10 +7,20 @@ import { useConversationStore } from "./conversations.store";
 
 export const useSetIsMessagePage = () =>
   useConversationStore((state: ConversationStore) => state.setIsMessagePage);
+export const useFetchConversationsWithUnreadFirst = () =>
+  useConversationStore(
+    (state: ConversationStore) => state.fetchConversationsWithUnreadFirst,
+  );
+export const useIsAllConversationsLoaded = () =>
+  useConversationStore(
+    (state: ConversationState) => state.isAllConversationsLoaded,
+  );
 export const useConversations = () =>
   useConversationStore((state: any) => state.conversations);
 export const useIsLoadingConversations = () =>
   useConversationStore((state: any) => state.isLoadingConversations);
+export const useIsLoadingUnreadConversations = () =>
+  useConversationStore((state: any) => state.isLoadingUnreadConversations);
 export const useCurrentConversationPage = () =>
   useConversationStore((state: any) => state.currentConversationPage);
 export const useFetchConversations = () =>

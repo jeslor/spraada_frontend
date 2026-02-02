@@ -20,6 +20,7 @@ import { updateUnreadCountAPI } from "@/lib/actions/conversations.actions";
 const initialState = {
   isNewMessage: false,
   isFetchingNewMessages: false,
+  isFetchingOlderMessages: false,
   showUnreadNotification: false,
 };
 
@@ -42,6 +43,11 @@ export const useMessageStore = create<MessageStore>()(
       setNewUnreadNotification: (show: boolean) => {
         set((state) => {
           state.showUnreadNotification = show;
+        });
+      },
+      setIsFetchingOlderMessages: (isFetching: boolean) => {
+        set((state) => {
+          state.isFetchingOlderMessages = isFetching;
         });
       },
 
@@ -272,6 +278,7 @@ export const useMessageStore = create<MessageStore>()(
       // Hook to fetch more messages for a conversation
       fetchMoreMessages: async (conversationId: number) => {
         try {
+          get().setIsFetchingOlderMessages(true);
           const lastMessage = get().getOldestMessageId(conversationId);
           const cursor = lastMessage ? lastMessage.id : undefined;
           const result = await fetchMoreMessagesAPI(conversationId, cursor);
@@ -300,6 +307,7 @@ export const useMessageStore = create<MessageStore>()(
           useConversationStore
             .getState()
             .addMoreMessagesToConversation(conversationId, result.data);
+          get().setIsFetchingOlderMessages(false);
         } catch (error) {
           console.error("Failed to fetch more messages:", error);
         }

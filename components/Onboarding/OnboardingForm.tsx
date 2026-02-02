@@ -27,12 +27,17 @@ import {
   onboardingSchema,
   OnboardingData,
 } from "@/lib/validators/profile/Onboarding.validators";
-import customFetch from "@/lib/customFetch";
 import { cn } from "@/lib/utils";
 import CropImage from "./CropImage";
 import { uploadResources } from "@/lib/actions/resources.actions";
 import { createProfile } from "@/lib/actions/profile.actions";
-import { useUser } from "@/store";
+import {
+  useSetProfile,
+  useUpdateProfile,
+  useUpdateProfileInStore,
+  useUser,
+} from "@/store";
+import { useRouter } from "next/navigation";
 
 const steps = [
   {
@@ -60,6 +65,7 @@ interface OnboardingFormProps {
 }
 
 const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
+  const Router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
   const [currentStep, setCurrentStep] = useState(1);
@@ -68,7 +74,9 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
   const [croppedFile, setCroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  //---Store Hooks---
   const user = useUser();
+  const updateProfileInStore = useUpdateProfileInStore();
 
   const form = useForm<OnboardingData>({
     resolver: zodResolver(onboardingSchema),
@@ -86,10 +94,7 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
   // Handle redirect after completion
   useEffect(() => {
     if (currentStep === 3) {
-      const timer = setTimeout(() => {
-        window.location.reload();
-      }, 3000);
-      return () => clearTimeout(timer);
+      window.location.href = `/profile/${userId}`;
     }
   }, [currentStep]);
 
@@ -124,14 +129,14 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
       const uploadRes = await uploadResources(
         Number(userId),
         formData,
-        RESOURCE_FOLDER
+        RESOURCE_FOLDER,
       );
 
       if (!uploadRes.success) {
         throw new Error(
           uploadRes.data?.message ||
             uploadRes.error ||
-            "Failed to upload profile image"
+            "Failed to upload profile image",
         );
       }
 
@@ -149,6 +154,8 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
       if (!savedUser.success) {
         throw new Error(savedUser.error || "Failed to create profile");
       }
+      updateProfileInStore({ ...savedUser.data });
+
       // Move to completed step instead of refreshing immediately
       setCurrentStep(3);
     } catch (err) {
@@ -214,8 +221,8 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
                 currentStep === step.id
                   ? "bg-white shadow-sm border border-gray-200"
                   : step.id < currentStep
-                  ? "hover:bg-gray-100 cursor-pointer"
-                  : "opacity-60 cursor-not-allowed"
+                    ? "hover:bg-gray-100 cursor-pointer"
+                    : "opacity-60 cursor-not-allowed",
               )}
             >
               <div
@@ -224,8 +231,8 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
                   currentStep === step.id
                     ? "bg-primary-600/90 text-white"
                     : currentStep > step.id
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-500"
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-500",
                 )}
               >
                 {currentStep > step.id ? <CheckCircle2 size={16} /> : step.id}
@@ -236,7 +243,7 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
                     "font-medium text-sm",
                     currentStep === step.id
                       ? "text-primary-600"
-                      : "text-primary-400"
+                      : "text-primary-400",
                   )}
                 >
                   {step.title}
@@ -321,7 +328,7 @@ const OnboardingForm = ({ userRole, userId }: OnboardingFormProps) => {
                       <div
                         className={cn(
                           "w-40 h-40 rounded-full bg-gray-50 border-4 border-dashed border-gray-200 flex items-center justify-center overflow-hidden group-hover:border-[#073d44] transition-all duration-300",
-                          previewUrl && "border-solid border-[#073d44]"
+                          previewUrl && "border-solid border-[#073d44]",
                         )}
                       >
                         {previewUrl ? (

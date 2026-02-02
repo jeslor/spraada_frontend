@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  useConversations,
   useFetchBookings,
+  useFetchConversations,
+  useFetchConversationsWithUnreadFirst,
+  useHasHydratedConversations,
   useProfile,
   useProfileStore,
-  useSetProfile,
   useSetProfileStats,
   useToolsHasHydrated,
 } from "@/store";
@@ -25,6 +28,11 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
   const fetchBookings = useFetchBookings();
   const hasHydrated = useProfileStore((state) => state._hasHydrated);
   const toolsHasHydrated = useToolsHasHydrated();
+  const hasHydratedConversations = useHasHydratedConversations();
+  const conversations = useConversations();
+  const fetchConversations = useFetchConversations();
+  const fetchConversationsWithUnreadFirst =
+    useFetchConversationsWithUnreadFirst();
   const profile = useProfile();
   const setProfileStats = useSetProfileStats();
   const hasInitializedRef = useRef(false);
@@ -57,6 +65,14 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
       setProfileStats();
     }
   }, [profile, toolsHasHydrated]);
+
+  /* Fetch casync onversations on mount if not already fetched */
+  useEffect(() => {
+    if (hasHydratedConversations && profile?.id && conversations.length === 0) {
+      //fetch conversations with unread messages first
+      fetchConversationsWithUnreadFirst(profile.id);
+    }
+  }, [hasHydratedConversations, profile?.id, conversations.length]);
 
   return null;
 }
