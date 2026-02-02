@@ -12,6 +12,7 @@ import {
 } from "@/store";
 import { updateFavoriteTools } from "@/lib/actions/profile.actions";
 import toast from "react-hot-toast";
+import { redirect } from "next/navigation";
 
 const CompactCard = ({ tool }: { tool: Tool }) => {
   const [imageIndex, setImageIndex] = useState(0);
@@ -34,14 +35,18 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
 
   const handleIsFavoritedChange = async (
     toolId: string,
-    favorited: boolean
+    favorited: boolean,
   ) => {
+    if (!profile) {
+      toast.error("You must be logged in to favorite tools");
+      return redirect("/signin");
+    }
     setFavoriteStatus(favorited);
 
     const updatedProfile = await updateFavoriteTools(
       profile!.id,
       toolId,
-      favorited ? "add" : "remove"
+      favorited ? "add" : "remove",
     );
     if (!updatedProfile.success) {
       toast.error(updatedProfile.error || "Failed to update favorite tools");
@@ -151,7 +156,7 @@ const CompactCard = ({ tool }: { tool: Tool }) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setImageIndex(
-                    (prev) => (prev - 1 + photos.length) % photos.length
+                    (prev) => (prev - 1 + photos.length) % photos.length,
                   );
                 }}
                 className={`absolute left-2 top-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-105 transition-all duration-200 z-10 ${
