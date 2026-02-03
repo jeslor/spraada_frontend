@@ -4,19 +4,24 @@ import { immer } from "zustand/middleware/immer";
 import { ConversationStore, Conversation } from "./conversartions.types";
 import {
   fetchConversationsAPI,
-  updateUnreadCountAPI,
+  fetchConversationsWithUnreadFirstAPI,
+  markConversationAsReadAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
 import toast from "react-hot-toast";
+import { useProfileStore } from "../profile/profile.store";
 
 const initialState = {
   conversations: [] as Conversation[],
   isMessagePage: false,
   isLoadingConversations: false,
+  isLoadingUnreadConversations: false,
   error: null as string | null,
   currentConversationPage: 1,
   selectedConversation: null as Conversation | null,
+  isAllConversationsLoaded: false,
   _hasHydratedConversations: false,
+  _hasFetchedConversationsWithUnreadFirst: false,
 };
 
 export const useConversationStore = create<ConversationStore>()(
@@ -46,7 +51,35 @@ export const useConversationStore = create<ConversationStore>()(
         });
       },
 
-      //fetch conversations from backend
+      //fetch conversations with unread first
+      fetchConversationsWithUnreadFirst: async (profileId: number) => {
+        // Guard: Prevent double-fetching
+        if (get().isLoadingConversations) return;
+
+        set((state) => {
+          state.isLoadingUnreadConversations = true;
+          state.error = null;
+        });
+
+        const result = await fetchConversationsWithUnreadFirstAPI(profileId);
+
+        if (result.success) {
+          set((state) => {
+            const incoming = result.data;
+            state.conversations = incoming;
+            state.isLoadingUnreadConversations = false;
+            state._hasFetchedConversationsWithUnreadFirst = true;
+          });
+        } else {
+          set((state) => {
+            state.isLoadingUnreadConversations = false;
+            state.error =
+              result.data instanceof Error ? result.data.message : "Failed";
+          });
+        }
+      },
+
+      //fetch more conversations from backend
       fetchConversations: async (profileId: number) => {
         // Guard: Prevent double-fetching the same page
         if (get().isLoadingConversations) return;
@@ -63,14 +96,18 @@ export const useConversationStore = create<ConversationStore>()(
 
         if (result.success) {
           set((state) => {
-            const incoming = result.data;
-            // Filter out any items that already exist in state to avoid duplicates
-            const existingIds = new Set(state.conversations.map((c) => c.id));
-            const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
+            if (result.data.length === 0) {
+              state.isAllConversationsLoaded = true;
+            } else {
+              const incoming = result.data;
+              // Filter out any items that already exist in state to avoid duplicates
+              const existingIds = new Set(state.conversations.map((c) => c.id));
+              const uniqueNew = incoming.filter((c) => !existingIds.has(c.id));
 
-            state.conversations.push(...uniqueNew);
-            state.currentConversationPage += 1;
-            state.isLoadingConversations = false;
+              state.conversations.push(...uniqueNew);
+              state.currentConversationPage += 1;
+              state.isLoadingConversations = false;
+            }
           });
         } else {
           set((state) => {
@@ -82,7 +119,7 @@ export const useConversationStore = create<ConversationStore>()(
       },
 
       // Add new conversation or set existing conversation as selected
-      setSelectedConversation: (conversation: Conversation | null) => {
+      setSelectedConversation: async (conversation: Conversation | null) => {
         set((state) => {
           if (!conversation) {
             state.selectedConversation = null;
@@ -96,26 +133,38 @@ export const useConversationStore = create<ConversationStore>()(
           // add the conversation to the conversations array if it doesn't exist
           if (!found) {
             state.conversations.unshift(conversation);
+            state.selectedConversation = conversation;
           }
         });
         if (!conversation) return;
         get().updateUnreadCount(conversation!.id, 0);
-        // update unread count in backend
+
+        // reset the counters for the other participant on the backend to 0
         if (conversation.unreadCount && conversation.unreadCount > 0) {
+          const profile = useProfileStore.getState().profile;
+          if (!profile) return;
           try {
-            const updatedConversationCount = updateUnreadCountAPI(
+            const result = await markConversationAsReadAPI(
               conversation.id,
-              0,
-              conversation.otherParticipant.id,
+              profile.id,
             );
-            if (!updatedConversationCount) {
-              throw new Error("Failed to update unread count on server");
+
+            if (!result.success) {
+              throw new Error("Failed to mark conversation as read on server");
             }
+            set((state) => {
+              const conv = state.conversations.find(
+                (c) => c.id === conversation.id,
+              );
+              if (conv) {
+                conv.unreadCount = 0;
+              }
+            });
           } catch (error) {
             toast.error(
               error instanceof Error
                 ? error.message
-                : "Unknown error updating unread count",
+                : "Unknown error marking conversation as read",
             );
           }
         }
@@ -309,6 +358,7 @@ export const useConversationStore = create<ConversationStore>()(
         }));
       },
 
+      //updating to counters locally because we save the counter on the backend when we save the message
       updateUnreadCount: (conversationId: number, count: number) => {
         set((state) => {
           const conversation = state.conversations.find(
@@ -331,7 +381,8 @@ export const useConversationStore = create<ConversationStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         conversations: state.conversations,
-        currentConversationPage: state.currentConversationPage,
+        //this keeps the page counter up always
+        // currentConversationPage: state.currentConversationPage,
         selectedConversation: state.selectedConversation,
       }),
       onRehydrateStorage: () => (state) => {

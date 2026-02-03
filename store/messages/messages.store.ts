@@ -15,11 +15,12 @@ import { Profile } from "../profile/profile.types";
 import { uploadResources } from "@/lib/actions/resources.actions";
 import toast from "react-hot-toast";
 import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
-import { updateUnreadCountAPI } from "@/lib/actions/conversations.actions";
+import { markConversationAsReadAPI } from "@/lib/actions/conversations.actions";
 
 const initialState = {
   isNewMessage: false,
   isFetchingNewMessages: false,
+  isFetchingOlderMessages: false,
   showUnreadNotification: false,
 };
 
@@ -42,6 +43,11 @@ export const useMessageStore = create<MessageStore>()(
       setNewUnreadNotification: (show: boolean) => {
         set((state) => {
           state.showUnreadNotification = show;
+        });
+      },
+      setIsFetchingOlderMessages: (isFetching: boolean) => {
+        set((state) => {
+          state.isFetchingOlderMessages = isFetching;
         });
       },
 
@@ -128,22 +134,17 @@ export const useMessageStore = create<MessageStore>()(
                   .updateUnreadCount(payload.conversationId, currentUnread + 1);
               } else {
                 //mark messages as read in the database using a specific user's id if we are on the conversation
-                try {
-                  const updatedConversationCount = updateUnreadCountAPI(
-                    payload.conversationId,
-                    0,
-                    payload.otherParticipant.id,
-                  );
-                  if (!updatedConversationCount) {
-                    throw new Error("Failed to update unread count on server");
-                  }
-                } catch (error) {
+                // Fire and forget: don't block the socket handler
+                markConversationAsReadAPI(
+                  payload.conversationId,
+                  profileId,
+                ).catch((error) => {
                   toast.error(
                     error instanceof Error
                       ? error.message
-                      : "Unknown error updating unread count",
+                      : "Unknown error marking conversation as read",
                   );
-                }
+                });
               }
             } else {
               //create a new conversation in the store
@@ -272,6 +273,7 @@ export const useMessageStore = create<MessageStore>()(
       // Hook to fetch more messages for a conversation
       fetchMoreMessages: async (conversationId: number) => {
         try {
+          get().setIsFetchingOlderMessages(true);
           const lastMessage = get().getOldestMessageId(conversationId);
           const cursor = lastMessage ? lastMessage.id : undefined;
           const result = await fetchMoreMessagesAPI(conversationId, cursor);
@@ -300,6 +302,7 @@ export const useMessageStore = create<MessageStore>()(
           useConversationStore
             .getState()
             .addMoreMessagesToConversation(conversationId, result.data);
+          get().setIsFetchingOlderMessages(false);
         } catch (error) {
           console.error("Failed to fetch more messages:", error);
         }

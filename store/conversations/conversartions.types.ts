@@ -14,10 +14,13 @@ export interface ConversationState {
   isMessagePage: boolean;
   conversations: Conversation[];
   isLoadingConversations: boolean;
+  isLoadingUnreadConversations: boolean;
   error: string | null;
   currentConversationPage: number;
   selectedConversation: Conversation | null;
   _hasHydratedConversations: boolean;
+  _hasFetchedConversationsWithUnreadFirst: boolean;
+  isAllConversationsLoaded: boolean;
 }
 
 export interface ConversationActions {
@@ -50,7 +53,8 @@ export interface ConversationActions {
     messageId: string,
   ) => void;
   replaceConversationId: (oldId: number, newId: number) => void;
-  fetchConversations: (profileId: number) => Promise<void>;
+  fetchConversationsWithUnreadFirst: (profileId: number) => Promise<void>;
+  fetchConversations: (profileId: number, limit?: number) => Promise<void>;
   setSelectedConversation: (conversation: Conversation | null) => void;
   updateUnreadCount: (conversationId: number, count: number) => void;
 

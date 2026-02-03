@@ -63,6 +63,7 @@ export interface ProfileState {
 export interface ProfileActions {
   // Core actions
   setProfile: (profile: Profile | null) => void;
+  updateProfileInStore: (updates: Partial<Profile>) => void;
   setUser: (user: User) => void;
   clearProfile: () => void;
 

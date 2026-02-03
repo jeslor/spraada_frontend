@@ -6,6 +6,50 @@ import { normalCustomFetch } from "../customFetch";
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://localhost:4444";
 
+export const fetchConversationsWithUnreadFirstAPI = async (
+  profileId: number,
+): Promise<
+  | {
+      data: Conversation[];
+      success: boolean;
+    }
+  | {
+      data: Error;
+      success: false;
+    }
+> => {
+  try {
+    const response = await normalCustomFetch(
+      `${BACKEND_URL}/conversation/${profileId}/unread-first`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        response.data?.message ||
+          response.data?.error ||
+          response.error ||
+          "Failed to fetch conversations",
+      );
+    }
+
+    return {
+      data: response.data,
+      success: true,
+    };
+  } catch (error) {
+    return {
+      data: error instanceof Error ? error : new Error("Unknown error"),
+      success: false,
+    };
+  }
+};
+
 export const fetchConversationsAPI = async (
   profileId: number,
   page: number,
@@ -51,9 +95,8 @@ export const fetchConversationsAPI = async (
   }
 };
 
-export const updateUnreadCountAPI = async (
+export const markConversationAsReadAPI = async (
   conversationId: number,
-  count: number,
   profileId: number,
 ): Promise<
   | {
@@ -67,14 +110,13 @@ export const updateUnreadCountAPI = async (
 > => {
   try {
     const response = await normalCustomFetch(
-      `${BACKEND_URL}/conversation/${conversationId}/unread-count`,
+      `${BACKEND_URL}/conversation/${conversationId}/mark-as-read`,
       {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          unreadCount: count,
           profileId: profileId,
         }),
       },
@@ -85,7 +127,7 @@ export const updateUnreadCountAPI = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update unread count",
+          "Failed to mark conversation as read",
       );
     }
 

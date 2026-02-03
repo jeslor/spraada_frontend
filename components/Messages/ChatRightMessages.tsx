@@ -200,7 +200,6 @@ const ChatRightMessages = ({
 
   const handleLoadMoreMessages = () => {
     if (selectedConversation && !isAllLoaded) {
-      setIsLoadMoreMessages(true);
       fetchMoreMessages(selectedConversation.id);
     }
   };

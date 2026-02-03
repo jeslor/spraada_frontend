@@ -32,8 +32,10 @@ export interface ProfileSummary {
 export interface MessageStore {
   isNewMessage: boolean;
   isFetchingNewMessages: boolean;
+  isFetchingOlderMessages: boolean;
   showUnreadNotification: boolean;
   setIsFetchingNewMessages: (isFetching: boolean) => void;
+  setIsFetchingOlderMessages: (isFetching: boolean) => void;
   setIsNewMessage: (isNew: boolean) => void;
   setNewUnreadNotification: (show: boolean) => void;
   // Socket logic

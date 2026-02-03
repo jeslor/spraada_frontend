@@ -14,7 +14,7 @@ const page = () => {
   const setProfile = useSetProfile();
 
   useEffect(() => {
-    if (user?.profile) {
+    if (user?.profile && !profile) {
       setProfile(user.profile);
     }
   }, [user]);

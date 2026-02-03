@@ -2,10 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  useConversations,
   useFetchBookings,
+  useFetchConversations,
+  useFetchConversationsWithUnreadFirst,
+  useHasHydratedConversations,
   useProfile,
   useProfileStore,
-  useSetProfile,
   useSetProfileStats,
   useToolsHasHydrated,
 } from "@/store";
@@ -25,6 +28,11 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
   const fetchBookings = useFetchBookings();
   const hasHydrated = useProfileStore((state) => state._hasHydrated);
   const toolsHasHydrated = useToolsHasHydrated();
+  const hasHydratedConversations = useHasHydratedConversations();
+  const conversations = useConversations();
+  const fetchConversations = useFetchConversations();
+  const fetchConversationsWithUnreadFirst =
+    useFetchConversationsWithUnreadFirst();
   const profile = useProfile();
   const setProfileStats = useSetProfileStats();
   const hasInitializedRef = useRef(false);
@@ -37,26 +45,27 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
     }
   }, [user, setUser, hasHydrated]);
 
-  // update profile in the store when user changes
-  // useEffect(() => {
-  //   if (user && !hasInitializedRef.current && profile == null) {
-  //     fetchProfile();
-  //   }
-  // }, [user]);
-
+  //fetchbookings or other data if needed
   useEffect(() => {
     if (profile) {
       fetchBookings(profile.id);
-      //fetchbookings or other data if needed
     }
   }, [profile]);
 
+  // Update profile stats when tools have hydrated
   useEffect(() => {
     if (profile && toolsHasHydrated) {
-      // Update profile stats when tools have hydrated
       setProfileStats();
     }
   }, [profile, toolsHasHydrated]);
+
+  /* Fetch conversations with unread messages first on mount if not already fetched */
+  useEffect(() => {
+    if (profile?.id) {
+      //fetch conversations with unread messages first
+      fetchConversationsWithUnreadFirst(profile.id);
+    }
+  }, [profile?.id]);
 
   return null;
 }

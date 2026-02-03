@@ -5,7 +5,8 @@ import { Profile, User } from "./profile.types";
 
 export const useProfile = (): Profile | null =>
   useProfileStore((state) => state.profile);
-
+export const useUpdateProfileInStore = () =>
+  useProfileStore((state) => state.updateProfileInStore);
 export const useUser = (): User | null =>
   useProfileStore((state) => state.user);
 

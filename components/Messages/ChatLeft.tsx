@@ -1,10 +1,14 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   Conversation,
   useConversations,
+  useFetchConversations,
+  useIsAllConversationsLoaded,
   useIsLoadingConversations,
-  useSelectedConversation,
+  useIsLoadingUnreadConversations,
+  useProfile,
 } from "@/store";
 import ChatLeftUser from "./ChatLeftUser";
 import MessageLeftChatSkeleton from "./MessageLeftChatSkeleton";
@@ -17,18 +21,28 @@ const ChatLeft = () => {
   });
 
   const conversations = useConversations();
-  const selectedConversation = useSelectedConversation();
-  const isConversationsLoading = useIsLoadingConversations();
+  const profile = useProfile();
+  const fetchConversations = useFetchConversations();
+  const isLoadingUnreadConversations = useIsLoadingUnreadConversations();
+  const isLoadingConversations = useIsLoadingConversations();
+  const isAllConversationsLoaded = useIsAllConversationsLoaded();
 
-  // useEffect(() => {
-  //   if (inView && !isConversationsLoading && profile?.id) {
-  //     fetchConversations(profile.id);
-  //   }
-  // }, [inView, entry]);
+  // Load more conversations when the skeleton comes into view
+  useEffect(() => {
+    if (inView && !isLoadingConversations && !isAllConversationsLoaded) {
+      if (profile) {
+        fetchConversations(profile.id);
+      }
+    }
+  }, [
+    inView,
+    entry,
+    isLoadingConversations,
+    isAllConversationsLoaded,
+    profile,
+  ]);
 
-  const selectedChatLeftUser = selectedConversation?.otherParticipant || null;
-
-  return isConversationsLoading ? (
+  return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
     <div>
@@ -36,7 +50,9 @@ const ChatLeft = () => {
         conversations.map((conversation: Conversation) => (
           <ChatLeftUser key={conversation.id} conversation={conversation} />
         ))}
-      {/* <MessageLeftChatSkeleton attachRef={true} ref={ref} /> */}
+      {!isAllConversationsLoaded && (
+        <MessageLeftChatSkeleton attachRef={true} ref={ref} />
+      )}
     </div>
   );
 };

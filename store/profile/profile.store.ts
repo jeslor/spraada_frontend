@@ -34,6 +34,14 @@ export const useProfileStore = create<ProfileStore>()(
         });
       },
 
+      updateProfileInStore: (updates: Partial<Profile>) => {
+        set((state) => {
+          if (state.profile) {
+            state.profile = { ...state.profile, ...updates };
+          }
+        });
+      },
+
       setUser: (user: User) => {
         set((state) => {
           state.user = user;
