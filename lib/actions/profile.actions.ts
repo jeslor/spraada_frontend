@@ -13,7 +13,7 @@ const BACKEND_API_URL =
 // =================helper functions for profile actions ===================
 //Fetch user profile by user ID
 export const fetchUserProfile = async (
-  userId: string
+  userId: string,
 ): Promise<ProfileActionResult> => {
   try {
     const response = await customFetch(`${BACKEND_API_URL}/profile/${userId}`, {
@@ -46,7 +46,7 @@ export const fetchUserProfile = async (
 //  Update profile by profile ID
 export const updateUserProfile = async (
   profileId: number,
-  updates: Partial<Profile>
+  updates: Partial<Profile>,
 ): Promise<ProfileActionResult<Profile>> => {
   try {
     const updateRes = await customFetch(
@@ -59,14 +59,14 @@ export const updateUserProfile = async (
         body: JSON.stringify({
           ...updates,
         }),
-      }
+      },
     );
 
     if (!updateRes.ok) {
       throw new Error(
         updateRes.data?.message ||
           updateRes.error ||
-          "Failed to update profile picture"
+          "Failed to update profile picture",
       );
     }
 
@@ -87,7 +87,7 @@ export const updateUserProfile = async (
 
 // create profile
 export const createProfile = async (
-  userProfileData: Partial<Profile>
+  userProfileData: Partial<Profile>,
 ): Promise<ProfileActionResult<Profile>> => {
   try {
     //create the profile
@@ -101,7 +101,7 @@ export const createProfile = async (
 
     if (!response.ok) {
       throw new Error(
-        response.data?.message || response.error || "Failed to create profile"
+        response.data?.message || response.error || "Failed to create profile",
       );
     }
 
@@ -143,13 +143,13 @@ export const updateProfileAvatar = async ({
     const imageUploadResult = await uploadResources(
       userId,
       formData,
-      RESOURCE_FOLDER
+      RESOURCE_FOLDER,
     );
     if (!imageUploadResult.success) {
       throw new Error(
         imageUploadResult.data?.message ||
           imageUploadResult.error ||
-          "Failed to upload profile image"
+          "Failed to upload profile image",
       );
     }
     const updatedImage = imageUploadResult.data[0];
@@ -176,10 +176,8 @@ export const updateProfileAvatar = async ({
       });
       if (!deleteOldAvatar.success) {
         throw new Error(
-          deleteOldAvatar.error || "Failed to delete old avatar image"
+          deleteOldAvatar.error || "Failed to delete old avatar image",
         );
-      } else {
-        console.log("Old avatar deleted successfully");
       }
     }
 
@@ -202,7 +200,7 @@ export const updateProfileAvatar = async ({
 export const updateFavoriteTools = async (
   profileId: number,
   toolId: string,
-  action: "add" | "remove"
+  action: "add" | "remove",
 ): Promise<ProfileActionResult<Profile>> => {
   try {
     const response = await customFetch(
@@ -216,7 +214,7 @@ export const updateFavoriteTools = async (
           toolId,
           action,
         }),
-      }
+      },
     );
 
     if (!response.ok) {

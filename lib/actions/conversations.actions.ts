@@ -63,8 +63,6 @@ export const fetchConversationsAPI = async (
       success: false;
     }
 > => {
-  console.log("current page in conversation action", page);
-
   try {
     const response = await normalCustomFetch(
       `${BACKEND_URL}/conversation/${profileId}?page=${page}`,
@@ -111,8 +109,6 @@ export const markConversationAsReadAPI = async (
     }
 > => {
   try {
-    console.log(conversationId, profileId);
-
     const response = await normalCustomFetch(
       `${BACKEND_URL}/conversation/${conversationId}/mark-as-read`,
       {
