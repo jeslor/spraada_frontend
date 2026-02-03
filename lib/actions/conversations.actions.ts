@@ -63,6 +63,8 @@ export const fetchConversationsAPI = async (
       success: false;
     }
 > => {
+  console.log("current page in conversation action", page);
+
   try {
     const response = await normalCustomFetch(
       `${BACKEND_URL}/conversation/${profileId}?page=${page}`,
@@ -95,9 +97,8 @@ export const fetchConversationsAPI = async (
   }
 };
 
-export const updateUnreadCountAPI = async (
+export const markConversationAsReadAPI = async (
   conversationId: number,
-  count: number,
   profileId: number,
 ): Promise<
   | {
@@ -110,15 +111,16 @@ export const updateUnreadCountAPI = async (
     }
 > => {
   try {
+    console.log(conversationId, profileId);
+
     const response = await normalCustomFetch(
-      `${BACKEND_URL}/conversation/${conversationId}/unread-count`,
+      `${BACKEND_URL}/conversation/${conversationId}/mark-as-read`,
       {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          unreadCount: count,
           profileId: profileId,
         }),
       },
@@ -129,7 +131,7 @@ export const updateUnreadCountAPI = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update unread count",
+          "Failed to mark conversation as read",
       );
     }
 

@@ -5,10 +5,11 @@ import { ConversationStore, Conversation } from "./conversartions.types";
 import {
   fetchConversationsAPI,
   fetchConversationsWithUnreadFirstAPI,
-  updateUnreadCountAPI,
+  markConversationAsReadAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
 import toast from "react-hot-toast";
+import { useProfileStore } from "../profile/profile.store";
 
 const initialState = {
   conversations: [] as Conversation[],
@@ -93,8 +94,6 @@ export const useConversationStore = create<ConversationStore>()(
           get().currentConversationPage,
         );
 
-        console.log(result);
-
         if (result.success) {
           set((state) => {
             if (result.data.length === 0) {
@@ -120,7 +119,7 @@ export const useConversationStore = create<ConversationStore>()(
       },
 
       // Add new conversation or set existing conversation as selected
-      setSelectedConversation: (conversation: Conversation | null) => {
+      setSelectedConversation: async (conversation: Conversation | null) => {
         set((state) => {
           if (!conversation) {
             state.selectedConversation = null;
@@ -134,26 +133,38 @@ export const useConversationStore = create<ConversationStore>()(
           // add the conversation to the conversations array if it doesn't exist
           if (!found) {
             state.conversations.unshift(conversation);
+            state.selectedConversation = conversation;
           }
         });
         if (!conversation) return;
         get().updateUnreadCount(conversation!.id, 0);
-        // update unread count in backend
+
+        // reset the counters for the other participant on the backend to 0
         if (conversation.unreadCount && conversation.unreadCount > 0) {
+          const profile = useProfileStore.getState().profile;
+          if (!profile) return;
           try {
-            const updatedConversationCount = updateUnreadCountAPI(
+            const result = await markConversationAsReadAPI(
               conversation.id,
-              0,
-              conversation.otherParticipant.id,
+              profile.id,
             );
-            if (!updatedConversationCount) {
-              throw new Error("Failed to update unread count on server");
+
+            if (!result.success) {
+              throw new Error("Failed to mark conversation as read on server");
             }
+            set((state) => {
+              const conv = state.conversations.find(
+                (c) => c.id === conversation.id,
+              );
+              if (conv) {
+                conv.unreadCount = 0;
+              }
+            });
           } catch (error) {
             toast.error(
               error instanceof Error
                 ? error.message
-                : "Unknown error updating unread count",
+                : "Unknown error marking conversation as read",
             );
           }
         }
@@ -347,6 +358,7 @@ export const useConversationStore = create<ConversationStore>()(
         }));
       },
 
+      //updating to counters locally because we save the counter on the backend when we save the message
       updateUnreadCount: (conversationId: number, count: number) => {
         set((state) => {
           const conversation = state.conversations.find(
@@ -369,7 +381,8 @@ export const useConversationStore = create<ConversationStore>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         conversations: state.conversations,
-        currentConversationPage: state.currentConversationPage,
+        //this keeps the page counter up always
+        // currentConversationPage: state.currentConversationPage,
         selectedConversation: state.selectedConversation,
       }),
       onRehydrateStorage: () => (state) => {
