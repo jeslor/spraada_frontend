@@ -23,6 +23,7 @@ const initialState = {
   isAllConversationsLoaded: false,
   _hasHydratedConversations: false,
   _hasFetchedConversationsWithUnreadFirst: false,
+  _notificationRemovalTimeouts: new Map<number, NodeJS.Timeout>(), // Store timeout IDs per conversation
 };
 
 export const useConversationStore = create<ConversationStore>()(
@@ -56,6 +57,7 @@ export const useConversationStore = create<ConversationStore>()(
       fetchConversationsWithUnreadFirst: async (profileId: number) => {
         // Guard: Prevent double-fetching
         if (get().isLoadingConversations) return;
+        console.log("this one ran for messages with new messages");
 
         set((state) => {
           state.isLoadingUnreadConversations = true;
