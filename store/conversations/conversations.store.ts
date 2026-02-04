@@ -8,6 +8,7 @@ import {
   markConversationAsReadAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
+import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
 import toast from "react-hot-toast";
 import { useProfileStore } from "../profile/profile.store";
 
@@ -65,7 +66,31 @@ export const useConversationStore = create<ConversationStore>()(
 
         if (result.success) {
           set((state) => {
-            const incoming = result.data;
+            let incoming = result.data;
+            // the special unread messages notification on each conversation messages.
+            incoming = incoming.map((conversation) => {
+              let messages = conversation.messages;
+              const lastUnreadMessage = messages[0];
+              messages = [
+                ...messages,
+                {
+                  id: `notification`,
+                  content: `${conversation.unreadCount} new message(s)`,
+                  isSpecialNotification: true,
+                  senderId: lastUnreadMessage.senderId,
+                  createdAt: getPreviousMillisecondString(
+                    lastUnreadMessage.createdAt,
+                  ),
+                  sender: {
+                    id: 0,
+                    firstName: "System",
+                    lastName: "",
+                  },
+                },
+              ];
+              conversation.messages = messages;
+              return conversation;
+            });
             state.conversations = incoming;
             state.isLoadingUnreadConversations = false;
             state._hasFetchedConversationsWithUnreadFirst = true;
@@ -137,9 +162,6 @@ export const useConversationStore = create<ConversationStore>()(
           }
         });
         if (!conversation) return;
-        get().updateUnreadCount(conversation!.id, 0);
-
-        // reset the counters for the other participant on the backend to 0
         if (conversation.unreadCount && conversation.unreadCount > 0) {
           const profile = useProfileStore.getState().profile;
           if (!profile) return;
@@ -148,7 +170,6 @@ export const useConversationStore = create<ConversationStore>()(
               conversation.id,
               profile.id,
             );
-
             if (!result.success) {
               throw new Error("Failed to mark conversation as read on server");
             }
@@ -160,6 +181,7 @@ export const useConversationStore = create<ConversationStore>()(
                 conv.unreadCount = 0;
               }
             });
+            get().updateUnreadCount(conversation!.id, 0);
           } catch (error) {
             toast.error(
               error instanceof Error
@@ -167,6 +189,15 @@ export const useConversationStore = create<ConversationStore>()(
                 : "Unknown error marking conversation as read",
             );
           }
+
+          setTimeout(async () => {
+            // remove the special notification message if exists
+            get().removeMessageFromConversation(
+              conversation.id,
+              "notification",
+            );
+            // reset the counters for the other participant on the backend to 0
+          }, 300000);
         }
       },
 
