@@ -67,7 +67,7 @@ const SignUpPage = () => {
         setError("An account with this email already exists.");
       } else {
         setError(
-          authError.message || "Failed to create account. Please try again."
+          authError.message || "Failed to create account. Please try again.",
         );
       }
     } finally {
@@ -214,11 +214,17 @@ const SignUpPage = () => {
             <p>
               <strong>Welcome to Spraada!</strong> By creating an account, you
               agree to our{" "}
-              <Link href="/terms" className="underline hover:text-blue-600">
+              <Link
+                href="/terms"
+                className="underline hover:text-primary-600 text-primary-600"
+              >
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="underline hover:text-blue-600">
+              <Link
+                href="/privacy-policy"
+                className="underline hover:text-primary-600 text-primary-600"
+              >
                 Privacy Policy
               </Link>
               .

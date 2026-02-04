@@ -272,6 +272,11 @@ export const useMessageStore = create<MessageStore>()(
 
       // Hook to fetch more messages for a conversation
       fetchMoreMessages: async (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+        if (!conversation || !conversation.messages.length) return;
+
         try {
           get().setIsFetchingOlderMessages(true);
           const lastMessage = get().getOldestMessageId(conversationId);
@@ -310,6 +315,10 @@ export const useMessageStore = create<MessageStore>()(
 
       // Hook to fetch new messages for a conversation
       fetchNewMessages: async (conversationId: number) => {
+        const conversation = useConversationStore
+          .getState()
+          .conversations.find((c) => c.id === conversationId);
+        if (!conversation || !conversation.messages.length) return;
         try {
           get().setIsFetchingNewMessages(true);
           const newestMessage = get().getLatestMessageId(conversationId);
