@@ -70,6 +70,7 @@ const ChatRightMessages = ({
     (msg) => msg.createdAt === selectedConversationUnreadMessage?.createdAt,
   );
 
+  // Add the "unread messages" notification into the messages array at the correct index based on the timestamp of the unread message
   useEffect(() => {
     if (
       selectedConversationUnreadMessage?.hasNotification &&
