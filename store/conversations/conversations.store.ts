@@ -23,7 +23,12 @@ const initialState = {
   isAllConversationsLoaded: false,
   _hasHydratedConversations: false,
   _hasFetchedConversationsWithUnreadFirst: false,
-  _notificationRemovalTimeouts: new Map<number, NodeJS.Timeout>(), // Store timeout IDs per conversation
+  conversationUnreadNotifications: [] as {
+    conversationId: number;
+    hasNotification: boolean;
+    createdAt?: string;
+    unreadCount?: number;
+  }[], // Add this line
 };
 
 export const useConversationStore = create<ConversationStore>()(
@@ -53,11 +58,34 @@ export const useConversationStore = create<ConversationStore>()(
         });
       },
 
+      //set conversation unread notifications
+      setConversationUnreadNotifications: (
+        notifications: {
+          conversationId: number;
+          hasNotification: boolean;
+          createdAt?: string;
+          unreadCount?: number;
+        }[],
+      ) => {
+        set((state) => {
+          state.conversationUnreadNotifications = notifications;
+        });
+      },
+
+      //remove or update conversation unread notification
+      removeConversationUnreadNotification: (conversationId: number) => {
+        set((state) => {
+          state.conversationUnreadNotifications =
+            state.conversationUnreadNotifications.filter(
+              (n) => n.conversationId !== conversationId,
+            );
+        });
+      },
+
       //fetch conversations with unread first
       fetchConversationsWithUnreadFirst: async (profileId: number) => {
         // Guard: Prevent double-fetching
         if (get().isLoadingConversations) return;
-        console.log("this one ran for messages with new messages");
 
         set((state) => {
           state.isLoadingUnreadConversations = true;
@@ -69,30 +97,22 @@ export const useConversationStore = create<ConversationStore>()(
         if (result.success) {
           set((state) => {
             let incoming = result.data;
-            // the special unread messages notification on each conversation messages.
-            incoming = incoming.map((conversation) => {
-              let messages = conversation.messages;
-              const lastUnreadMessage = messages[0];
-              messages = [
-                ...messages,
-                {
-                  id: `notification`,
-                  content: `${conversation.unreadCount} new message(s)`,
-                  isSpecialNotification: true,
-                  senderId: lastUnreadMessage.senderId,
-                  createdAt: getPreviousMillisecondString(
-                    lastUnreadMessage.createdAt,
-                  ),
-                  sender: {
-                    id: 0,
-                    firstName: "System",
-                    lastName: "",
-                  },
-                },
-              ];
-              conversation.messages = messages;
-              return conversation;
-            });
+            // populate the unread notification array with conversations with their oldest message date, if any.
+            const unreadNotifications = incoming
+              .filter((c) => c.unreadCount && c.unreadCount > 0)
+              .map((c) => {
+                // Find the oldest date by comparing every message in the conversation
+                const oldestDate =
+                  c.messages[c.messages.length - (c.unreadCount! + 1)]
+                    .createdAt;
+                return {
+                  conversationId: c.id,
+                  hasNotification: true,
+                  createdAt: oldestDate,
+                  unreadCount: c.unreadCount,
+                };
+              });
+            state.conversationUnreadNotifications = unreadNotifications;
             state.conversations = incoming;
             state.isLoadingUnreadConversations = false;
             state._hasFetchedConversationsWithUnreadFirst = true;
@@ -152,18 +172,23 @@ export const useConversationStore = create<ConversationStore>()(
             state.selectedConversation = null;
             return;
           }
+
           // Always use the reference from the array if it exists
-          const found = state.conversations.find(
+          let found = get().conversations.find(
             (c) => c.otherParticipant.id === conversation.otherParticipant.id,
           );
-          state.selectedConversation = found || conversation;
+
           // add the conversation to the conversations array if it doesn't exist
           if (!found) {
             state.conversations.unshift(conversation);
             state.selectedConversation = conversation;
+            return;
           }
+          state.selectedConversation = found;
         });
         if (!conversation) return;
+
+        //update the conversation as read if it has unread messages in the backend
         if (conversation.unreadCount && conversation.unreadCount > 0) {
           const profile = useProfileStore.getState().profile;
           if (!profile) return;
@@ -184,6 +209,11 @@ export const useConversationStore = create<ConversationStore>()(
               }
             });
             get().updateUnreadCount(conversation!.id, 0);
+            setTimeout(() => {
+              // remove the special notification message if exists
+              get().removeConversationUnreadNotification(conversation!.id);
+              // reset the counters for the other participant on the backend to 0
+            }, 120000); // 120 seconds to ensure the user sees the "your messages below this point are unread" notification before it disappears
           } catch (error) {
             toast.error(
               error instanceof Error
@@ -191,15 +221,6 @@ export const useConversationStore = create<ConversationStore>()(
                 : "Unknown error marking conversation as read",
             );
           }
-
-          setTimeout(async () => {
-            // remove the special notification message if exists
-            get().removeMessageFromConversation(
-              conversation.id,
-              "notification",
-            );
-            // reset the counters for the other participant on the backend to 0
-          }, 300000);
         }
       },
 
@@ -408,12 +429,38 @@ export const useConversationStore = create<ConversationStore>()(
           ...initialState,
         }));
       },
+
+      // Add missing setters to match ConversationStore type
+      setIsLoadingConversations: (isLoading: boolean) => {
+        set((state) => {
+          state.isLoadingConversations = isLoading;
+        });
+      },
+
+      setIsLoadingUnreadConversations: (isLoading: boolean) => {
+        set((state) => {
+          state.isLoadingUnreadConversations = isLoading;
+        });
+      },
+
+      setError: (error: string | null) => {
+        set((state) => {
+          state.error = error;
+        });
+      },
+
+      setCurrentConversationPage: (page: number) => {
+        set((state) => {
+          state.currentConversationPage = page;
+        });
+      },
     })),
     {
       name: "conversation-store",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         conversations: state.conversations,
+        conversationUnreadNotifications: state.conversationUnreadNotifications,
         //this keeps the page counter up always
         // currentConversationPage: state.currentConversationPage,
         selectedConversation: state.selectedConversation,

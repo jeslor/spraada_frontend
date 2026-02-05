@@ -65,7 +65,7 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
       //fetch conversations with unread messages first
       fetchConversationsWithUnreadFirst(profile.id);
     }
-  }, [profile?.id, hasFetchedConversationsWithUnreadFirst]);
+  }, [profile?.id]);
 
   return null;
 }

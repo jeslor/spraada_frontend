@@ -17,6 +17,8 @@ export const useIsAllConversationsLoaded = () =>
   );
 export const useConversations = () =>
   useConversationStore((state: any) => state.conversations);
+export const useConversationUnreadNotifications = () =>
+  useConversationStore((state: any) => state.conversationUnreadNotifications);
 export const useIsLoadingConversations = () =>
   useConversationStore((state: any) => state.isLoadingConversations);
 export const useIsLoadingUnreadConversations = () =>

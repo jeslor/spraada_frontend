@@ -16,6 +16,7 @@ import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
 import MoreMessagesHereIndicator from "./MoreMessagesHereIndicator";
 import { useInView } from "react-intersection-observer";
+import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
 
 interface ChatRightMessagesProps {
   hasMounted: boolean;
@@ -45,15 +46,63 @@ const ChatRightMessages = ({
   //--- Local State ---//
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [messagesToRender, setMessagesToRender] = useState<Message[] | []>([]);
   //---Store Hooks---//
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
   const selectedConversation = useSelectedConversation();
   const deleteMessage = useDeleteMessage();
   const fetchNewMessages = useFetchNewMessages();
+  const conversationUnreadNotifications = useConversationStore(
+    (state) => state.conversationUnreadNotifications,
+  );
   const messages = useConversationStore(
     (state) => state.selectedConversation?.messages,
   );
+
+  const selectedConversationUnreadMessage =
+    conversationUnreadNotifications.find(
+      (notification) =>
+        notification.conversationId === selectedConversation?.id,
+    );
+
+  const selectedConversationUnreadMessageIndex = messages?.findIndex(
+    (msg) => msg.createdAt === selectedConversationUnreadMessage?.createdAt,
+  );
+
+  useEffect(() => {
+    if (
+      selectedConversationUnreadMessage?.hasNotification &&
+      messages &&
+      selectedConversationUnreadMessageIndex !== -1
+    ) {
+      const newMessages = [
+        ...messages.slice(0, selectedConversationUnreadMessageIndex! + 1),
+        {
+          id: `notification`,
+          content: `${selectedConversationUnreadMessage.unreadCount} unread messages below this point`,
+          isSpecialNotification: true,
+          senderId: 0,
+          createdAt: getPreviousMillisecondString(
+            selectedConversationUnreadMessage.createdAt!,
+          ),
+          sender: {
+            id: 0,
+            firstName: "System",
+            lastName: "",
+          },
+        },
+        ...messages.slice(selectedConversationUnreadMessageIndex! + 1),
+      ];
+      setMessagesToRender(newMessages);
+    } else {
+      setMessagesToRender(messages || []);
+    }
+  }, [
+    selectedConversation?.id,
+    conversationUnreadNotifications,
+    messages,
+  ]);
 
   const lastMessage = messages ? messages[messages.length - 1] : null;
 
@@ -82,7 +131,12 @@ const ChatRightMessages = ({
     return () => {
       setHasMounted(true);
     };
-  }, [hasMounted, isLoadMoreMessages, messages?.length]);
+  }, [
+    hasMounted,
+    isLoadMoreMessages,
+    messages?.length,
+    messagesToRender.length,
+  ]);
 
   // Handle scroll position preservation when loading more messages
   useEffect(() => {
@@ -223,7 +277,7 @@ const ChatRightMessages = ({
               handleLoadMoreMessages={handleLoadMoreMessages}
             />
           )}
-          {messages?.map((msg: Message, idx: number) =>
+          {messagesToRender?.map((msg: Message, idx: number) =>
             (profile?.id && msg.deletedBySender) ||
             (profile?.id && msg.deletedByReceiver) ? (
               <ChatMessageDeletedBubble
