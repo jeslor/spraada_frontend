@@ -5,6 +5,8 @@ export const useInitConversationSocketListeners = () =>
 export const useSendMessage = () =>
   useMessageStore((state: any) => state.sendMessage);
 
+export const useIsFetchingOlderMessages = () =>
+  useMessageStore((state: any) => state.isFetchingOlderMessages);
 export const useGetOldestMessageByConversationId = () =>
   useMessageStore((state: any) => state.getOldestMessageId);
 
