@@ -127,12 +127,7 @@ const ChatRightMessages = ({
     return () => {
       setHasMounted(true);
     };
-  }, [
-    hasMounted,
-    isLoadMoreMessages,
-    messages?.length,
-    messagesToRender.length,
-  ]);
+  }, [hasMounted, isLoadMoreMessages, messages?.length]);
 
   // Handle scroll position preservation when loading more messages
   useEffect(() => {
@@ -142,14 +137,14 @@ const ChatRightMessages = ({
     // Store scroll height when load more is initiated
     if (isLoadMoreMessages && previousMessageCountRef.current === 0) {
       previousScrollHeightRef.current = container.scrollHeight;
-      previousMessageCountRef.current = messages?.length || 0;
+      previousMessageCountRef.current = messagesToRender?.length || 0;
     }
 
     // Restore scroll position when new messages are added
     if (
       isLoadMoreMessages &&
-      messages &&
-      messages.length > previousMessageCountRef.current
+      messagesToRender &&
+      messagesToRender.length > previousMessageCountRef.current
     ) {
       const newScrollHeight = container.scrollHeight;
       const scrollHeightDifference =
@@ -164,7 +159,7 @@ const ChatRightMessages = ({
       previousMessageCountRef.current = 0;
       setIsLoadMoreMessages(false);
     }
-  }, [isLoadMoreMessages, messages?.length, setIsLoadMoreMessages]);
+  }, [isLoadMoreMessages, messagesToRender?.length, setIsLoadMoreMessages]);
 
   //useEffect to track scroll position
   useEffect(() => {

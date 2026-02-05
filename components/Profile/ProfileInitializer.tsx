@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   useConversations,
   useFetchBookings,
-  useFetchConversations,
   useFetchConversationsWithUnreadFirst,
   useHasFetchedConversationsWithUnreadFirst,
   useHasHydratedConversations,
@@ -14,7 +13,6 @@ import {
   useToolsHasHydrated,
 } from "@/store";
 import { User } from "@/store/profile/profile.types";
-import { fetchUserProfile } from "@/lib/actions/profile.actions";
 
 interface ProfileInitializerProps {
   user: User | null;
@@ -35,6 +33,8 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
     useHasFetchedConversationsWithUnreadFirst();
   const profile = useProfile();
   const setProfileStats = useSetProfileStats();
+  const conversations = useConversations();
+  const hasHydratedConversations = useHasHydratedConversations();
   const hasInitializedRef = useRef(false);
 
   useEffect(() => {
@@ -61,13 +61,22 @@ export function ProfileInitializer({ user }: ProfileInitializerProps) {
 
   /* Fetch conversations with unread messages first on mount if not already fetched */
   useEffect(() => {
-    if (profile?.id && !hasFetchedConversationsWithUnreadFirst) {
-      //fetch conversations with unread messages first
+    // Only fetch if:
+    // 1. We have a profile
+    // 2. Store has fully hydrated from localStorage
+    // 3. We haven't fetched yet OR conversations array is still empty
+    if (
+      profile?.id &&
+      hasHydratedConversations &&
+      (!hasFetchedConversationsWithUnreadFirst || conversations.length === 0)
+    ) {
       fetchConversationsWithUnreadFirst(profile.id);
     }
   }, [
     profile?.id,
+    hasHydratedConversations,
     hasFetchedConversationsWithUnreadFirst,
+    conversations.length,
     fetchConversationsWithUnreadFirst,
   ]);
 
