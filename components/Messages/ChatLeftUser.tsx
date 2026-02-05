@@ -9,12 +9,14 @@ import {
   useSetSelectedConversation,
 } from "@/store";
 import { Icon } from "@iconify/react";
+import { motion } from "framer-motion";
 
 interface EachSideUserProps {
   conversation: Conversation;
+  index: number;
 }
 
-const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
+const ChatLeftUser = ({ conversation, index }: EachSideUserProps) => {
   const selectedConversation = useSelectedConversation();
   const setSelectedConversation = useSetSelectedConversation();
   const getLatestMessageByConversationId =
@@ -43,7 +45,11 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3, delay: 0.03 * index, ease: "easeOut" }}
       onClick={handleSelectConversation}
       key={profile.id}
       className={`p-2  cursor-pointer hover:bg-primary/10  ${
@@ -89,7 +95,7 @@ const ChatLeftUser = ({ conversation }: EachSideUserProps) => {
           ) : null}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
