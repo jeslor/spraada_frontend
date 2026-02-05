@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import {
   Conversation,
   useConversations,
@@ -20,6 +20,12 @@ const ChatLeft = () => {
     threshold: 0,
   });
 
+  //--- Local State ---//
+  const [localConversations, setLocalConversations] = useState<Conversation[]>(
+    [],
+  );
+
+  //--- Store Hooks ---//
   const conversations = useConversations();
   const profile = useProfile();
   const fetchConversations = useFetchConversations();
@@ -42,13 +48,32 @@ const ChatLeft = () => {
     profile,
   ]);
 
+  useEffect(() => {
+    const sortedConversations = [...conversations].sort((a, b) => {
+      //sort by last message timestamp, if no messages sort by conversation created at timestamp
+      const aLastMessageTimestamp =
+        a.messages?.[a.messages.length - 1]?.createdAt || a.createdAt;
+      const bLastMessageTimestamp =
+        b.messages?.[b.messages.length - 1]?.createdAt || b.createdAt;
+      return (
+        new Date(bLastMessageTimestamp).getTime() -
+        new Date(aLastMessageTimestamp).getTime()
+      );
+    });
+    setLocalConversations(sortedConversations);
+  }, [conversations]);
+
   return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
     <div>
-      {conversations.length > 0 &&
-        conversations.map((conversation: Conversation) => (
-          <ChatLeftUser key={conversation.id} conversation={conversation} />
+      {localConversations.length > 0 &&
+        localConversations.map((conversation: Conversation, index: number) => (
+          <ChatLeftUser
+            key={conversation.id}
+            conversation={conversation}
+            index={index}
+          />
         ))}
       {!isAllConversationsLoaded && (
         <MessageLeftChatSkeleton attachRef={true} ref={ref} />
