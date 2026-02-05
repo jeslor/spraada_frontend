@@ -42,10 +42,10 @@ const ChatLeft = () => {
     }
   }, [
     inView,
-    entry,
     isLoadingConversations,
     isAllConversationsLoaded,
-    profile,
+    profile?.id,
+    fetchConversations,
   ]);
 
   useEffect(() => {
