@@ -117,7 +117,7 @@ const MobileBottomBar = ({
         {/* Center Create Action */}
         <Link
           href="/create"
-          className="flex flex-col items-center justify-center -translate-y-4"
+          className="flex flex-col items-center justify-center "
         >
           <div className="bg-primary-600 p-3 rounded-full shadow-lg border-4 border-white text-white">
             <Icon icon="solar:add-square-bold" className="text-2xl" />
