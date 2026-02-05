@@ -6,9 +6,6 @@ import {
   Conversation,
   ProfileSummary,
   useConversations,
-  useFetchConversations,
-  useHasHydratedConversations,
-  useProfile,
   useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
@@ -77,13 +74,13 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 fixed w-full md:w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
+    <div className="flex h-screen min-h-0 fixed w-full md:w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
       <div className="bg-primary-50 w-full md:max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
         <ChatLeft />
       </div>
 
       <div
-        className={`flex-1 flex flex-col  min-h-0 p-0 m-0 fixed ${selectedConversation ? "left-0" : "left-full"} h-[calc(100dvh-64px)] md:h-full md:left-0 md:relative w-full transition-left duration-300 ease-in-out`}
+        className={`flex-1 flex flex-col  min-h-0 p-0 m-0 fixed ${selectedConversation ? "left-0" : "left-full"} h-[calc(100dvh-64px)] md:h-full md:left-0 md:relative w-full transition-left duration-220 ease-in-out`}
       >
         <div className="md:hidden h-12 bg-primary-600 flex items-center gap-4 px-4 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div
