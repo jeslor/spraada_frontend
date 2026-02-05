@@ -457,7 +457,24 @@ export const useConversationStore = create<ConversationStore>()(
     })),
     {
       name: "conversation-store",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => {
+        // Fallback for mobile browsers with restricted localStorage
+        if (typeof window === "undefined") return localStorage;
+
+        try {
+          // Test if localStorage is available and writable
+          const test = "__storage_test__";
+          localStorage.setItem(test, test);
+          localStorage.removeItem(test);
+          return localStorage;
+        } catch (e) {
+          // Fallback to sessionStorage if localStorage fails (e.g., private browsing)
+          console.warn(
+            "localStorage unavailable, using sessionStorage as fallback",
+          );
+          return sessionStorage;
+        }
+      }),
       partialize: (state) => ({
         conversations: state.conversations,
         conversationUnreadNotifications: state.conversationUnreadNotifications,

@@ -75,7 +75,7 @@ const MobileBottomBar = ({
         <Link
           href="/"
           className={cn(
-            "flex flex-col items-center gap-1",
+            "flex items-center justify-center",
             pathname === "/" ? "text-primary-600" : "text-gray-500",
           )}
         >
@@ -85,14 +85,13 @@ const MobileBottomBar = ({
             }
             className="text-2xl"
           />
-          <span className="text-[10px] font-medium">Home</span>
         </Link>
 
         {/* Messages */}
         <Link
           href="/messages"
           className={cn(
-            "flex flex-col items-center gap-1",
+            "flex items-center justify-center relative",
             isActive("/messages") ? "text-primary-600" : "text-gray-500",
           )}
         >
@@ -104,13 +103,21 @@ const MobileBottomBar = ({
             }
             className="text-2xl"
           />
-          <span className="text-[10px] font-medium">Messages</span>
+          {allUnreadMessagesCount > 0 && (
+            <span
+              className={`absolute -top-2 -right-2 bg-red-700 text-white text-[9px] font-semibold px-1.5 py-0.5 rounded-full min-w-[18px] h-4 flex items-center justify-center${
+                animateBubble ? " animate-pop-bubble" : ""
+              }`}
+            >
+              {allUnreadMessagesCount > 99 ? "99+" : allUnreadMessagesCount}
+            </span>
+          )}
         </Link>
 
         {/* Center Create Action */}
         <Link
           href="/create"
-          className="flex flex-col items-center justify-center -translate-y-4"
+          className="flex flex-col items-center justify-center "
         >
           <div className="bg-primary-600 p-3 rounded-full shadow-lg border-4 border-white text-white">
             <Icon icon="solar:add-square-bold" className="text-2xl" />
@@ -121,7 +128,7 @@ const MobileBottomBar = ({
         <button
           onClick={handleShowNotifications}
           className={cn(
-            "flex flex-col items-center gap-1 cursor-pointer",
+            "flex items-center justify-center cursor-pointer",
             showNotifications ? "text-primary-600" : "text-gray-500",
           )}
         >
@@ -129,13 +136,12 @@ const MobileBottomBar = ({
             icon={showNotifications ? "solar:bell-bold" : "solar:bell-linear"}
             className="text-2xl"
           />
-          <span className="text-[10px] font-medium">Alerts</span>
         </button>
 
         {/* More / Profile Dropup (Drawer) */}
         <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
           <DrawerTrigger asChild>
-            <button className="flex flex-col items-center gap-1 text-gray-500 cursor-pointer">
+            <button className="flex items-center justify-center text-gray-500 cursor-pointer focus:outline-none">
               <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-700 border border-primary-200">
                 {profile ? (
                   <img
@@ -147,10 +153,12 @@ const MobileBottomBar = ({
                   <Icon icon="solar:user-circle-linear" />
                 )}
               </div>
-              <span className="text-[10px] font-medium">More</span>
             </button>
           </DrawerTrigger>
-          <DrawerContent className="px-4 pb-8">
+          <DrawerContent
+            className="px-4 pb-8 focus:outline-none"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
             <DrawerHeader className="px-0">
               <DrawerTitle className="text-left text-gray-400 text-xs font-bold uppercase tracking-widest">
                 Menu
