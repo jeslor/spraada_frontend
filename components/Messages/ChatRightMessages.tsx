@@ -250,6 +250,20 @@ const ChatRightMessages = ({
     }
   };
 
+  const isMessageDeleted = (message: Message) => {
+    if (!profile) return false;
+    if (message.deletedBySender && message.senderId === profile.id) {
+      return true;
+    }
+    if (
+      (message.deletedByReceiver || message.deletedBySender) &&
+      message.senderId !== profile.id
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <div
       ref={mainMessageContainerRef}
@@ -270,8 +284,7 @@ const ChatRightMessages = ({
             />
           )}
           {messagesToRender?.map((msg: Message, idx: number) =>
-            (profile?.id && msg.deletedBySender) ||
-            (profile?.id && msg.deletedByReceiver) ? (
+            isMessageDeleted(msg) ? (
               <ChatMessageDeletedBubble
                 key={msg.id || idx}
                 isFromCurrentUser={msg.senderId === profile?.id}

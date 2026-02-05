@@ -8,7 +8,6 @@ import {
   markConversationAsReadAPI,
 } from "@/lib/actions/conversations.actions";
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
-import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
 import toast from "react-hot-toast";
 import { useProfileStore } from "../profile/profile.store";
 
