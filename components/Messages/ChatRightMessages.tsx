@@ -98,11 +98,7 @@ const ChatRightMessages = ({
     } else {
       setMessagesToRender(messages || []);
     }
-  }, [
-    selectedConversation?.id,
-    conversationUnreadNotifications,
-    messages,
-  ]);
+  }, [selectedConversation?.id, conversationUnreadNotifications, messages]);
 
   const lastMessage = messages ? messages[messages.length - 1] : null;
 
@@ -298,7 +294,7 @@ const ChatRightMessages = ({
           )}
           {showScrollToBottom && (
             <div
-              className="fixed bottom-20 right-8 bg-primary-600 text-white px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-primary-700 transition-colors z-50"
+              className="fixed bottom-36 md:bottom-20 right-8 bg-primary-600 text-white px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-primary-700 transition-colors z-50"
               onClick={() =>
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
               }

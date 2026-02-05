@@ -27,7 +27,9 @@ export default function ChatRight() {
   //   ==========================Actions==========================
 
   return (
-    <div className="flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
+    <div
+      className={`flex flex-col flex-1 h-full w-full min-w-0 min-h-0 bg-white dark:bg-gray-900 shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden`}
+    >
       {/* Messages */}
       <ChatRightMessages
         isLoadMoreMessages={isLoadMoreMessages}
