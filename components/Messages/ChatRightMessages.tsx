@@ -6,11 +6,12 @@ import {
   useDeleteMessage,
   useFetchMoreMessages,
   useFetchNewMessages,
+  useIsFetchingOlderMessages,
   useProfile,
   useSelectedConversation,
 } from "@/store";
 import EmptyChat from "./EmptyChat";
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MessageBubble from "./MessageBubble";
 import ChatMessageDeletedBubble from "./MessageDeletedBubble";
 import MessageChatRightSkeleton from "./MessageChatRightSkeleton";
@@ -47,12 +48,14 @@ const ChatRightMessages = ({
   const [chatHeightLocked, setChatHeightLocked] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [messagesToRender, setMessagesToRender] = useState<Message[] | []>([]);
+
   //---Store Hooks---//
   const profile = useProfile();
   const fetchMoreMessages = useFetchMoreMessages();
   const selectedConversation = useSelectedConversation();
   const deleteMessage = useDeleteMessage();
   const fetchNewMessages = useFetchNewMessages();
+  const isFetchingOlderMessages = useIsFetchingOlderMessages();
   const conversationUnreadNotifications = useConversationStore(
     (state) => state.conversationUnreadNotifications,
   );
@@ -60,15 +63,24 @@ const ChatRightMessages = ({
     (state) => state.selectedConversation?.messages,
   );
 
+  //get hasNotification and unreadCount for selected conversation
   const selectedConversationUnreadMessage =
     conversationUnreadNotifications.find(
       (notification) =>
         notification.conversationId === selectedConversation?.id,
     );
-
+  // Get the last message of the conversation for "last message" logic in MessageBubble
+  const lastMessage = messages ? messages[messages.length - 1] : null;
+  // Find the index of the unread message in the messages array
   const selectedConversationUnreadMessageIndex = messages?.findIndex(
     (msg) => msg.createdAt === selectedConversationUnreadMessage?.createdAt,
   );
+  // Check if all messages are loaded for the selected conversation
+  const isAllLoaded = useConversationStore(
+    (state) => state.selectedConversation?.isAllMessagesLoaded,
+  );
+  // Temporary loading skeleton state (replace with actual loading state from store when implemented)
+  const isLoadingChatSkeleton = false;
 
   // Add the "unread messages" notification into the messages array at the correct index based on the timestamp of the unread message
   useEffect(() => {
@@ -100,8 +112,6 @@ const ChatRightMessages = ({
       setMessagesToRender(messages || []);
     }
   }, [selectedConversation?.id, conversationUnreadNotifications, messages]);
-
-  const lastMessage = messages ? messages[messages.length - 1] : null;
 
   //LoadNewMessages
   useEffect(() => {
@@ -135,13 +145,13 @@ const ChatRightMessages = ({
     const container = mainMessageContainerRef.current;
     if (!container) return;
 
-    // Store scroll height when load more is initiated
+    // Store scroll height and message count when load more is initiated
     if (isLoadMoreMessages && previousMessageCountRef.current === 0) {
       previousScrollHeightRef.current = container.scrollHeight;
       previousMessageCountRef.current = messagesToRender?.length || 0;
     }
 
-    // Restore scroll position when new messages are added
+    // Restore scroll position when new messages are added (older messages loaded at top)
     if (
       isLoadMoreMessages &&
       messagesToRender &&
@@ -150,7 +160,27 @@ const ChatRightMessages = ({
       const newScrollHeight = container.scrollHeight;
       const scrollHeightDifference =
         newScrollHeight - previousScrollHeightRef.current;
-      container.scrollTop += scrollHeightDifference;
+
+      // Keep user at their current scroll position with smooth animation
+      if (scrollHeightDifference > 0) {
+        const targetScrollTop = container.scrollTop + scrollHeightDifference;
+        const startScrollTop = container.scrollTop;
+        const duration = 300; // ms
+        const startTime = Date.now();
+
+        const animateScroll = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          container.scrollTop =
+            startScrollTop + scrollHeightDifference * progress;
+
+          if (progress < 1) {
+            requestAnimationFrame(animateScroll);
+          }
+        };
+
+        requestAnimationFrame(animateScroll);
+      }
 
       // Mark that we handled load more and should skip auto scroll to bottom
       skipScrollToBottomRef.current = true;
@@ -186,17 +216,6 @@ const ChatRightMessages = ({
     };
   }, []);
 
-  // Scroll to bottom logic
-  // useEffect(() => {
-  //   // Only scroll if content is taller than container
-  //   const container = messagesContainerRef.current;
-  //   if (container && !isOnlyEdited) {
-  //     if (hasMounted) {
-  //       messagesEndRef.current?.scrollIntoView();
-  //     }
-  //   }
-  // }, []); // Only when messages change
-
   //prevent scroll when action menu is open
   useEffect(() => {
     const container = mainMessageContainerRef.current;
@@ -221,13 +240,6 @@ const ChatRightMessages = ({
     }
   }, [selectedConversation]);
 
-  // Load more messages when in view
-  // useEffect(() => {
-  //   if (inView && !selectedConversation.isAllMessagesLoaded) {
-  //     fetchMoreMessages(selectedConversation.id);
-  //   }
-  // }, [inView, entry, selectedConversation]);
-
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
     if (profile && selectedConversation) {
@@ -235,21 +247,15 @@ const ChatRightMessages = ({
     }
   };
 
-  const isAllLoaded = useConversationStore(
-    (state) => state.selectedConversation?.isAllMessagesLoaded,
-  );
-
-  // Update scroll effect to watch the actual messages array reference
-  //  // Now watching the array itself
-
-  const isLoadingChatSkeleton = false;
-
+  // Handle load more messages when "Load More" indicator is clicked
   const handleLoadMoreMessages = () => {
     if (selectedConversation && !isAllLoaded) {
       fetchMoreMessages(selectedConversation.id);
+      setIsLoadMoreMessages(true);
     }
   };
 
+  // Determine if a message is deleted for the current user
   const isMessageDeleted = (message: Message) => {
     if (!profile) return false;
     if (message.deletedBySender && message.senderId === profile.id) {
