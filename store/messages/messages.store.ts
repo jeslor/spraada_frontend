@@ -246,6 +246,10 @@ export const useMessageStore = create<MessageStore>()(
                 );
             }
 
+            useConversationStore
+              .getState()
+              .removeConversationUnreadNotification(updatedConversationId!);
+
             //emit message via socket, we emphasise a number because we are sending special notification.
             // const profile = useProfileStore.getState().profile;
             // if (profile && profile.id) {

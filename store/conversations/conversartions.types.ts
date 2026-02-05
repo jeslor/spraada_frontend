@@ -21,11 +21,29 @@ export interface ConversationState {
   _hasHydratedConversations: boolean;
   _hasFetchedConversationsWithUnreadFirst: boolean;
   isAllConversationsLoaded: boolean;
+  conversationUnreadNotifications: {
+    conversationId: number;
+    hasNotification: boolean;
+    createdAt?: string;
+    unreadCount?: number;
+  }[];
 }
 
 export interface ConversationActions {
   setIsMessagePage: (isMessagePage: boolean) => void;
   setConversations: (conversations: Conversation[]) => void;
+  setConversationUnreadNotifications: (
+    notifications: {
+      conversationId: number;
+      hasNotification: boolean;
+      createdAt?: string;
+    }[],
+  ) => void;
+  removeConversationUnreadNotification: (conversationId: number) => void;
+  setIsLoadingConversations: (isLoading: boolean) => void;
+  setIsLoadingUnreadConversations: (isLoading: boolean) => void;
+  setError: (error: string | null) => void;
+  setCurrentConversationPage: (page: number) => void;
   addMessageToConversation: (
     conversationId: number,
     message: Message,

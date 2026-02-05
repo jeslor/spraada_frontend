@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSelectedConversation } from "@/store";
+import { useState } from "react";
+import { useProfile, useSelectedConversation } from "@/store";
 import ChatForm from "./ChatForm";
 
 import ChatRightMessages from "./ChatRightMessages";
