@@ -78,7 +78,7 @@ const Chat = () => {
 
   return (
     <div className="flex h-dvh min-h-0 fixed w-full md:w-[calc(100vw-79px)] xl:w-[calc(100vw-250px)]">
-      <div className="bg-primary-50 w-full md:max-w-[300px] min-w-[220px] h-full border-r border-gray-200">
+      <div className="bg-primary-50 w-full md:max-w-[300px] min-w-[220px] h-dvh border-r border-gray-200">
         <ChatLeft />
       </div>
 
