@@ -66,7 +66,7 @@ const ChatLeft = () => {
   return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
-    <div>
+    <div className="h-full overflow-y-scroll scrollbar-hide pb-20 md:pb-4">
       {localConversations.length > 0 &&
         localConversations.map((conversation: Conversation, index: number) => (
           <ChatLeftUser
