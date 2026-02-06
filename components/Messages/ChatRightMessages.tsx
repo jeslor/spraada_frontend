@@ -138,12 +138,7 @@ const ChatRightMessages = ({
     return () => {
       setHasMounted(true);
     };
-  }, [
-    hasMounted,
-    isLoadMoreMessages,
-    messages?.length,
-    messagesToRender.length,
-  ]);
+  }, [hasMounted, isLoadMoreMessages, messages?.length]);
 
   // Handle scroll position preservation when loading more messages
   useEffect(() => {
@@ -154,7 +149,6 @@ const ChatRightMessages = ({
     if (isLoadMoreMessages && previousMessageCountRef.current === 0) {
       previousScrollHeightRef.current = container.scrollHeight;
       previousMessageCountRef.current = messagesToRender?.length || 0;
-      return; // Exit early, don't process restoration yet
     }
 
     // Restore scroll position when new messages are added (older messages loaded at top)

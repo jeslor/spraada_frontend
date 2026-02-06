@@ -6,9 +6,6 @@ import {
   Conversation,
   ProfileSummary,
   useConversations,
-  useFetchConversations,
-  useHasHydratedConversations,
-  useProfile,
   useSelectedConversation,
   useSetSelectedConversation,
 } from "@/store";
@@ -83,7 +80,7 @@ const Chat = () => {
       </div>
 
       <div
-        className={`flex-1 flex flex-col  min-h-0 p-0 m-0 fixed ${selectedConversation ? "left-0" : "left-full"} h-[calc(100dvh-64px)] md:h-full md:left-0 md:relative w-full transition-left duration-300 ease-in-out`}
+        className={`flex-1 flex flex-col  min-h-0 p-0 m-0 fixed ${selectedConversation ? "left-0" : "left-full"} h-[calc(100dvh-64px)] md:h-full md:left-0 md:relative w-full transition-left duration-220 ease-in-out`}
       >
         <div className="md:hidden h-12 bg-primary-600 flex items-center gap-4 px-4 border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div
