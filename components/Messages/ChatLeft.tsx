@@ -66,18 +66,22 @@ const ChatLeft = () => {
   return isLoadingUnreadConversations ? (
     <MessageLeftChatSkeleton attachRef={false} />
   ) : (
-    <div className="h-full overflow-y-scroll scrollbar-hide pb-20 md:pb-4">
-      {localConversations.length > 0 &&
-        localConversations.map((conversation: Conversation, index: number) => (
-          <ChatLeftUser
-            key={conversation.id}
-            conversation={conversation}
-            index={index}
-          />
-        ))}
-      {!isAllConversationsLoaded && (
-        <MessageLeftChatSkeleton attachRef={true} ref={ref} />
-      )}
+    <div className="h-full min-h-0 flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-20 md:pb-4">
+        {localConversations.length > 0 &&
+          localConversations.map(
+            (conversation: Conversation, index: number) => (
+              <ChatLeftUser
+                key={conversation.id}
+                conversation={conversation}
+                index={index}
+              />
+            ),
+          )}
+        {!isAllConversationsLoaded && (
+          <MessageLeftChatSkeleton attachRef={true} ref={ref} />
+        )}
+      </div>
     </div>
   );
 };
