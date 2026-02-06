@@ -130,34 +130,44 @@ export const formatMessageTimestamp = (dateInput: string | Date): string => {
   const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
   const now = new Date();
 
-  // Check if date is today
+  // 1. Create the time string once (e.g., "10:30 AM")
+  const timeStr = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // 2. Identify the date context
   const isToday = date.toDateString() === now.toDateString();
 
-  // Check if date is yesterday
   const yesterday = new Date();
   yesterday.setDate(now.getDate() - 1);
   const isYesterday = date.toDateString() === yesterday.toDateString();
 
+  // 3. Logic for the Date Label
+  let dateLabel: string;
+
   if (isToday) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    dateLabel = "Today";
+  } else if (isYesterday) {
+    dateLabel = "Yesterday";
+  } else {
+    const diffInDays = (now.getTime() - date.getTime()) / (1000 * 3600 * 24);
+
+    if (diffInDays < 7) {
+      // Show weekday (e.g., "Tuesday")
+      dateLabel = date.toLocaleDateString([], { weekday: "long" });
+    } else {
+      // Show full date (e.g., "Oct 24, 2025")
+      dateLabel = date.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
   }
 
-  if (isYesterday) {
-    return "Yesterday";
-  }
-
-  // If within the last 7 days, show the day name (e.g., "Tuesday")
-  const diffInDays = (now.getTime() - date.getTime()) / (1000 * 3600 * 24);
-  if (diffInDays < 7) {
-    return date.toLocaleDateString([], { weekday: "long" });
-  }
-
-  // Default to short date for older messages
-  return date.toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  // 4. Combine them
+  return `${dateLabel}, ${timeStr}`;
 };
 
 //subtract a millsecond from a date string and return new ISO string
