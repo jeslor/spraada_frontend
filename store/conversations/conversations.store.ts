@@ -10,6 +10,7 @@ import {
 import { Message, ProfileSummary } from "@/store/messages/messages.type";
 import toast from "react-hot-toast";
 import { useProfileStore } from "../profile/profile.store";
+import { getPreviousMillisecondString } from "@/lib/helpers/dateHelpers";
 
 const initialState = {
   conversations: [] as Conversation[],
@@ -100,10 +101,11 @@ export const useConversationStore = create<ConversationStore>()(
             const unreadNotifications = incoming
               .filter((c) => c.unreadCount && c.unreadCount > 0)
               .map((c) => {
-                // Find the oldest date by comparing every message in the conversation
-                const oldestDate =
-                  c.messages[c.messages.length - (c.unreadCount! + 1)]
-                    .createdAt;
+                // Find the oldest date, by getting the last unread message's date and subtracting a small amount of time to ensure it appears above the first unread message in the list
+
+                const oldestDate = getPreviousMillisecondString(
+                  c.messages[c.messages.length - c.unreadCount!].createdAt,
+                );
                 return {
                   conversationId: c.id,
                   hasNotification: true,
