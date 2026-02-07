@@ -1,10 +1,36 @@
-// Format cents to currency
-export const formatPrice = (cents: number) => {
-  return new Intl.NumberFormat("en-US", {
+const countryToCurrency: Record<string, string> = {
+  US: "USD",
+  DE: "EUR",
+  FR: "EUR",
+  GB: "GBP",
+  UG: "UGX",
+  KE: "KES",
+};
+
+const timeZoneToCurrency: Record<string, string> = {
+  Europe: "EUR",
+  America: "USD",
+  Africa: "USD", // fallback (many African countries use mixed currencies online)
+};
+
+export const formatPrice = (cents: number, country?: string) => {
+  // 1️⃣ Locale = how numbers look (language preference)
+  const locale = navigator.language || "en-US";
+
+  // 2️⃣ Currency = explicit country beats everything
+  let currency = (country && countryToCurrency[country]) ?? undefined;
+
+  // 3️⃣ Fallback: infer from timezone (NOT language)
+  if (!currency) {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. "Europe/Berlin"
+
+    const region = timeZone?.split("/")[0]; // "Europe"
+    currency = timeZoneToCurrency[region] ?? "USD";
+  }
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    currency,
   }).format(cents / 100);
 };
 
