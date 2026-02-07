@@ -145,13 +145,14 @@ const ChatRightMessages = ({
     const container = mainMessageContainerRef.current;
     if (!container) return;
 
-    // Store scroll height and message count when load more is initiated
+    // Capture state when "load more" starts
     if (isLoadMoreMessages && previousMessageCountRef.current === 0) {
       previousScrollHeightRef.current = container.scrollHeight;
       previousMessageCountRef.current = messagesToRender?.length || 0;
+      return;
     }
 
-    // Restore scroll position when new messages are added (older messages loaded at top)
+    // Restore scroll position after older messages are prepended
     if (
       isLoadMoreMessages &&
       messagesToRender &&
@@ -161,31 +162,15 @@ const ChatRightMessages = ({
       const scrollHeightDifference =
         newScrollHeight - previousScrollHeightRef.current;
 
-      // Keep user at their current scroll position with smooth animation
       if (scrollHeightDifference > 0) {
-        const targetScrollTop = container.scrollTop + scrollHeightDifference;
-        const startScrollTop = container.scrollTop;
-        const duration = 300; // ms
-        const startTime = Date.now();
-
-        const animateScroll = () => {
-          const elapsed = Date.now() - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          container.scrollTop =
-            startScrollTop + scrollHeightDifference * progress;
-
-          if (progress < 1) {
-            requestAnimationFrame(animateScroll);
-          }
-        };
-
-        requestAnimationFrame(animateScroll);
+        // ⛔️ No animation — instant correction
+        container.scrollTop += scrollHeightDifference;
       }
 
-      // Mark that we handled load more and should skip auto scroll to bottom
+      // Prevent auto-scroll to bottom
       skipScrollToBottomRef.current = true;
 
-      // Reset refs and stop load more
+      // Reset
       previousScrollHeightRef.current = 0;
       previousMessageCountRef.current = 0;
       setIsLoadMoreMessages(false);
@@ -273,7 +258,7 @@ const ChatRightMessages = ({
   return (
     <div
       ref={mainMessageContainerRef}
-      className="flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-4 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide"
+      className="flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-28 md:pb-30 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide"
     >
       {isLoadingChatSkeleton ? (
         <MessageChatRightSkeleton />
