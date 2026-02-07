@@ -29,7 +29,7 @@ const ReactCropComponent = ReactCrop as unknown as React.FC<any>;
 function centerAspectCrop(
   mediaWidth: number,
   mediaHeight: number,
-  aspect: number
+  aspect: number,
 ): Crop {
   return centerCrop(
     makeAspectCrop(
@@ -39,10 +39,10 @@ function centerAspectCrop(
       },
       aspect,
       mediaWidth,
-      mediaHeight
+      mediaHeight,
     ),
     mediaWidth,
-    mediaHeight
+    mediaHeight,
   );
 }
 
@@ -178,7 +178,7 @@ const CropImage = ({
       0,
       0,
       outWidth,
-      outHeight
+      outHeight,
     );
 
     // Export compressed JPEG
@@ -194,7 +194,7 @@ const CropImage = ({
         onSave(previewUrl, croppedFile);
       },
       "image/jpeg",
-      0.7 // compression quality
+      0.7, // compression quality
     );
   };
 
