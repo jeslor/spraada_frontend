@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,12 +47,11 @@ const SignInPage = () => {
       if (user && "error" in user) {
         throw new Error(user.error);
       }
-      Router.push("/");
+      redirect("/");
     } catch (err) {
       const authError = err as AuthError;
       setError(authError.message || "Failed to sign in. Please try again.");
     } finally {
-      setIsLoading(false);
     }
   };
 
