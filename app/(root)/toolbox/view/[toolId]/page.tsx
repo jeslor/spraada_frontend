@@ -8,7 +8,6 @@ import {
   Tool,
   useToolActions,
   useToolIsFavorited,
-  useUpdateProfile,
   useUpdateProfileFavoriteTools,
 } from "@/store";
 import {

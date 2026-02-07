@@ -1,3 +1,8 @@
+// currency.ts
+
+// --------------------
+// 1️⃣ Currency maps
+// --------------------
 const countryToCurrency: Record<string, string> = {
   US: "USD",
   DE: "EUR",
@@ -10,28 +15,55 @@ const countryToCurrency: Record<string, string> = {
 const timeZoneToCurrency: Record<string, string> = {
   Europe: "EUR",
   America: "USD",
-  Africa: "USD", // fallback (many African countries use mixed currencies online)
+  Africa: "USD", // safe fallback
 };
 
+// --------------------
+// 2️⃣ Exchange-rate store (USD base)
+// --------------------
+const exchangeRates: Record<string, number> = {
+  USD: 1,
+};
+
+// --------------------
+// 3️⃣ Load rates ONCE (call on app start)
+// --------------------
+export const loadExchangeRates = async () => {
+  try {
+    const res = await fetch("https://api.exchangerate.host/latest?base=USD");
+    const data = await res.json();
+
+    if (data?.rates) {
+      Object.assign(exchangeRates, data.rates);
+    }
+  } catch (err) {
+    console.error("Failed to load exchange rates", err);
+  }
+};
+
+// --------------------
+// 4️⃣ Formatter (SYNC)
+// --------------------
 export const formatPrice = (cents: number, country?: string) => {
-  // 1️⃣ Locale = how numbers look (language preference)
   const locale = navigator.language || "en-US";
 
-  // 2️⃣ Currency = explicit country beats everything
+  // Decide currency
   let currency = (country && countryToCurrency[country]) ?? undefined;
 
-  // 3️⃣ Fallback: infer from timezone (NOT language)
   if (!currency) {
-    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. "Europe/Berlin"
-
-    const region = timeZone?.split("/")[0]; // "Europe"
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. Europe/Berlin
+    const region = timeZone?.split("/")[0]; // Europe
     currency = timeZoneToCurrency[region] ?? "USD";
   }
+
+  // Convert USD → target
+  const rate = exchangeRates[currency] ?? 1;
+  const convertedAmount = (cents / 100) * rate;
 
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-  }).format(cents / 100);
+  }).format(convertedAmount);
 };
 
 // Generate calendar days
