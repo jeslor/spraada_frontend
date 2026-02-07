@@ -138,12 +138,7 @@ const ChatRightMessages = ({
     return () => {
       setHasMounted(true);
     };
-  }, [
-    hasMounted,
-    isLoadMoreMessages,
-    messages?.length,
-    messagesToRender.length,
-  ]);
+  }, [hasMounted, isLoadMoreMessages, messages?.length]);
 
   // Handle scroll position preservation when loading more messages
   useEffect(() => {
