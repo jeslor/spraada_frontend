@@ -258,7 +258,7 @@ const ChatRightMessages = ({
   return (
     <div
       ref={mainMessageContainerRef}
-      className="flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-4 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide"
+      className="flex-1 min-h-0 overflow-y-auto px-4 pt-6 pb-28 md:pb-30 bg-linear-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 scrollbar-hide"
     >
       {isLoadingChatSkeleton ? (
         <MessageChatRightSkeleton />
