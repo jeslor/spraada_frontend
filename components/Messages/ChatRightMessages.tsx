@@ -63,6 +63,8 @@ const ChatRightMessages = ({
     (state) => state.selectedConversation?.messages,
   );
 
+  //--Derived variables---//
+
   //get hasNotification and unreadCount for selected conversation
   const selectedConversationUnreadMessage =
     conversationUnreadNotifications.find(
@@ -81,6 +83,20 @@ const ChatRightMessages = ({
   );
   // Temporary loading skeleton state (replace with actual loading state from store when implemented)
   const isLoadingChatSkeleton = false;
+
+  //--Effects---//
+
+  // When switching conversations, reset scroll helpers and jump to bottom of the new thread
+  useEffect(() => {
+    previousScrollHeightRef.current = 0;
+    previousMessageCountRef.current = 0;
+    skipScrollToBottomRef.current = false;
+
+    // defer to next paint so the DOM has the new messages
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    });
+  }, [selectedConversation?.id]);
 
   // Add the "unread messages" notification into the messages array at the correct index based on the timestamp of the unread message
   useEffect(() => {
@@ -224,6 +240,8 @@ const ChatRightMessages = ({
       // resetUserUnreadMessagesCount(selectedConversation.otherParticipant.id);
     }
   }, [selectedConversation]);
+
+  //--- Event Handlers ---//
 
   // Handle delete message
   const handleDeleteMessage = (messageId: string) => {
