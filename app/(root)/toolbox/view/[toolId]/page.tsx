@@ -8,7 +8,6 @@ import {
   Tool,
   useToolActions,
   useToolIsFavorited,
-  useUpdateProfile,
   useUpdateProfileFavoriteTools,
 } from "@/store";
 import {
@@ -23,16 +22,7 @@ import { SpraadaButton } from "@/components/ui/SpraadaButton";
 import BookingModal from "@/components/Booking/BookingModal";
 import toast from "react-hot-toast";
 import { updateFavoriteTools } from "@/lib/actions/profile.actions";
-
-// Format cents to currency
-const formatPrice = (cents: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-};
+import { formatPrice } from "@/lib/helpers/dateHelpers";
 
 // Format date
 const formatDate = (dateString: string) => {

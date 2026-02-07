@@ -1,11 +1,69 @@
-// Format cents to currency
-export const formatPrice = (cents: number) => {
-  return new Intl.NumberFormat("en-US", {
+// currency.ts
+
+// --------------------
+// 1️⃣ Currency maps
+// --------------------
+const countryToCurrency: Record<string, string> = {
+  US: "USD",
+  DE: "EUR",
+  FR: "EUR",
+  GB: "GBP",
+  UG: "UGX",
+  KE: "KES",
+};
+
+const timeZoneToCurrency: Record<string, string> = {
+  Europe: "EUR",
+  America: "USD",
+  Africa: "USD", // safe fallback
+};
+
+// --------------------
+// 2️⃣ Exchange-rate store (USD base)
+// --------------------
+const exchangeRates: Record<string, number> = {
+  USD: 1,
+};
+
+// --------------------
+// 3️⃣ Load rates ONCE (call on app start)
+// --------------------
+export const loadExchangeRates = async () => {
+  try {
+    const res = await fetch("https://api.exchangerate.host/latest?base=USD");
+    const data = await res.json();
+
+    if (data?.rates) {
+      Object.assign(exchangeRates, data.rates);
+    }
+  } catch (err) {
+    console.error("Failed to load exchange rates", err);
+  }
+};
+
+// --------------------
+// 4️⃣ Formatter (SYNC)
+// --------------------
+export const formatPrice = (cents: number, country?: string) => {
+  const locale = navigator.language || "en-US";
+
+  // Decide currency
+  let currency = (country && countryToCurrency[country]) ?? undefined;
+
+  if (!currency) {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. Europe/Berlin
+    const region = timeZone?.split("/")[0]; // Europe
+    currency = timeZoneToCurrency[region] ?? "USD";
+  }
+
+  // Convert USD → target
+  const rate = exchangeRates[currency] ?? 1;
+  const convertedAmount = (cents / 100) * rate;
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
+    currency,
+  }).format(convertedAmount);
 };
 
 // Generate calendar days
