@@ -19,7 +19,6 @@ import {
   useGetNotificationCounter,
   useClearNotifications,
   useClearConversations,
-  useUser,
 } from "@/store";
 import { useAppSocket } from "@/Hooks/InitializeAppSocket";
 import EachSidebar from "./EachSidebar";
@@ -136,7 +135,7 @@ const Sidebar = ({ session }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 md:flex flex-col justify-between hidden ",
+        "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 z-50 transition-all duration-300 md:flex flex-col justify-between overflow-hidden hidden ",
         isExpanded ? "w-64" : "w-20",
       )}
       onMouseEnter={() => !isDesktop && setIsHovered(true)}
