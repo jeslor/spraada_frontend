@@ -113,7 +113,7 @@ export default function EditToolPage() {
   }
 
   return (
-    <section className="py-8 px-0 xl:px-10 flex flex-col w-full">
+    <section className="py-8 px-4 xl:px-10 flex flex-col w-full">
       {/* Header */}
       <div className="mb-8">
         <Link

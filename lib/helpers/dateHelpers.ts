@@ -52,6 +52,7 @@ export const formatPrice = (cents: number, country?: string) => {
 
   if (!currency) {
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone; // e.g. Europe/Berlin
+
     const region = timeZone?.split("/")[0]; // Europe
     currency = timeZoneToCurrency[region] ?? "USD";
   }
