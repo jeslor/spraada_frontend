@@ -113,9 +113,9 @@ export default function EditToolPage() {
   }
 
   return (
-    <section className="py-8 px-4 xl:px-10 flex flex-col w-full pb-5">
+    <section className="py-8 px-4 xl:px-10 flex flex-col w-full">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-12">
         <Link
           href="/toolbox"
           className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors mb-4 hover:underline font-bold"
