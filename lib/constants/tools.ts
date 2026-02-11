@@ -129,7 +129,7 @@ export const benefits = [
     title: "Build Community",
     description:
       "Connect with neighbors and build lasting relationships in your community.",
-    stat: "500+",
+    stat: "N/A",
     statLabel: "Active members",
   },
 ];
@@ -161,14 +161,14 @@ export const availabilityOptions = [
 
 // Get categories without "All" option (for forms)
 export const toolCategoriesForForms = toolCategories.filter(
-  (cat) => cat.id !== "all"
+  (cat) => cat.id !== "all",
 );
 
 // Get category by id or value
 export const getCategoryById = (
-  idOrValue: string
+  idOrValue: string,
 ): ToolCategory | undefined => {
   return toolCategories.find(
-    (cat) => cat.id === idOrValue || cat.value === idOrValue
+    (cat) => cat.id === idOrValue || cat.value === idOrValue,
   );
 };
