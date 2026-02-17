@@ -14,7 +14,7 @@ export default function TermsOfService() {
       <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
-            href="/signup"
+            href="/"
             className="inline-flex items-center text-primary-600 hover:text-primary-700 font-semibold group"
           >
             <Icon
