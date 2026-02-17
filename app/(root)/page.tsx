@@ -37,7 +37,7 @@ const Page = () => {
                 Terms of Service
               </Link>
               <Link
-                href="/privacy"
+                href="/privacy-policy"
                 className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
               >
                 Privacy Policy
