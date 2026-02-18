@@ -284,11 +284,6 @@ export const updateTool = async ({
       updatePayload.toolPhotos = allPhotos;
     }
 
-    console.log("=== UPDATE TOOL PAYLOAD ===");
-    console.log("toolInfo:", toolInfo);
-    console.log("updatePayload:", updatePayload);
-    console.log("=========================");
-
     // Update the tool details with the combined photos
     const response = await customFetch(`${BACKEND_API_URL}/tools/${toolId}`, {
       method: "PATCH",

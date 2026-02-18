@@ -17,7 +17,6 @@ import {
   useFetchMyTools,
   ToolPhoto,
   useUser,
-  useProfileStats,
   useSetProfileStats,
 } from "@/store";
 import { useRouter } from "next/navigation";
@@ -38,7 +37,7 @@ export default function AddToolForm({ onSuccess }: AddToolFormProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [toolPhotos, setToolPhotos] = useState<ToolPhoto[]>([]);
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(
-    null
+    null,
   );
   const [photoError, setPhotoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);

@@ -16,7 +16,6 @@ import CropImage from "@/components/Onboarding/CropImage";
 import {
   useProfile,
   useUpdateToolAction,
-  useFetchMyTools,
   useUser,
   Tool,
   ToolPhoto,
@@ -64,10 +63,6 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
 
   const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
-  console.log("==================================");
-  console.log(tool);
-  console.log("===================================");
-
   //form state
   const {
     register,
@@ -80,7 +75,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     resolver: zodResolver(addToolSchema),
     defaultValues: {
       name: tool.name,
-      description: tool.description,
+      description: "",
       category: tool.category,
       dailyPrice: tool.dailyPriceCents / 100,
       deposit: tool.depositCents / 100,
@@ -95,7 +90,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
 
   useEffect(() => {
     // Set initial category value in form
-    setValue("description", tool.description);
+    setValue("description", tool.description, { shouldValidate: true });
   }, []);
 
   //update the description value
