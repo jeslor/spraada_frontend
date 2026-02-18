@@ -88,10 +88,14 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
-  useEffect(() => {
-    // Set initial category value in form
+  const handleSetInitialDescriptionValue = () => {
     setValue("description", tool.description, { shouldValidate: true });
-  }, []);
+  };
+
+  // Set initial description value on mount to ensure it populates the editor correctly
+  useEffect(() => {
+    handleSetInitialDescriptionValue();
+  }, [tool.description, setValue]);
 
   //update the description value
   const handleDescriptionChange = (value: string) => {

@@ -60,13 +60,6 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         },
       });
 
-      // Set initial value immediately after editor creation to prevent timing issues
-      if (value) {
-        isInternalChange.current = true;
-        quillRef.current.root.innerHTML = value;
-        isInternalChange.current = false;
-      }
-
       quillRef.current.on("text-change", () => {
         if (quillRef.current && !isInternalChange.current) {
           const html = quillRef.current.root.innerHTML;
