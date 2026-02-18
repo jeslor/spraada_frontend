@@ -36,6 +36,20 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   const onBlurRef = useRef(onBlur);
   const onReadyRef = useRef(onReady);
 
+  /**
+   * Use Quill's own clipboard parser instead of direct innerHTML assignment.
+   * This correctly handles Quill 2.x internal formats (data-list, ql-ui spans, etc.)
+   * and works reliably in production builds.
+   */
+  const setQuillHTML = (quill: Quill, html: string) => {
+    if (!html || html.trim() === "") {
+      quill.setContents([], "silent");
+      return;
+    }
+    const delta = quill.clipboard.convert({ html });
+    quill.setContents(delta, "silent");
+  };
+
   // Keep refs updated with latest callbacks
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -71,8 +85,10 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
 
     quillRef.current.on("text-change", () => {
       if (quillRef.current && !isInternalChange.current) {
-        const html = quillRef.current.root.innerHTML;
-        const cleanHtml = html === "<p><br></p>" ? "" : html;
+        // getSemanticHTML() returns clean HTML without Quill's internal ql-ui spans
+        const html = quillRef.current.getSemanticHTML();
+        const cleanHtml =
+          html === "<p><br></p>" || html.trim() === "" ? "" : html;
         onChangeRef.current?.(cleanHtml);
       }
     });
@@ -81,11 +97,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
       onBlurRef.current?.(event);
     });
 
-    // Set initial value immediately after Quill mounts
+    // Set initial value through Quill's clipboard API (production-safe)
     if (value) {
-      isInternalChange.current = true;
-      quillRef.current.root.innerHTML = value;
-      isInternalChange.current = false;
+      setQuillHTML(quillRef.current, value);
     }
 
     isReadyRef.current = true;
@@ -105,15 +119,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   useEffect(() => {
     if (!quillRef.current || !isReadyRef.current) return;
 
-    const currentHtml = quillRef.current.root.innerHTML;
+    const currentHtml = quillRef.current.getSemanticHTML();
     const normalizedCurrent =
       currentHtml === "<p><br></p>" ? "" : currentHtml.trim();
     const normalizedValue = value ? value.trim() : "";
 
     if (normalizedValue !== normalizedCurrent) {
-      isInternalChange.current = true;
-      quillRef.current.root.innerHTML = normalizedValue;
-      isInternalChange.current = false;
+      setQuillHTML(quillRef.current, normalizedValue);
     }
   }, [value]);
 
