@@ -36,7 +36,6 @@ interface EditToolFormProps {
 export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   const Router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditorReady, setIsEditorReady] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(
     tool.category,
   );
@@ -89,12 +88,14 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
-  // Set description only after Quill has confirmed it is mounted and ready
+  const handleSetInitialDescriptionValue = () => {
+    setValue("description", tool.description, { shouldValidate: true });
+  };
+
+  // Set initial description value on mount to ensure it populates the editor correctly
   useEffect(() => {
-    if (isEditorReady) {
-      setValue("description", tool.description, { shouldValidate: false });
-    }
-  }, [isEditorReady, tool.description, setValue]);
+    handleSetInitialDescriptionValue();
+  }, [tool.description, setValue]);
 
   //update the description value
   const handleDescriptionChange = (value: string) => {
@@ -107,8 +108,6 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   };
 
   const descriptionValue = watch("description");
-
-  console.log("default values", defaultValues?.description);
 
   // Photo handling functions
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,7 +278,6 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
               richText
               value={descriptionValue}
               onValueChange={handleDescriptionChange}
-              onEditorReady={() => setIsEditorReady(true)}
               minHeight="180px"
             />
           </div>
