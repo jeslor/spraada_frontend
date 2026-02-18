@@ -31,12 +31,12 @@ export const saveTool = async ({
     const uploadedToolPhotosResponse = await uploadResources(
       toolInfo.userId!,
       formToolData,
-      RESOURCE_FOLDER
+      RESOURCE_FOLDER,
     );
 
     if (!uploadedToolPhotosResponse.success) {
       throw new Error(
-        uploadedToolPhotosResponse.error || "Failed to upload tool photos"
+        uploadedToolPhotosResponse.error || "Failed to upload tool photos",
       );
     }
 
@@ -51,7 +51,7 @@ export const saveTool = async ({
           (photo: { key: string; url: string }) => ({
             photoUrl: photo.url,
             photoUrlKey: photo.key,
-          })
+          }),
         ),
       }),
     });
@@ -61,7 +61,7 @@ export const saveTool = async ({
         savedToolResponse.data?.message ||
           savedToolResponse.data?.error ||
           savedToolResponse.error ||
-          "Failed to save tool"
+          "Failed to save tool",
       );
     }
   } catch (error) {
@@ -78,7 +78,7 @@ export const getToolsByOwner = async (ownerId: number) => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -86,7 +86,7 @@ export const getToolsByOwner = async (ownerId: number) => {
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch tools"
+          "Failed to fetch tools",
       );
     }
 
@@ -106,14 +106,14 @@ export const getRandomTools = async (count: number) => {
           "Content-Type": "application/json",
         },
         cache: "no-store",
-      }
+      },
     );
     if (!response.ok) {
       throw new Error(
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch random tools"
+          "Failed to fetch random tools",
       );
     }
 
@@ -124,7 +124,7 @@ export const getRandomTools = async (count: number) => {
 };
 
 export const searchTools = async (
-  params: SearchToolsParams
+  params: SearchToolsParams,
 ): Promise<SearchToolsResponse> => {
   try {
     const queryParams = new URLSearchParams();
@@ -144,7 +144,7 @@ export const searchTools = async (
           "Content-Type": "application/json",
         },
         cache: "no-store",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -167,7 +167,7 @@ export const getAllTools = async (limit?: number) => {
           "Content-Type": "application/json",
         },
         cache: "no-store",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -175,7 +175,7 @@ export const getAllTools = async (limit?: number) => {
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch tools"
+          "Failed to fetch tools",
       );
     }
 
@@ -194,7 +194,7 @@ export const getToolById = async (toolId: string): Promise<Tool | null> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -202,7 +202,7 @@ export const getToolById = async (toolId: string): Promise<Tool | null> => {
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch tool"
+          "Failed to fetch tool",
       );
     }
 
@@ -242,7 +242,7 @@ export const updateTool = async ({
       if (!someOldPhototosDeleteResponse.success) {
         throw new Error(
           someOldPhototosDeleteResponse.error ||
-            "Failed to delete old tool photos"
+            "Failed to delete old tool photos",
         );
       }
     }
@@ -260,12 +260,12 @@ export const updateTool = async ({
       const uploadedToolPhotosResponse = await uploadResources(
         toolInfo.profileId!,
         formToolData,
-        RESOURCE_FOLDER
+        RESOURCE_FOLDER,
       );
 
       if (!uploadedToolPhotosResponse.success) {
         throw new Error(
-          uploadedToolPhotosResponse.error || "Failed to upload tool photos"
+          uploadedToolPhotosResponse.error || "Failed to upload tool photos",
         );
       }
 
@@ -274,7 +274,7 @@ export const updateTool = async ({
         (photo: { key: string; url: string }) => ({
           photoUrl: photo.url,
           photoUrlKey: photo.key,
-        })
+        }),
       );
       allPhotos = [...allPhotos, ...newUploadedPhotos];
     }
@@ -283,6 +283,11 @@ export const updateTool = async ({
     if (allPhotos.length > 0) {
       updatePayload.toolPhotos = allPhotos;
     }
+
+    console.log("=== UPDATE TOOL PAYLOAD ===");
+    console.log("toolInfo:", toolInfo);
+    console.log("updatePayload:", updatePayload);
+    console.log("=========================");
 
     // Update the tool details with the combined photos
     const response = await customFetch(`${BACKEND_API_URL}/tools/${toolId}`, {
@@ -298,7 +303,7 @@ export const updateTool = async ({
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update tool"
+          "Failed to update tool",
       );
     }
 
@@ -310,7 +315,7 @@ export const updateTool = async ({
 
 export const deleteTool = async (
   tool: Tool,
-  profileId: number
+  profileId: number,
 ): Promise<{ success: boolean; data: string }> => {
   try {
     const response = await customFetch(`${BACKEND_API_URL}/tools/${tool.id}`, {
@@ -326,7 +331,7 @@ export const deleteTool = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to delete tool"
+          "Failed to delete tool",
       );
     }
 
@@ -345,7 +350,7 @@ export const deleteTool = async (
 export const updateToolAvailabilityStatus = async (
   toolId: string,
   availabilityStatus: boolean,
-  profileId: number
+  profileId: number,
 ): Promise<{ success: boolean; data: boolean }> => {
   try {
     const response = await normalCustomFetch(
@@ -359,7 +364,7 @@ export const updateToolAvailabilityStatus = async (
           available: availabilityStatus,
           profileId: profileId,
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -367,7 +372,7 @@ export const updateToolAvailabilityStatus = async (
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to update tool availability status"
+          "Failed to update tool availability status",
       );
     }
 
@@ -390,7 +395,7 @@ export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -398,7 +403,7 @@ export const getRentedTools = async (profileId: number): Promise<Tool[]> => {
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch rented tools"
+          "Failed to fetch rented tools",
       );
     }
 
@@ -419,7 +424,7 @@ export const getBorrowedTools = async (profileId: number): Promise<Tool[]> => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -427,7 +432,7 @@ export const getBorrowedTools = async (profileId: number): Promise<Tool[]> => {
         response.data?.message ||
           response.data?.error ||
           response.error ||
-          "Failed to fetch borrowed tools"
+          "Failed to fetch borrowed tools",
       );
     }
 

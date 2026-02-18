@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, use } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@iconify/react";
@@ -93,8 +93,16 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
+  useEffect(() => {
+    // Set initial category value in form
+    setValue("description", tool.description);
+  }, []);
+
+  //update the description value
   const handleDescriptionChange = (value: string) => {
     setValue("description", value);
+
+    // Trigger validation after a short delay to allow state to update
     setTimeout(() => {
       trigger("description");
     }, 100);
