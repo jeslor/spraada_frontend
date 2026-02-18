@@ -9,7 +9,7 @@ import { Button } from "../ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { FieldError } from "react-hook-form";
 
-// Dynamically import QuillEditor to avoid SSR issues
+// Dynamically import QuillEditor to avoid SSR issues in production
 const QuillEditor = dynamic(() => import("./QuillEditor"), {
   ssr: false,
   loading: () => (
@@ -40,6 +40,7 @@ interface InputFieldProps {
   richText?: boolean;
   rows?: number;
   minHeight?: string;
+  onEditorReady?: () => void;
 }
 
 const InputField = forwardRef<
@@ -68,6 +69,7 @@ const InputField = forwardRef<
       richText = false,
       rows = 4,
       minHeight = "150px",
+      onEditorReady,
       ...props
     },
     ref,
@@ -92,6 +94,7 @@ const InputField = forwardRef<
             error={!!error}
             minHeight={minHeight}
             className={className}
+            onReady={onEditorReady}
           />
         ) : (
           <div className="auth-input-group relative">

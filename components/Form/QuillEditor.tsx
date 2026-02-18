@@ -9,6 +9,7 @@ interface QuillEditorProps {
   value?: string;
   onChange?: (value: string) => void;
   onBlur?: (event: any) => void;
+  onReady?: () => void;
   placeholder?: string;
   disabled?: boolean;
   error?: boolean;
@@ -20,6 +21,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   value = "",
   onChange,
   onBlur,
+  onReady,
   placeholder = "Start typing...",
   disabled = false,
   error = false,
@@ -29,8 +31,10 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const isInternalChange = useRef(false);
+  const isReadyRef = useRef(false);
   const onChangeRef = useRef(onChange);
   const onBlurRef = useRef(onBlur);
+  const onReadyRef = useRef(onReady);
 
   // Keep refs updated with latest callbacks
   useEffect(() => {
@@ -41,54 +45,75 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     onBlurRef.current = onBlur;
   }, [onBlur]);
 
+  useEffect(() => {
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
   // Initialize Quill editor once
   useEffect(() => {
-    if (editorRef.current && !quillRef.current) {
-      quillRef.current = new Quill(editorRef.current, {
-        theme: "snow",
-        placeholder,
-        readOnly: disabled,
-        modules: {
-          toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ["bold", "italic", "underline", "strike"],
-            [{ list: "ordered" }, { list: "bullet" }],
-            [{ indent: "-1" }, { indent: "+1" }],
-            ["link"],
-            ["clean"],
-          ],
-        },
-      });
+    if (!editorRef.current || quillRef.current) return;
 
-      quillRef.current.on("text-change", () => {
-        if (quillRef.current && !isInternalChange.current) {
-          const html = quillRef.current.root.innerHTML;
-          const cleanHtml = html === "<p><br></p>" ? "" : html;
-          onChangeRef.current?.(cleanHtml);
-        }
-      });
+    quillRef.current = new Quill(editorRef.current, {
+      theme: "snow",
+      placeholder,
+      readOnly: disabled,
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ["bold", "italic", "underline", "strike"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          [{ indent: "-1" }, { indent: "+1" }],
+          ["link"],
+          ["clean"],
+        ],
+      },
+    });
 
-      // Handle blur
-      quillRef.current.root.addEventListener("blur", (event) => {
-        onBlurRef.current?.(event);
-      });
-    }
-  }, [placeholder, disabled, value]);
-
-  // Sync external value changes (only update if editor initialized and value actually changed)
-  useEffect(() => {
-    if (quillRef.current) {
-      const currentHtml = quillRef.current.root.innerHTML;
-      const normalizedCurrent =
-        currentHtml === "<p><br></p>" ? "" : currentHtml;
-      const normalizedValue = value ? value.trim() : "";
-
-      // Only update if values are different and value is not empty
-      if (normalizedValue && normalizedValue !== normalizedCurrent.trim()) {
-        isInternalChange.current = true;
-        quillRef.current.root.innerHTML = normalizedValue;
-        isInternalChange.current = false;
+    quillRef.current.on("text-change", () => {
+      if (quillRef.current && !isInternalChange.current) {
+        const html = quillRef.current.root.innerHTML;
+        const cleanHtml = html === "<p><br></p>" ? "" : html;
+        onChangeRef.current?.(cleanHtml);
       }
+    });
+
+    quillRef.current.root.addEventListener("blur", (event) => {
+      onBlurRef.current?.(event);
+    });
+
+    // Set initial value immediately after Quill mounts
+    if (value) {
+      isInternalChange.current = true;
+      quillRef.current.root.innerHTML = value;
+      isInternalChange.current = false;
+    }
+
+    isReadyRef.current = true;
+
+    // Notify parent after DOM is fully painted
+    requestAnimationFrame(() => {
+      onReadyRef.current?.();
+    });
+
+    return () => {
+      quillRef.current = null;
+      isReadyRef.current = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync external value changes after editor is ready
+  useEffect(() => {
+    if (!quillRef.current || !isReadyRef.current) return;
+
+    const currentHtml = quillRef.current.root.innerHTML;
+    const normalizedCurrent =
+      currentHtml === "<p><br></p>" ? "" : currentHtml.trim();
+    const normalizedValue = value ? value.trim() : "";
+
+    if (normalizedValue !== normalizedCurrent) {
+      isInternalChange.current = true;
+      quillRef.current.root.innerHTML = normalizedValue;
+      isInternalChange.current = false;
     }
   }, [value]);
 
