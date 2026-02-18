@@ -75,7 +75,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     resolver: zodResolver(addToolSchema),
     defaultValues: {
       name: tool.name,
-      description: "",
+      description: tool.description,
       category: tool.category,
       dailyPrice: tool.dailyPriceCents / 100,
       deposit: tool.depositCents / 100,

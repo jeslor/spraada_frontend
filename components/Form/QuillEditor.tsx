@@ -60,6 +60,13 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         },
       });
 
+      // Set initial value immediately after editor creation to prevent timing issues
+      if (value) {
+        isInternalChange.current = true;
+        quillRef.current.root.innerHTML = value;
+        isInternalChange.current = false;
+      }
+
       quillRef.current.on("text-change", () => {
         if (quillRef.current && !isInternalChange.current) {
           const html = quillRef.current.root.innerHTML;
@@ -73,18 +80,20 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         onBlurRef.current?.(event);
       });
     }
-  }, [placeholder, disabled]);
+  }, [placeholder, disabled, value]);
 
-  // Sync external value changes
+  // Sync external value changes (only update if editor initialized and value actually changed)
   useEffect(() => {
     if (quillRef.current) {
       const currentHtml = quillRef.current.root.innerHTML;
       const normalizedCurrent =
         currentHtml === "<p><br></p>" ? "" : currentHtml;
+      const normalizedValue = value ? value.trim() : "";
 
-      if (value !== normalizedCurrent) {
+      // Only update if values are different and value is not empty
+      if (normalizedValue && normalizedValue !== normalizedCurrent.trim()) {
         isInternalChange.current = true;
-        quillRef.current.root.innerHTML = value || "";
+        quillRef.current.root.innerHTML = normalizedValue;
         isInternalChange.current = false;
       }
     }
@@ -105,7 +114,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
           ? "border-red-500"
           : "border-primary-200 dark:border-primary-700 focus-within:border-primary-500",
         disabled && "opacity-50 cursor-not-allowed",
-        className
+        className,
       )}
       style={
         {
