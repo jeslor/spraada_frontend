@@ -38,12 +38,12 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   const Router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    tool.category
+    tool.category,
   );
 
   // Separate state for existing photos (from DB), deleted and new photos (to upload)
   const [existingPhotos, setExistingPhotos] = useState<ToolPhoto[]>(
-    tool.toolPhotos || []
+    tool.toolPhotos || [],
   );
 
   const [newPhotos, setNewPhotos] = useState<ToolPhoto[]>([]);
@@ -51,7 +51,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
 
   //pick new photos to upload
   const [selectedFileForCrop, setSelectedFileForCrop] = useState<File | null>(
-    null
+    null,
   );
   const [photoError, setPhotoError] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,9 +61,12 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   const user = useUser();
 
   const updateToolInStore = useUpdateToolAction();
-  const fetchMyTools = useFetchMyTools();
 
   const totalPhotoCount = existingPhotos.length + newPhotos.length;
+
+  console.log("==================================");
+  console.log(tool);
+  console.log("===================================");
 
   //form state
   const {
