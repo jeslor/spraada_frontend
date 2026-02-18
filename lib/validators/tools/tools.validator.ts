@@ -1,12 +1,47 @@
 import { z } from "zod";
+import DOMPurify from "isomorphic-dompurify";
 
-// Helper to strip HTML tags for text length validation
-const stripHtml = (html: string): string => {
+/**
+ * Extract plain text from HTML safely
+ */
+const extractPlainText = (html: string): string => {
   return html
     .replace(/<[^>]*>/g, "")
     .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 };
+
+/**
+ * Description validation schema
+ */
+const descriptionSchema = z
+  .string()
+  .min(1, "Description is required")
+  .superRefine((value, ctx) => {
+    const text = extractPlainText(value);
+    const length = text.length;
+
+    if (length < 20) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Description must be at least 20 characters",
+      });
+    }
+
+    if (length > 2000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Description must be less than 2000 characters",
+      });
+    }
+  })
+  .transform((value) => {
+    // Sanitize HTML before storing
+    return DOMPurify.sanitize(value, {
+      USE_PROFILES: { html: true },
+    });
+  });
 
 export const addToolSchema = z.object({
   name: z
@@ -16,12 +51,12 @@ export const addToolSchema = z.object({
   description: z
     .string()
     .refine(
-      (val) => stripHtml(val).length >= 20,
-      "Description must be at least 20 characters"
+      (val) => extractPlainText(val).length >= 20,
+      "Description must be at least 20 characters",
     )
     .refine(
-      (val) => stripHtml(val).length <= 2000,
-      "Description must be less than 2000 characters"
+      (val) => extractPlainText(val).length <= 2000,
+      "Description must be less than 2000 characters",
     ),
   category: z.string().min(1, "Please select a category"),
   dailyPrice: z
