@@ -70,7 +70,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setValue,
     watch,
     trigger,
-    formState: { errors },
+    formState: { errors, defaultValues },
   } = useForm<EditToolFormData>({
     resolver: zodResolver(addToolSchema),
     defaultValues: {
@@ -108,6 +108,8 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   };
 
   const descriptionValue = watch("description");
+
+  console.log("default values", defaultValues?.description);
 
   // Photo handling functions
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
