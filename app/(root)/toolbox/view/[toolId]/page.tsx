@@ -192,7 +192,7 @@ export default function ViewToolPage() {
   };
 
   const handleEditTool = () => {
-    router.push(`/toolbox/edit/${tool.id}`);
+    window.location.href = `/toolbox/edit/${tool.id}`;
   };
 
   const descriptionLength = tool.description?.length || 0;
