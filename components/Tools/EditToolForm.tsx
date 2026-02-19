@@ -64,10 +64,6 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
 
   const totalPhotoCount = existingPhotos.length + newPhotos.length;
 
-  console.log("==================================");
-  console.log(tool.description);
-  console.log("===================================");
-
   //form state
   const {
     register,
