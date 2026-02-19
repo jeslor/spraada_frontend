@@ -199,7 +199,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         {session ? (
           <button
             onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50 cursor-pointer"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50 cursor-pointer md:pb-20 lg:pb-10"
           >
             <Icon icon="solar:logout-2-linear" className="text-2xl shrink-0" />
             {isExpanded && (
@@ -209,7 +209,7 @@ const Sidebar = ({ session }: SidebarProps) => {
         ) : (
           <button
             onClick={() => router.push("/signin")}
-            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50"
+            className="w-full flex items-center gap-4 px-3 py-3 rounded-xl text-gray-700 hover:bg-gray-50  md:pb-20 lg:pb-10"
           >
             <Icon icon="solar:login-2-linear" className="text-2xl shrink-0" />
             {showLabels && (
