@@ -10,6 +10,8 @@ export default function ToolMap() {
   const mapContainer = useRef(null);
 
   useEffect(() => {
+    if (!mapContainer.current) return;
+
     const marker = new mapboxgl.Marker()
       .setLngLat([32.5825, 0.3476])
       .setPopup(
@@ -18,7 +20,7 @@ export default function ToolMap() {
         ),
       );
     const map = new mapboxgl.Map({
-      container: mapContainer.current!,
+      container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v12",
       center: [32.5825, 0.3476], // [lng, lat]
       zoom: 14,
@@ -27,7 +29,7 @@ export default function ToolMap() {
     marker.addTo(map);
 
     return () => map.remove();
-  }, [mapContainer !== null]);
+  }, []);
 
   return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? (
     <div
