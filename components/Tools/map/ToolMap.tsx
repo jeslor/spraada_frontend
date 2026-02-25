@@ -29,10 +29,21 @@ export default function ToolMap() {
     return () => map.remove();
   }, [mapContainer !== null]);
 
-  return (
+  return process.env.NEXT_PUBLIC_MAPBOX_TOKEN ? (
     <div
       ref={mapContainer}
       style={{ width: "100%", height: "400px", borderRadius: "12px" }}
     />
+  ) : (
+    <div className="relative h-[400px] flex  justify-center rounded-[14px] overflow-hidden shadow-md">
+      <p className="absolute p-2 bg-red-100 text-red-700 rounded text-[12px] left-0">
+        Tool location map is still under development.
+      </p>
+      <img
+        src="/images/map_dummy.jpg"
+        alt="Map Placeholder"
+        className="h-full object-cover rounded w-full"
+      />
+    </div>
   );
 }
