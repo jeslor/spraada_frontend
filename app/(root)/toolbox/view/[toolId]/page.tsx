@@ -23,6 +23,7 @@ import BookingModal from "@/components/Booking/BookingModal";
 import toast from "react-hot-toast";
 import { updateFavoriteTools } from "@/lib/actions/profile.actions";
 import { formatPrice } from "@/lib/helpers/dateHelpers";
+import ToolMap from "@/components/Tools/map/ToolMap";
 
 // Format date
 const formatDate = (dateString: string) => {
@@ -456,6 +457,10 @@ export default function ViewToolPage() {
                 </li>
               </ul>
             </section>
+            <div className="pt-6 lg:hidden">
+              {/* add the map */}
+              <ToolMap />
+            </div>
           </div>
 
           {/* Right Column - Sticky Booking Card (Desktop) */}
@@ -691,6 +696,10 @@ export default function ViewToolPage() {
                     </span>
                   </div>
                 </div>
+              </div>
+              <div className="pt-6">
+                {/* add the map */}
+                <ToolMap />
               </div>
             </div>
           </div>
