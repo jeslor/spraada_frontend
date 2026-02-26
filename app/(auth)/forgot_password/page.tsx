@@ -57,6 +57,7 @@ const ForgotPassword = () => {
 
       // send a request to the backend to create a reset token then send it to th user email
       const response = await resetPasswordRequest(data.email);
+      console.log(response);
 
       if (!response.success) {
         throw new Error(response.data);
@@ -74,7 +75,7 @@ const ForgotPassword = () => {
         setError("An account with this email already exists.");
       } else {
         setError(
-          authError.message || "Failed to create account. Please try again."
+          authError.message || "Failed to create account. Please try again.",
         );
       }
     } finally {
@@ -90,6 +91,20 @@ const ForgotPassword = () => {
 
   return emailSent ? (
     <div className="auth-form-header">
+      <div>
+        <Link
+          className="group self-start underline block mr-auto w-fit text-[13px] text-primary-800 hover:text-primary-600"
+          href="/"
+        >
+          <Icon
+            icon="mdi:arrow-left"
+            className="inline-block mr-1 group-hover:translate-x-0.5 transition-transform"
+            width={16}
+            height={16}
+          />
+          Back To Home
+        </Link>
+      </div>
       <div className="flex item-center justify-center">
         <Icon
           icon="fa6-solid:envelope-open-text"
