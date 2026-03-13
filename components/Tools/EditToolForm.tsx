@@ -85,10 +85,10 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
   });
 
   useEffect(() => {
-    if (tool.description) {
+    if (tool?.description) {
       setValue("description", tool.description);
     }
-  }, [tool.description, setValue]);
+  }, [tool?.description, setValue]);
 
   const handleCategorySelect = (categoryValue: string) => {
     setSelectedCategory(categoryValue);
@@ -268,22 +268,24 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
                 />
               }
             />
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <InputField
-                  {...field}
-                  label="Description"
-                  placeholder="Describe your tool's condition, features, and what it's best used for..."
-                  error={errors.description}
-                  richText
-                  value={descriptionValue}
-                  onValueChange={field.onChange}
-                  minHeight="180px"
-                />
-              )}
-            />
+            {tool?.description !== undefined && (
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <InputField
+                    {...field}
+                    label="Description"
+                    placeholder="Describe your tool's condition, features, and what it's best used for..."
+                    error={errors.description}
+                    richText
+                    value={descriptionValue}
+                    onValueChange={field.onChange}
+                    minHeight="180px"
+                  />
+                )}
+              />
+            )}
           </div>
         </section>
 
