@@ -262,8 +262,13 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
                 />
               }
             />
+            <pre className="text-[10px] text-red-500">
+              Debug Value:{" "}
+              {watch("description") ? "Data Exists" : "Data Missing"}
+            </pre>
             {tool?.description && (
               <Controller
+                key={tool.id}
                 name="description"
                 control={control}
                 render={({ field }) => (

@@ -60,7 +60,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         },
       });
       if (value) {
+        isInternalChange.current = true;
         quillRef.current.root.innerHTML = value;
+        isInternalChange.current = false;
       }
 
       quillRef.current.on("text-change", () => {
