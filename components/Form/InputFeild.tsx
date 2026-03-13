@@ -1,4 +1,5 @@
-import React, { forwardRef } from "react";
+"use client";
+import React, { forwardRef, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Label } from "../ui/label";
 import { cn } from "@/lib/utils";
@@ -25,7 +26,7 @@ interface InputFieldProps {
   type?: string;
   value?: string;
   onChange?: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => void;
   onValueChange?: (value: string) => void;
   onBlur?: (event: any) => void;
@@ -69,12 +70,19 @@ const InputField = forwardRef<
       minHeight = "150px",
       ...props
     },
-    ref
+    ref,
   ) => {
+    const [toolDescription, setToolDescription] = React.useState<any>(null);
     // Handle rich text editor changes
     const handleRichTextChange = (htmlValue: string) => {
       onValueChange?.(htmlValue);
     };
+
+    useEffect(() => {
+      if (richText && typeof value === "string") {
+        setToolDescription(value);
+      }
+    }, [value, richText]);
 
     return (
       <div className="space-y-2">
@@ -83,7 +91,7 @@ const InputField = forwardRef<
         </Label>
         {richText ? (
           <QuillEditor
-            value={value}
+            value={toolDescription || ""}
             onChange={handleRichTextChange}
             onBlur={onBlur}
             placeholder={placeholder}
@@ -98,7 +106,7 @@ const InputField = forwardRef<
               <div
                 className={cn(
                   "auth-input-icon",
-                  multiline && "top-5 transform-none"
+                  multiline && "top-5 transform-none",
                 )}
               >
                 {icon}
@@ -115,7 +123,7 @@ const InputField = forwardRef<
                 value={value}
                 onChange={
                   onChange as (
-                    e: React.ChangeEvent<HTMLTextAreaElement>
+                    e: React.ChangeEvent<HTMLTextAreaElement>,
                   ) => void
                 }
                 onBlur={onBlur}
@@ -129,7 +137,7 @@ const InputField = forwardRef<
                     "border-red-500 focus:border-red-500": error,
                   },
                   " min-h-[100px] w-full ",
-                  className
+                  className,
                 )}
               />
             ) : (
@@ -156,7 +164,7 @@ const InputField = forwardRef<
                     "opacity-50 cursor-not-allowed": disabled,
                     "border-red-500 focus:border-red-500": error,
                   },
-                  className
+                  className,
                 )}
               />
             )}
@@ -185,7 +193,7 @@ const InputField = forwardRef<
         )}
       </div>
     );
-  }
+  },
 );
 
 InputField.displayName = "InputField";
