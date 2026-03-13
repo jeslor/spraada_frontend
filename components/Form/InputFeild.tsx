@@ -72,17 +72,10 @@ const InputField = forwardRef<
     },
     ref,
   ) => {
-    const [toolDescription, setToolDescription] = React.useState<any>(null);
     // Handle rich text editor changes
     const handleRichTextChange = (htmlValue: string) => {
       onValueChange?.(htmlValue);
     };
-
-    useEffect(() => {
-      if (richText && typeof value === "string") {
-        setToolDescription(value);
-      }
-    }, [value, richText]);
 
     return (
       <div className="space-y-2">
@@ -91,7 +84,7 @@ const InputField = forwardRef<
         </Label>
         {richText ? (
           <QuillEditor
-            value={toolDescription || ""}
+            value={value || ""}
             onChange={handleRichTextChange}
             onBlur={onBlur}
             placeholder={placeholder}

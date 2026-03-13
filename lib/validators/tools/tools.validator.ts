@@ -15,13 +15,19 @@ export const addToolSchema = z.object({
     .max(100, "Tool name must be less than 100 characters"),
   description: z
     .string()
+    .min(1, "Description is required")
     .refine(
-      (val) => stripHtml(val).length >= 20,
-      "Description must be at least 20 characters"
+      (val) => {
+        const textOnly = stripHtml(val);
+        return textOnly.length >= 20;
+      },
+      {
+        message: "Description must be at least 20 characters",
+      },
     )
     .refine(
       (val) => stripHtml(val).length <= 2000,
-      "Description must be less than 2000 characters"
+      "Description must be less than 2000 characters",
     ),
   category: z.string().min(1, "Please select a category"),
   dailyPrice: z

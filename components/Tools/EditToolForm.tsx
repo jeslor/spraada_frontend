@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Icon } from "@iconify/react";
 import InputField from "@/components/Form/InputFeild";
@@ -16,7 +16,6 @@ import CropImage from "@/components/Onboarding/CropImage";
 import {
   useProfile,
   useUpdateToolAction,
-  useFetchMyTools,
   useUser,
   Tool,
   ToolPhoto,
@@ -71,6 +70,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     setValue,
     watch,
     trigger,
+    control,
     formState: { errors },
   } = useForm<EditToolFormData>({
     resolver: zodResolver(addToolSchema),
@@ -84,16 +84,26 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (tool.description) {
+      setValue("description", tool.description);
+    }
+  }, [tool.description, setValue]);
+
   const handleCategorySelect = (categoryValue: string) => {
     setSelectedCategory(categoryValue);
     setValue("category", categoryValue, { shouldValidate: true });
   };
 
   const handleDescriptionChange = (value: string) => {
-    setValue("description", value);
-    setTimeout(() => {
-      trigger("description");
-    }, 100);
+    setValue("description", value, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    // setTimeout(() => {
+    //   trigger("description");
+    // }, 100);
   };
 
   const descriptionValue = watch("description");
@@ -258,16 +268,21 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
                 />
               }
             />
-
-            <InputField
+            <Controller
               name="description"
-              label="Description"
-              placeholder="Describe your tool's condition, features, and what it's best used for..."
-              error={errors.description}
-              richText
-              value={descriptionValue}
-              onValueChange={handleDescriptionChange}
-              minHeight="180px"
+              control={control}
+              render={({ field }) => (
+                <InputField
+                  {...field}
+                  label="Description"
+                  placeholder="Describe your tool's condition, features, and what it's best used for..."
+                  error={errors.description}
+                  richText
+                  value={descriptionValue}
+                  onValueChange={field.onChange}
+                  minHeight="180px"
+                />
+              )}
             />
           </div>
         </section>
