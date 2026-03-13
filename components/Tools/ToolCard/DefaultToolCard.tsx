@@ -137,7 +137,7 @@ const DefaultCard = ({
         >
           {isOwnedByUser ? (
             <>
-              <a
+              <Link
                 href={`/toolbox/edit/${tool.id}`}
                 className="w-7 h-7 bg-primary-100 rounded-full flex items-center justify-center shadow-xl hover:bg-gray-50 transition-colors"
               >
@@ -146,7 +146,7 @@ const DefaultCard = ({
                   className="text-gray-700"
                   width={15}
                 />
-              </a>
+              </Link>
               <button
                 onClick={handleDeleteClick}
                 disabled={isDeleting}

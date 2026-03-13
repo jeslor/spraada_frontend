@@ -515,13 +515,13 @@ export default function ViewToolPage() {
                   {isOwner ? (
                     <>
                       {/* Owner Actions */}
-                      <a
+                      <Link
                         href={`/toolbox/edit/${tool.id}`}
                         className="flex items-center justify-center gap-2 w-full py-2.5 text-sm bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-lg transition-colors"
                       >
                         <Icon icon="solar:pen-bold" width={16} />
                         Edit Tool Listing
-                      </a>
+                      </Link>
                       <SpraadaButton
                         onClick={changeAvailabiltyStatus}
                         variant="outline"
