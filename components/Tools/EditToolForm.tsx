@@ -84,12 +84,6 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
     },
   });
 
-  useEffect(() => {
-    if (tool?.description) {
-      setValue("description", tool.description);
-    }
-  }, [tool?.description, setValue]);
-
   const handleCategorySelect = (categoryValue: string) => {
     setSelectedCategory(categoryValue);
     setValue("category", categoryValue, { shouldValidate: true });
@@ -268,7 +262,7 @@ export default function EditToolForm({ tool, onSuccess }: EditToolFormProps) {
                 />
               }
             />
-            {tool?.description !== undefined && (
+            {tool?.description && (
               <Controller
                 name="description"
                 control={control}

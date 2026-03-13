@@ -59,6 +59,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
           ],
         },
       });
+      if (value) {
+        quillRef.current.root.innerHTML = value;
+      }
 
       quillRef.current.on("text-change", () => {
         if (quillRef.current && !isInternalChange.current) {
@@ -105,7 +108,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
           ? "border-red-500"
           : "border-primary-200 dark:border-primary-700 focus-within:border-primary-500",
         disabled && "opacity-50 cursor-not-allowed",
-        className
+        className,
       )}
       style={
         {
