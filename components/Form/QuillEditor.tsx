@@ -26,6 +26,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
   className,
   minHeight = "150px",
 }) => {
+  const [isReady, setIsReady] = React.useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<Quill | null>(null);
   const isInternalChange = useRef(false);
@@ -64,6 +65,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         quillRef.current.root.innerHTML = value;
         isInternalChange.current = false;
       }
+      setIsReady(true);
 
       quillRef.current.on("text-change", () => {
         if (quillRef.current && !isInternalChange.current) {
@@ -78,11 +80,11 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
         onBlurRef.current?.(event);
       });
     }
-  }, [placeholder, disabled]);
+  }, [placeholder]);
 
   // Sync external value changes
   useEffect(() => {
-    if (quillRef.current) {
+    if (quillRef.current && isReady) {
       const currentHtml = quillRef.current.root.innerHTML;
       const normalizedCurrent =
         currentHtml === "<p><br></p>" ? "" : currentHtml;
@@ -97,7 +99,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
 
   // Update disabled state
   useEffect(() => {
-    if (quillRef.current) {
+    if (quillRef.current && isReady) {
       quillRef.current.enable(!disabled);
     }
   }, [disabled]);
