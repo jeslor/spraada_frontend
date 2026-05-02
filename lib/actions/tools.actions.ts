@@ -105,7 +105,7 @@ export const getRandomTools = async (count: number) => {
         headers: {
           "Content-Type": "application/json",
         },
-        cache: "no-store",
+        next: { revalidate: 30 },
       }
     );
     if (!response.ok) {

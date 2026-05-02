@@ -15,15 +15,35 @@ import {
   updateToolAvailabilityStatus,
 } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById } from "@/store";
+import dynamic from "next/dynamic";
 import LoadingUI from "@/components/ui/Loading";
 import ImageGallery from "@/components/Tools/ImageGallery";
 import ViewToolError from "@/components/Tools/ViewToolError";
 import { SpraadaButton } from "@/components/ui/SpraadaButton";
-import BookingModal from "@/components/Booking/BookingModal";
 import toast from "react-hot-toast";
 import { updateFavoriteTools } from "@/lib/actions/profile.actions";
 import { formatPrice } from "@/lib/helpers/dateHelpers";
-import ToolMap from "@/components/Tools/map/ToolMap";
+
+const BookingModal = dynamic(
+  () => import("@/components/Booking/BookingModal"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <LoadingUI />
+      </div>
+    ),
+  }
+);
+
+const ToolMap = dynamic(() => import("@/components/Tools/map/ToolMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 flex items-center justify-center bg-primary-50 dark:bg-primary-900 rounded-xl">
+      <LoadingUI />
+    </div>
+  ),
+});
 
 // Format date
 const formatDate = (dateString: string) => {
