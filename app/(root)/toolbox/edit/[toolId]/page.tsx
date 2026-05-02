@@ -1,14 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { redirect, useParams, useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
 import { Tool } from "@/store";
 import { getToolById } from "@/lib/actions/tools.actions";
 import { useProfile, useToolById, useFetchMyTools } from "@/store";
-import EditToolForm from "@/components/Tools/EditToolForm";
 import LoadingUI from "@/components/ui/Loading";
+
+const EditToolForm = dynamic(() => import("@/components/Tools/EditToolForm"), {
+  ssr: false,
+  loading: () => (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <LoadingUI />
+    </div>
+  ),
+});
 
 export default function EditToolPage() {
   const params = useParams();

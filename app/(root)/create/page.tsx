@@ -1,7 +1,16 @@
+import dynamic from "next/dynamic";
 import { Icon } from "@iconify/react";
-import AddToolForm from "@/components/Tools/AddToolForm";
 import { getSession, Session } from "@/lib/session/session";
 import { redirect } from "next/navigation";
+import LoadingUI from "@/components/ui/Loading";
+
+const AddToolForm = dynamic(() => import("@/components/Tools/AddToolForm"), {
+  loading: () => (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <LoadingUI />
+    </div>
+  ),
+});
 
 export default async function AddToolPage() {
   const session: Session | null = await getSession();
