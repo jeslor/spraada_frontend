@@ -51,6 +51,7 @@ const SignInPage = () => {
     } catch (err) {
       const authError = err as AuthError;
       setError(authError.message || "Failed to sign in. Please try again.");
+      setIsLoading(false);
     } finally {
     }
   };
