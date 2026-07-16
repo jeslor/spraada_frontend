@@ -20,7 +20,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-ce-1 # Change to your AWS Region
+          aws-region: eu-central-1 # Change to your AWS Region
 
       # 3. Log in to Amazon ECR
       - name: Login to Amazon ECR
@@ -56,16 +56,16 @@ jobs:
             ECR_PASSWORD
           script: |
             # Log in directly using the passed password (no EC2 AWS CLI required!)
-            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin 777327796579.dkr.ecr.us-east-1.amazonaws.com
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin 777327796579.dkr.ecr.eu-central-1.amazonaws.com
 
             # Pull the correct image name (using / instead of - to match your registry)
-            docker pull 777327796579.dkr.ecr.us-east-1.amazonaws.com/spraada/frontend:latest
+            docker pull 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
 
             # Stop and remove the old container if it exists
             docker stop spraada-app || true
             docker rm spraada-app || true
 
             # Run the fresh container mapping port 80 to 3000
-            docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.us-east-1.amazonaws.com/spraada/frontend:latest
+            docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
         env:
           ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
