@@ -1,0 +1,19 @@
+node_modules
+.next
+out
+build
+coverage
+
+# env files — pass secrets at runtime, never bake them into the image
+.env*
+!.env.example
+
+.git
+.gitignore
+README.md
+Dockerfile
+.dockerignore
+
+*.log
+.DS_Store
+*.tsbuildinfo
