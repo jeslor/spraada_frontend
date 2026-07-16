@@ -20,7 +20,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # Change to your AWS Region
+          aws-region: eu-central-1 # Your AWS Region
 
       # 3. Log in to Amazon ECR
       - name: Login to Amazon ECR
@@ -44,35 +44,42 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5. # SSH into EC2, pass the password, log in, and deploy
+      # 5. Dynamically grab the temporary ECR login password on the GitHub Runner
+      - name: Get ECR Login Password
+        id: get-token
+        run: |
+          echo "password=$(aws ecr get-login-password --region eu-central-1)" >> $GITHUB_OUTPUT
+
+      # 6. SSH into EC2, pass the password, log in, deploy, and clean up
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          # We map the password we outputted in Step 5 directly here
+          ECR_PASSWORD: ${{ steps.get-token.outputs.password }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          # 1. Instruct the SSH action to export the ECR_PASSWORD environment variable on the EC2
-          envs: |
-            ECR_PASSWORD
+          envs: ECR_PASSWORD
           script: |
-            # 2. Check if the password reached the server before running login
+            # Check if the password reached the server before running login
             if [ -z "$ECR_PASSWORD" ]; then
               echo "Error: ECR_PASSWORD is empty!"
               exit 1
             fi
 
-            # 3. Log in directly using the passed password
+            # Log in directly using the passed password
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin 777327796579.dkr.ecr.eu-central-1.amazonaws.com
 
-            # 4. Pull the correct image name (using / instead of - to match your registry)
+            # Pull the correct image name (using / instead of - to match your registry)
             docker pull 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
 
-            # 5. Stop and remove the old container if it exists
+            # Stop and remove the old container if it exists
             docker stop spraada-app || true
             docker rm spraada-app || true
 
-            # 6. Run the fresh container mapping port 80 to 3000
+            # Run the fresh container mapping port 80 to 3000
             docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
-        env:
-          # 3. Map the ECR login password output to the environment variable
-          ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
+
+            # Clean up dangling images (the old container image that became <none> after the pull)
+            docker image prune -f
