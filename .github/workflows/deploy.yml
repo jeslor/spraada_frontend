@@ -20,7 +20,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # Change to your AWS Region
+          aws-region: eu-ce-1 # Change to your AWS Region
 
       # 3. Log in to Amazon ECR
       - name: Login to Amazon ECR
@@ -44,23 +44,28 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5. SSH into EC2 and Deploy the new container
+      # 5. SSH into EC2, pass the password, log in, and deploy
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          # This must be formatted exactly like this:
+          envs: |
+            ECR_PASSWORD
           script: |
-            # Log into ECR on the EC2 instance
-            aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            # Log in directly using the passed password (no EC2 AWS CLI required!)
+            echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin 777327796579.dkr.ecr.us-east-1.amazonaws.com
 
-            # Pull the newly built image
-            docker pull ${{ steps.login-ecr.outputs.registry }}/spraada-frontend:latest
+            # Pull the correct image name (using / instead of - to match your registry)
+            docker pull 777327796579.dkr.ecr.us-east-1.amazonaws.com/spraada/frontend:latest
 
-            # Stop and remove the old running container (if it exists)
+            # Stop and remove the old container if it exists
             docker stop spraada-app || true
             docker rm spraada-app || true
 
-            # Run the new container mapping port 80 (HTTP) to container port 3000
-            docker run -d --name spraada-app -p 80:3000 ${{ steps.login-ecr.outputs.registry }}/spraada-frontend:latest
+            # Run the fresh container mapping port 80 to 3000
+            docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.us-east-1.amazonaws.com/spraada/frontend:latest
+        env:
+          ECR_PASSWORD: ${{ steps.login-ecr.outputs.password }}
