@@ -31,7 +31,7 @@ jobs:
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: spraada-frontend # Match your ECR repo name
+          ECR_REPOSITORY: spraada/frontend # Match your ECR repo name
           IMAGE_TAG: latest
         run: |
           docker build \
