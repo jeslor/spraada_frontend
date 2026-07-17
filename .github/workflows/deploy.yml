@@ -25,7 +25,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 1. Build and Push (NO session secrets are baked in here anymore!)
+      # 1. Build and Push
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -41,17 +41,33 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
+      # 2. NEW: Clean up old untagged images in ECR to save storage costs
+      - name: Clean Up Old ECR Images
+        env:
+          ECR_REPOSITORY: spraada/frontend
+        run: |
+          echo "Finding old untagged images in ECR..."
+          IMAGES_TO_DELETE=$(aws ecr list-images --repository-name $ECR_REPOSITORY --filter "tagStatus=UNTAGGED" --query 'imageIds[*]' --output json)
+
+          if [ "$IMAGES_TO_DELETE" != "[]" ] && [ ! -z "$IMAGES_TO_DELETE" ]; then
+            echo "Deleting old untagged images..."
+            aws ecr batch-delete-image --repository-name $ECR_REPOSITORY --image-ids "$IMAGES_TO_DELETE"
+            echo "ECR cleanup complete."
+          else
+            echo "No untagged images found in ECR. Skipping cleanup."
+          fi
+
       - name: Get ECR Login Password
         id: get-token
         run: |
           echo "password=$(aws ecr get-login-password --region eu-central-1)" >> $GITHUB_OUTPUT
 
-      # 2. SSH into EC2 & run the container with the runtime SESSION_SECRET
+      # 3. SSH into EC2 & run the container with the runtime SESSION_SECRET
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
           ECR_PASSWORD: ${{ steps.get-token.outputs.password }}
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }} # Sourced safely from GitHub Secrets
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
