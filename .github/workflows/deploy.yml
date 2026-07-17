@@ -83,4 +83,4 @@ jobs:
             docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
 
             # Clean up dangling images (the old container image that became <none> after the pull)
-            docker image prune -f
+            docker image prune -a -f
