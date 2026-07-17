@@ -4,22 +4,22 @@ Next.js 16 client for Spraada — a peer-to-peer tool rental marketplace. Handle
 
 ## Tech Stack
 
-| Concern | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript 5 |
-| UI Library | React 19 |
-| Styling | Tailwind CSS 4 |
-| Component primitives | Radix UI (`@radix-ui/react-*`) |
-| State management | Zustand 5 + Immer |
-| Forms | React Hook Form 7 + Zod 4 |
-| Real-time | Socket.IO client 4 |
-| Maps | Mapbox GL JS 3 |
-| Session / auth | `jose` (JWT encryption in Next.js Route Handlers) |
-| Animations | Framer Motion 12 |
-| Notifications | react-hot-toast |
-| Rich text | Quill 2 |
-| Image processing | react-image-crop, heic2any |
+| Concern              | Technology                                        |
+| -------------------- | ------------------------------------------------- |
+| Framework            | Next.js 16 (App Router)                           |
+| Language             | TypeScript 5                                      |
+| UI Library           | React 19                                          |
+| Styling              | Tailwind CSS 4                                    |
+| Component primitives | Radix UI (`@radix-ui/react-*`)                    |
+| State management     | Zustand 5 + Immer                                 |
+| Forms                | React Hook Form 7 + Zod 4                         |
+| Real-time            | Socket.IO client 4                                |
+| Maps                 | Mapbox GL JS 3                                    |
+| Session / auth       | `jose` (JWT encryption in Next.js Route Handlers) |
+| Animations           | Framer Motion 12                                  |
+| Notifications        | react-hot-toast                                   |
+| Rich text            | Quill 2                                           |
+| Image processing     | react-image-crop, heic2any                        |
 
 ---
 
@@ -78,12 +78,12 @@ The app is available at **http://localhost:3000**.
 
 ## NPM Scripts
 
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Next.js in development mode with Fast Refresh |
-| `npm run build` | Build for production (runs type-check + bundling) |
-| `npm run start` | Serve the production build |
-| `npm run lint` | Run ESLint |
+| Script          | Description                                         |
+| --------------- | --------------------------------------------------- |
+| `npm run dev`   | Start Next.js in development mode with Fast Refresh |
+| `npm run build` | Build for production (runs type-check + bundling)   |
+| `npm run start` | Serve the production build                          |
+| `npm run lint`  | Run ESLint                                          |
 
 ---
 
@@ -93,33 +93,33 @@ All authenticated routes are protected by middleware that validates the encrypte
 
 ### Public routes
 
-| Route | Description |
-|---|---|
-| `/signin` | Email/password and Google OAuth sign-in |
-| `/signup` | New user registration |
-| `/forgot_password` | Initiate password-reset flow |
-| `/reset_password` | Set a new password via email token |
-| `/privacy-policy` | Static privacy policy page |
-| `/terms` | Static terms of service page |
+| Route              | Description                             |
+| ------------------ | --------------------------------------- |
+| `/signin`          | Email/password and Google OAuth sign-in |
+| `/signup`          | New user registration                   |
+| `/forgot_password` | Initiate password-reset flow            |
+| `/reset_password`  | Set a new password via email token      |
+| `/privacy-policy`  | Static privacy policy page              |
+| `/terms`           | Static terms of service page            |
 
 ### Authenticated routes
 
-| Route | Description |
-|---|---|
-| `/` | Home — featured / random tool listings |
-| `/browse` | Search and filter all available tools |
-| `/create` | List a new tool for rent |
-| `/toolbox` | Manage your own tool listings |
-| `/toolbox/edit/[toolId]` | Edit an existing listing |
-| `/toolbox/view/[toolId]` | Borrower's tool detail + booking modal + Mapbox map |
-| `/toolbox/view/[toolId]/owner` | Owner's view of their own listing |
-| `/borrowed` | Bookings where you are the borrower |
-| `/rentals` | Bookings where you are the tool owner |
-| `/transactions` | Full transaction history |
-| `/messages` | Real-time conversation inbox |
-| `/profile/[id]` | User profile (public and own) |
-| `/settings` | Account and preference settings |
-| `/report` | Report a user or listing |
+| Route                          | Description                                         |
+| ------------------------------ | --------------------------------------------------- |
+| `/`                            | Home — featured / random tool listings              |
+| `/browse`                      | Search and filter all available tools               |
+| `/create`                      | List a new tool for rent                            |
+| `/toolbox`                     | Manage your own tool listings                       |
+| `/toolbox/edit/[toolId]`       | Edit an existing listing                            |
+| `/toolbox/view/[toolId]`       | Borrower's tool detail + booking modal + Mapbox map |
+| `/toolbox/view/[toolId]/owner` | Owner's view of their own listing                   |
+| `/borrowed`                    | Bookings where you are the borrower                 |
+| `/rentals`                     | Bookings where you are the tool owner               |
+| `/transactions`                | Full transaction history                            |
+| `/messages`                    | Real-time conversation inbox                        |
+| `/profile/[id]`                | User profile (public and own)                       |
+| `/settings`                    | Account and preference settings                     |
+| `/report`                      | Report a user or listing                            |
 
 ---
 
@@ -127,14 +127,14 @@ All authenticated routes are protected by middleware that validates the encrypte
 
 Client-side state is handled by **Zustand 5** stores (with Immer for immutable updates). Each domain owns a dedicated store file under `store/`:
 
-| Store | Responsibility |
-|---|---|
-| `tool/` | Tool listings, search results, toolbox, favourites |
-| `booking/` | Booking lifecycle, status updates |
+| Store            | Responsibility                                        |
+| ---------------- | ----------------------------------------------------- |
+| `tool/`          | Tool listings, search results, toolbox, favourites    |
+| `booking/`       | Booking lifecycle, status updates                     |
 | `conversations/` | Conversation list, unread counters, real-time updates |
-| `messages/` | Message history per conversation, pagination |
-| `notifications/` | Notification list and counters |
-| `profile/` | Authenticated user's profile data |
+| `messages/`      | Message history per conversation, pagination          |
+| `notifications/` | Notification list and counters                        |
+| `profile/`       | Authenticated user's profile data                     |
 
 Stores are composed and re-exported from `store/index.ts`.
 
@@ -145,7 +145,7 @@ Stores are composed and re-exported from `store/index.ts`.
 Authentication uses **encrypted server-side sessions** — not `localStorage`. The flow is:
 
 1. The user submits credentials; the backend returns `access_token` + `refresh_token`.
-2. Next.js Route Handlers (`app/api/auth/*`) encrypt the tokens with `SESSION_SECRET` via `jose` and write a `HttpOnly; Secure; SameSite=Lax` cookie.
+2. Next.js Route Handlers (`app/api/auth/*`) encrypt the tokens with `NEXT_PUBLIC_SESSION_SECRET` via `jose` and write a `HttpOnly; Secure; SameSite=Lax` cookie.
 3. Server Components and middleware read the session directly from the cookie using `lib/session/session.ts`.
 4. Tokens are refreshed transparently before expiry through `POST /api/auth/update-session-token`.
 
@@ -164,12 +164,12 @@ Key events consumed by the Zustand stores:
 
 ## Environment Variables Reference
 
-| Variable | Scope | Required | Description |
-|---|---|---|---|
-| `NEXT_PUBLIC_BACKEND_API_URL` | Client + Server | ✓ | Base URL of the Spraada NestJS API |
-| `NEXT_PUBLIC_FRONTEND_URL` | Client + Server | ✓ | Canonical URL of this app |
-| `SESSION_SECRET` | Server only | ✓ | 32-byte hex secret for session cookie encryption |
-| `NEXT_PUBLIC_MAPBOX_TOKEN` | Client only | ✓ | Mapbox public access token (map will not render without it) |
+| Variable                      | Scope           | Required | Description                                                 |
+| ----------------------------- | --------------- | -------- | ----------------------------------------------------------- |
+| `NEXT_PUBLIC_BACKEND_API_URL` | Client + Server | ✓        | Base URL of the Spraada NestJS API                          |
+| `NEXT_PUBLIC_FRONTEND_URL`    | Client + Server | ✓        | Canonical URL of this app                                   |
+| `SESSION_SECRET`              | Server only     | ✓        | 32-byte hex secret for session cookie encryption            |
+| `NEXT_PUBLIC_MAPBOX_TOKEN`    | Client only     | ✓        | Mapbox public access token (map will not render without it) |
 
 ---
 
@@ -235,13 +235,13 @@ Hooks/                         # Custom React hooks
 
 Heavy client components are loaded with `next/dynamic` to reduce the initial JS bundle:
 
-| Component | Route | Approx. size |
-|---|---|---|
-| `AddToolForm` | `/create` | 636 lines |
-| `EditToolForm` | `/toolbox/edit/[toolId]` | 681 lines |
-| `BookingModal` | `/toolbox/view/[toolId]` | 612 lines |
+| Component          | Route                    | Approx. size     |
+| ------------------ | ------------------------ | ---------------- |
+| `AddToolForm`      | `/create`                | 636 lines        |
+| `EditToolForm`     | `/toolbox/edit/[toolId]` | 681 lines        |
+| `BookingModal`     | `/toolbox/view/[toolId]` | 612 lines        |
 | `ToolMap` (Mapbox) | `/toolbox/view/[toolId]` | Mapbox GL bundle |
-| `Chat` | `/messages` | Full chat UI |
+| `Chat`             | `/messages`              | Full chat UI     |
 
 Each is rendered behind a `<LoadingUI />` skeleton while the chunk loads.
 
@@ -291,4 +291,3 @@ rm -rf node_modules && npm install
 # Rebuild
 npm run build
 ```
-
