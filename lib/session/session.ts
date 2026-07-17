@@ -129,8 +129,7 @@ export async function updateTokensInSession({
     // Set the updated session cookie
     cookieStore.set("spraada_session", newSessionToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      secure: false, // For development purposes; change to true in production
+      secure: process.env.NODE_ENV === "production",
       expires: expireAt,
       sameSite: "lax",
       path: "/",
@@ -200,8 +199,7 @@ export async function updateSessionUserData({
     // Set the updated session cookie
     cookieStore.set("spraada_session", newSessionToken, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      secure: false, // For development purposes; change to true in production
+      secure: process.env.NODE_ENV === "production",
       expires: expireAt,
       sameSite: "lax",
       path: "/",
