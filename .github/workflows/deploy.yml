@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main # Triggers when you merge/push to main
+      - main
   workflow_dispatch:
 
 jobs:
@@ -11,31 +11,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository code
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1 # Your AWS Region
+          aws-region: eu-central-1
 
-      # 3. Log in to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build, tag, and push image to Amazon ECR
+      # 1. Build and Push (NO session secrets are baked in here anymore!)
       - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: spraada/frontend # Match your ECR repo name
+          ECR_REPOSITORY: spraada/frontend
           IMAGE_TAG: latest
         run: |
-          # Create the repository if it doesn't exist
           aws ecr describe-repositories --repository-names $ECR_REPOSITORY || \
             aws ecr create-repository --repository-name $ECR_REPOSITORY
 
@@ -45,42 +41,41 @@ jobs:
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # 5. Dynamically grab the temporary ECR login password on the GitHub Runner
       - name: Get ECR Login Password
         id: get-token
         run: |
           echo "password=$(aws ecr get-login-password --region eu-central-1)" >> $GITHUB_OUTPUT
 
-      # 6. SSH into EC2, pass the password, log in, deploy, and clean up
+      # 2. SSH into EC2 & run the container with the runtime SESSION_SECRET
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         env:
-          # We map the password we outputted in Step 5 directly here
           ECR_PASSWORD: ${{ steps.get-token.outputs.password }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }} # Sourced safely from GitHub Secrets
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: ECR_PASSWORD
+          envs: ECR_PASSWORD, SESSION_SECRET
           script: |
-            # Check if the password reached the server before running login
             if [ -z "$ECR_PASSWORD" ]; then
               echo "Error: ECR_PASSWORD is empty!"
               exit 1
             fi
 
-            # Log in directly using the passed password
             echo "$ECR_PASSWORD" | docker login --username AWS --password-stdin 777327796579.dkr.ecr.eu-central-1.amazonaws.com
 
-            # Pull the correct image name (using / instead of - to match your registry)
             docker pull 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
 
-            # Stop and remove the old container if it exists
             docker stop spraada-app || true
             docker rm spraada-app || true
 
-            # Run the fresh container mapping port 80 to 3000
-            docker run -d --name spraada-app -p 80:3000 777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
+            # Run the container and inject the secret at runtime
+            docker run -d \
+              --name spraada-app \
+              -p 80:3000 \
+              -e SESSION_SECRET="$SESSION_SECRET" \
+              -e NEXTAUTH_SECRET="$SESSION_SECRET" \
+              777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
 
-            # Clean up dangling images (the old container image that became <none> after the pull)
             docker image prune -a -f
