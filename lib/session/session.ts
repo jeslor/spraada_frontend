@@ -30,7 +30,8 @@ export async function createSession(sessionData: Session) {
   const cookieStore = await cookies();
   cookieStore.set("spraada_session", session, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // secure: process.env.NODE_ENV === "production",
+    secure: false,
     expires: expireAt,
     sameSite: "lax",
     path: "/",
@@ -63,7 +64,8 @@ export async function clearSession() {
   const cookieStore = await cookies();
   cookieStore.set("spraada_session", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    // secure: process.env.NODE_ENV === "production",
+    secure: false,
     expires: new Date(0),
     sameSite: "lax",
     path: "/",
@@ -130,7 +132,7 @@ export async function updateTokensInSession({
     cookieStore.set("spraada_session", newSessionToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === "production",
-      secure: false, // For development purposes; change to true in production
+      secure: false,
       expires: expireAt,
       sameSite: "lax",
       path: "/",
@@ -201,7 +203,7 @@ export async function updateSessionUserData({
     cookieStore.set("spraada_session", newSessionToken, {
       httpOnly: true,
       // secure: process.env.NODE_ENV === "production",
-      secure: false, // For development purposes; change to true in production
+      secure: false,
       expires: expireAt,
       sameSite: "lax",
       path: "/",
