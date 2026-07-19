@@ -89,7 +89,7 @@ jobs:
             # Run the container and inject the secret at runtime
             docker run -d \
               --name spraada-app \
-              -p 80:3000 \
+              -p 3000:3000 \
               -e SESSION_SECRET="$SESSION_SECRET" \
               -e NEXTAUTH_SECRET="$SESSION_SECRET" \
               777327796579.dkr.ecr.eu-central-1.amazonaws.com/spraada/frontend:latest
